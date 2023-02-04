@@ -5,6 +5,8 @@
 #include <functional>
 #include <cstring>
 
+#define MAX_TEXTFIELD_STRING_LENGTH 1024
+
 timespec time_;
 
 class console {
@@ -62,7 +64,7 @@ public:
 	}
 
 	bool setText(char* s, int len) {
-		if (len > 256)return false;
+		if (len > MAX_TEXTFIELD_STRING_LENGTH)return false;
 		this->textLength = len;
 		for (int i = 0; i < len; i++) {
 			this->theString[i] = s[i];
@@ -109,9 +111,14 @@ public:
 		}
 	}
 
+	void toggleBorder() {
+		this->border = !this->border;
+	}
+
+private:
 	int scrollSpeed, width, height, textLength, x, y, fgColor, bgColor;
 	bool scrolling, invert, needsRedraw, border;
-	char theString[256];
+	char theString[MAX_TEXTFIELD_STRING_LENGTH];
 	console* mainConsole;
 };
 
@@ -149,6 +156,15 @@ int main() {
 	char* char_array = new char[s.length() + 1];
 	strcpy(char_array, s.c_str());
 	testTextField.setText(char_array, s.length());
+	testTextField.draw();
+	testTextField.toggleBorder();
+	sleep(1);
+	testTextField.draw();
+	testTextField.toggleBorder();
+	sleep(1);
+	testTextField.draw();
+	testTextField.toggleBorder();
+	sleep(1);
 	testTextField.draw();
 	
 	menuItem testMenuItem;
