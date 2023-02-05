@@ -52,8 +52,7 @@
       </LibraryDependencies>
     </Link>
     <RemotePostBuildEvent>
-      <Command>
-      </Command>
+      <Command>exit</Command>
       <Message>
       </Message>
     </RemotePostBuildEvent>
@@ -71,9 +70,14 @@
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="consoleHandler.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="menu.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="consoleHandler.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="menu.h" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
