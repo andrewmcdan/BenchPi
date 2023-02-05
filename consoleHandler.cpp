@@ -5,28 +5,28 @@
 
 
 consoleHandler::consoleHandler() {
-	
 	this->width = stdscr->_maxx;
 	this->height = stdscr->_maxy;
-
 	//clock_gettime(CLOCK_REALTIME, &time_);
 	return;
 }
 
 void consoleHandler::clearScreen() {
-	printf("%c[0;7m", 0x1B); // set black text on white background
-	printf("%c[0;0H", 0x1B); // cursor to top left corner
-	for (int i = 0; i < this->height; i++) {
-		for (int u = 0; u < this->width; u++) {
-			printf(" ");
-		}
-	}
-	printf("%c[0;0H", 0x1B); // return cursor to top left corner
+	clear();
+	//printf("%c[0;7m", 0x1B); // set black text on white background
+	//printf("%c[0;0H", 0x1B); // cursor to top left corner
+	//for (int i = 0; i < this->height; i++) {
+//		for (int u = 0; u < this->width; u++) {
+			//printf(" ");
+		//}
+	//}
+	//printf("%c[0;0H", 0x1B); // return cursor to top left corner
 }
 
 bool consoleHandler::setCursorPos(int x, int y) {
 	if (x > this->width || y > this->height) { return false; }
-	printf("%c[%d;%dH", 0x1B, y, x);
+	move(y, x);
+	//printf("%c[%d;%dH", 0x1B, y, x);
 	return true;
 }
 
@@ -85,7 +85,7 @@ bool textField::setText(std::string s) {
 	char* c = new char[s.length()];
 	strcpy(c, s.c_str());
 	this->textLength = s.length();
-	for (int i = 0; i < s.length(); i++) {
+	for (uint16_t i = 0; i < s.length(); i++) {
 		this->theString[i] = c[i];
 	}
 	return true;
@@ -100,59 +100,59 @@ int textField::draw() {
 	this->mainConsole->setCursorPos(this->x, this->y);
 	if (this->border == 1) {
 		// top left corner
-		printf(u8"\u2554");
+		printw("\u2554");
 		for (int i = 0; i < this->width; i++) {
 			// crossbar
-			printf(u8"\u2550");
+			printw("\u2550");
 		}
 		//top right corner
-		printf(u8"\u2557");
+		printw("\u2557");
 		this->mainConsole->setCursorPos(this->x, this->y + 1);
 		// left edge
-		printf(u8"\u2551");
+		printw("\u2551");
 		if (this->alignment == 1) {
 			for (int i = 0; i < (this->width - this->textLength) / 2; i++) {
-				printf(" ");
+				printw(" ");
 			}
 			for (int i = 0; i < this->width; i++) {
-				if (this->theString[i] != '\0') printf("%c", this->theString[i]);
+				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
 			}
 			for (int i = 0; i < this->width - (this->width - this->textLength) / 2 - this->textLength; i++) {
-				printf(" ");
+				printw(" ");
 			}
 		}
 		else if (this->alignment == 2) {
 			for (int i = 0; i < this->width - this->textLength; i++) {
-				printf(" ");
+				printw(" ");
 			}
 			for (int i = 0; i < this->width; i++) {
-				if (this->theString[i] != '\0') printf("%c", this->theString[i]);
+				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
 			}
 		}
 		else {
 			for (int i = 0; i < this->width; i++) {
-				if (this->theString[i] != '\0') printf("%c", this->theString[i]);
-				else printf(" ");
+				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
+				else printw(" ");
 			}
 		}
 		
 		// right edge
-		printf(u8"\u2551");
+		printw("\u2551");
 		this->mainConsole->setCursorPos(this->x, this->y + 2);
 		// top left corner
-		printf(u8"\u255A");
+		printw("\u255A");
 		for (int i = 0; i < this->width; i++) {
 			// crossbar
-			printf(u8"\u2550");
+			printw("\u2550");
 		}
 		//top right corner
-		printf(u8"\u255D");
+		printw("\u255D");
 	}
 	else  if (this->border == 0) {
 		for (int i = 0; i < this->width; i++) {
 			// crossbar
-			if (this->theString[i] != '\0') printf("%c", this->theString[i]);
-			else printf(" ");
+			if (this->theString[i] != '\0') printw("%c", this->theString[i]);
+			else printw(" ");
 		}
 	}
 	else if (this->border == 2) {
@@ -162,7 +162,7 @@ int textField::draw() {
 			this->border = 3;
 			this->startTime = std::chrono::high_resolution_clock::now();
 			//@TODO
-			printf("!");
+			printw("!");
 		}
 	}
 	else if (this->border == 3) {
@@ -172,10 +172,9 @@ int textField::draw() {
 			this->border = 2;
 			this->startTime = std::chrono::high_resolution_clock::now();
 			//@TODO
-			printf("X");
+			printw("X");
 		}
 	}
-	fflush(stdout);
 	return 1;
 }
 

@@ -1,38 +1,23 @@
 #include <ncurses.h>
+#include <locale.h>
 #include <time.h>
 #include <functional>
 #include <cstring>
 #include <chrono>
 #include <thread>
 #include <vector>
-//#include <sys/poll.h>
-//#include <termios.h>
 #include "menu.h"
 #include "consoleHandler.h"
 #include "main.h"
 
 
 int main() {
+	setlocale(LC_ALL, "en_US.UTF-8");
 	initscr();
 	cbreak();
 	noecho();
 	keypad(stdscr, TRUE);
 	raw();
-
-	//printf("%c[?25l", 0x1b); // turn the cursor off
-	printw("test");
-
-	// setup polling file descriptor for stdin
-	//struct pollfd fds;
-	//int ret;
-	//fds.fd = 0; /* this is STDIN */
-	//fds.events = POLLIN;
-	
-	// setup key capture on the console
-	//struct termios term;
-	//tcgetattr(1, &term);
-	//term.c_lflag &= (~ICANON & ~ECHO);
-	//tcsetattr(1, TCSANOW, &term);
 
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
@@ -56,7 +41,10 @@ int main() {
 		return serialMonitorF4.tField.draw();
 		});
 
-	
+	WINDOW* aWin = newwin(3, 30, 1, 1);
+	box(aWin, 0, 0);
+	wprintw(aWin, "test");
+	wrefresh(aWin);
 
 	/*
 	* Setup items:
@@ -133,24 +121,12 @@ int main() {
 			}
 		}
 
+		// last thing to do in the loop is puch the buffer to the dispaly.
 		refresh();
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 	
-	
-	//menuItem testMenuItem;
-	//testMenuItem.action = [](int a, int b) {
-	//	return a;
-	//};
-
-	//int x = testMenuItem.action(1, 2);
-
-	// Move cursor to bottom right corner and print...
-	printf("%c[%d;%df  width: %d  height: %d", 0x1B, mainWindow.height, mainWindow.width - 23, mainWindow.width, mainWindow.height);
-	//std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-	//printf("%c[37;40m", 0x1B);
-	//printf("%c[2J", 0x1B);
 	endwin();
 	return 0;
 }
