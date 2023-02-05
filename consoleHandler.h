@@ -18,15 +18,19 @@ public:
 
 class textField {
 public:
-	textField(int, int, int, int, int, int, int, consoleHandler*);
+	enum textAlignment { left, center, right };
+	textField();
+	textField(int x_coord, int y_coord, int width, int height, int textColor, int bgColor, int borderEn, consoleHandler* con,textField::textAlignment align);
 	bool setText(char*, int);
 	bool setText(std::string);
-	void draw();
+	int  draw();
 	void toggleBorder();
+
 private:
 	std::chrono::system_clock::time_point startTime = std::chrono::high_resolution_clock::now();
 	int scrollSpeed, width, height, textLength, x, y, fgColor, bgColor, border;
-	bool scrolling, invert, enabled;
+	textAlignment alignment;
+	bool scrolling, invert, enabled, needDraw;
 	char theString[MAX_TEXTFIELD_STRING_LENGTH];
 	consoleHandler* mainConsole;
 };

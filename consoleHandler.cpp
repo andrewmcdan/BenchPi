@@ -1,14 +1,15 @@
 #include "consoleHandler.h"
+#include <cstring>
+#include <functional>
+#include <ncurses.h>
+
+
 consoleHandler::consoleHandler() {
-	struct winsize size;
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
-	this->width = size.ws_col;
-	this->height = size.ws_row;
+	
+	this->width = stdscr->_maxx;
+	this->height = stdscr->_maxy;
 
 	//clock_gettime(CLOCK_REALTIME, &time_);
-
-	clearScreen();
-	fflush(stdout);
 	return;
 }
 
@@ -21,7 +22,6 @@ void consoleHandler::clearScreen() {
 		}
 	}
 	printf("%c[0;0H", 0x1B); // return cursor to top left corner
-	fflush(stdout);
 }
 
 bool consoleHandler::setCursorPos(int x, int y) {
@@ -30,13 +30,27 @@ bool consoleHandler::setCursorPos(int x, int y) {
 	return true;
 }
 
-void consoleHandler::hideCursor() {
-	this->setCursorPos(this->width, this->height);
+
+
+textField::textField(){
+	this->border = 0;
+	this->x = 0;
+	this->y = 0;
+	this->fgColor = 7;
+	this->bgColor = 0;
+	this->scrolling = false;
+	this->invert = false;
+	this->enabled = true;
+	this->needDraw = true;
+	this->width = width;
+	this->height = height;
+	this->startTime = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < 256; i++) {
+		this->theString[i] = '\0';
+	}
 }
-
-
-
-textField::textField(int x_coord, int y_coord, int width, int height, int textColor, int bgColor, int borderEn, consoleHandler* con) {
+textField::textField(int x_coord, int y_coord, int width, int height, int textColor, int bgColor, int borderEn, consoleHandler* con, textField::textAlignment align) {
+	this->alignment = align;
 	this->border = borderEn;
 	this->x = x_coord;
 	this->y = y_coord;
@@ -46,6 +60,7 @@ textField::textField(int x_coord, int y_coord, int width, int height, int textCo
 	this->scrolling = false;
 	this->invert = false;
 	this->enabled = true;
+	this->needDraw = true;
 	this->width = width;
 	this->height = height;
 	this->startTime = std::chrono::high_resolution_clock::now();
@@ -66,15 +81,22 @@ bool textField::setText(char* s, int len) {
 
 bool textField::setText(std::string s) {
 	// @TODO
+	if (s.length() > MAX_TEXTFIELD_STRING_LENGTH)return false;
+	char* c = new char[s.length()];
+	strcpy(c, s.c_str());
+	this->textLength = s.length();
+	for (int i = 0; i < s.length(); i++) {
+		this->theString[i] = c[i];
+	}
 	return true;
 }
 
-void textField::draw() {
+int textField::draw() {
 	//@TODO
 	// need to work on scrolling text
 
 
-	if (!this->enabled)return;
+	if (!this->enabled)return -1;
 	this->mainConsole->setCursorPos(this->x, this->y);
 	if (this->border == 1) {
 		// top left corner
@@ -88,11 +110,32 @@ void textField::draw() {
 		this->mainConsole->setCursorPos(this->x, this->y + 1);
 		// left edge
 		printf(u8"\u2551");
-		for (int i = 0; i < this->width; i++) {
-			// crossbar
-			if (this->theString[i] != '\0') printf("%c", this->theString[i]);
-			else printf(" ");
+		if (this->alignment == 1) {
+			for (int i = 0; i < (this->width - this->textLength) / 2; i++) {
+				printf(" ");
+			}
+			for (int i = 0; i < this->width; i++) {
+				if (this->theString[i] != '\0') printf("%c", this->theString[i]);
+			}
+			for (int i = 0; i < this->width - (this->width - this->textLength) / 2 - this->textLength; i++) {
+				printf(" ");
+			}
 		}
+		else if (this->alignment == 2) {
+			for (int i = 0; i < this->width - this->textLength; i++) {
+				printf(" ");
+			}
+			for (int i = 0; i < this->width; i++) {
+				if (this->theString[i] != '\0') printf("%c", this->theString[i]);
+			}
+		}
+		else {
+			for (int i = 0; i < this->width; i++) {
+				if (this->theString[i] != '\0') printf("%c", this->theString[i]);
+				else printf(" ");
+			}
+		}
+		
 		// right edge
 		printf(u8"\u2551");
 		this->mainConsole->setCursorPos(this->x, this->y + 2);
@@ -133,6 +176,7 @@ void textField::draw() {
 		}
 	}
 	fflush(stdout);
+	return 1;
 }
 
 void textField::toggleBorder() {
