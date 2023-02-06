@@ -43,11 +43,12 @@ int main() {
 		return serialMonitorF4.tField.draw();
 		});
 
+	refresh();
 	WINDOW* aWin = newwin(3, 30, 5, 10);
 	box(aWin, 1, 1);
 	wprintw(aWin, "test");
 	wrefresh(aWin);
-	refresh();
+	
 
 	/*
 	* Setup items:
