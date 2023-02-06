@@ -21,9 +21,8 @@ public:
 	void handleAll();
 
 private:
-	unsigned long id;
+	int id;
 	std::vector<std::function<int()>> funcs;
-	std::vector<unsigned long> id_s;
 };
 
 class inputHandler{
@@ -48,5 +47,4 @@ public:
 private:
 	std::vector<std::function<int()>> funcs;
 	int loopEventId;
-	int keys[256];
 }
