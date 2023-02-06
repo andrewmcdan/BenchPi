@@ -72,6 +72,9 @@ textField::textField(int x_coord, int y_coord, int width, int height, int textCo
 
 bool textField::setText(char* s, int len) {
 	if (len > MAX_TEXTFIELD_STRING_LENGTH)return false;
+	for (int i = 0; i < 256; i++) {
+		this->theString[i] = '\0';
+	}
 	this->textLength = len;
 	for (int i = 0; i < len; i++) {
 		this->theString[i] = s[i];
@@ -82,6 +85,9 @@ bool textField::setText(char* s, int len) {
 bool textField::setText(std::string s) {
 	// @TODO
 	if (s.length() > MAX_TEXTFIELD_STRING_LENGTH)return false;
+	for (int i = 0; i < 256; i++) {
+		this->theString[i] = '\0';
+	}
 	char* c = new char[s.length()];
 	strcpy(c, s.c_str());
 	this->textLength = s.length();
@@ -149,10 +155,30 @@ int textField::draw() {
 		printw("\u255D");
 	}
 	else  if (this->border == 0) {
-		for (int i = 0; i < this->width; i++) {
-			// crossbar
-			if (this->theString[i] != '\0') printw("%c", this->theString[i]);
-			else printw(" ");
+		if (this->alignment == 1) {
+			for (int i = 0; i < (this->width - this->textLength) / 2; i++) {
+				printw(" ");
+			}
+			for (int i = 0; i < this->width; i++) {
+				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
+			}
+			for (int i = 0; i < this->width - (this->width - this->textLength) / 2 - this->textLength; i++) {
+				printw(" ");
+			}
+		}
+		else if (this->alignment == 2) {
+			for (int i = 0; i < this->width - this->textLength; i++) {
+				printw(" ");
+			}
+			for (int i = 0; i < this->width; i++) {
+				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
+			}
+		}
+		else {
+			for (int i = 0; i < this->width; i++) {
+				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
+				else printw(" ");
+			}
 		}
 	}
 	else if (this->border == 2) {

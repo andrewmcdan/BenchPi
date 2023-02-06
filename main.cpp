@@ -17,6 +17,8 @@ int main() {
 	cbreak();
 	noecho();
 	keypad(stdscr, TRUE);
+	curs_set(0);
+	timeout(0);
 	raw();
 
 	consoleHandler mainWindow = consoleHandler();
@@ -41,10 +43,11 @@ int main() {
 		return serialMonitorF4.tField.draw();
 		});
 
-	WINDOW* aWin = newwin(3, 30, 1, 1);
-	box(aWin, 0, 0);
+	WINDOW* aWin = newwin(3, 30, 5, 10);
+	box(aWin, 1, 1);
 	wprintw(aWin, "test");
 	wrefresh(aWin);
+	refresh();
 
 	/*
 	* Setup items:
@@ -54,17 +57,7 @@ int main() {
 	* 
 	*/
 
-	//mainWindow.setCursorPos(5, 20);
-	//printf("5,20");
-	//mainWindow.setCursorPos(20, 5);
-	//printf("20,5 ");
-	//printf(u8"\u2550");
-	//printf(u8"\u2551");
-	//printf(u8"\u2552");
-	//printf(u8"\u2553");
-	//mainWindow.clearScreen();
-
-	textField testTextField(1, 1, 30, 1, 0, 7, 0, &mainWindow, textField::textAlignment::left);
+	textField testTextField(1, 10, 30, 1, 0, 7, 0, &mainWindow, textField::textAlignment::left);
 	std::string s = "test Text abcdefghijklmnopqrsdtuvwxyz";
 	char* char_array = new char[s.length() + 1];
 	strcpy(char_array, s.c_str());
@@ -75,8 +68,7 @@ int main() {
 		return testTextField.draw();
 		});
 
-
-
+	int a, b, c;
 	bool run = true;
 	while (run) {
 		/*
@@ -87,42 +79,35 @@ int main() {
 		* 4. call update on methods that register a loop update method
 		*/
 
-		//mainWindow.clearScreen(); // reset the screen for drawing 
 		loop.handleAll(); // handles all the loop events that hanve been registered
-
-		// check for input on stdin
-		//ret = poll(&fds, 1, 0);
-		if (1 == 1) {
-			char a, b, c;
-			a = getch();
-			// first check for ESC, ESC, ESC in order to exit program
-			if (a == 27) {
-				std::cin >> b;
-				std::cin >> c;
-				if (b == 27 and c == 27) run = false;
-			}
-			// Next print escaped sequences, arrows, etc.
-			if (a < 32) {
-				std::string s = "a: ";
-				s += std::to_string((int)a);
-				s += " b: ";
-				s += std::to_string((int)b);
-				s += " c: ";
-				s += std::to_string((int)c);
-				testTextField.setText(s);
-			}
-			// print strings
-			else {
-				std::string s;
-				std::string t = "Entered: ";
-				t += a;
-				std::getline(std::cin, s);
-				testTextField.setText(t + s);
-			}
+		wprintw(aWin, "t");
+		int temp = getch();
+		if(temp>0) a = temp;
+		
+		std::string s = std::to_string(a);
+		printw(s.c_str());
+		// first check for ESC, ESC, ESC in order to exit program
+		if (a == 27) {
+			b = getch();
+			c = getch();
+			if (b == 27 and c == 27) run = false;
+		}
+		// Next print escaped sequences, arrows, etc.
+		if (a < 32) {
+			b = getch();
+			c = getch();
+			std::string s = "a: ";
+			s += std::to_string((int)a);
+			s += " b: ";
+			s += std::to_string((int)b);
+			s += " c: ";
+			s += std::to_string((int)c);
+			testTextField.setText(s);
 		}
 
 		// last thing to do in the loop is puch the buffer to the dispaly.
 		refresh();
+		wrefresh(aWin);
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
