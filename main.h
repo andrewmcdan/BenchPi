@@ -34,7 +34,7 @@ public:
 	
 	// Add listener for "key" and register a function to be called when that key
 	// is pressed. Reuturns an int id.
-	int addListener(std::function<int()> f, int key);
+	int addListener(std::function<int(int,int)> f, int key);
 
 	// Remove a listener. Returns number of registered listneres. 
 	int remove(int id);
@@ -45,8 +45,14 @@ public:
 	// Handle all the keyboard related input stuff. 
 	void handleInput();
 
+
 private:
-	std::vector<std::function<int()>> funcs;
+	std::vector<std::function<int(int,int)>> funcs;
 	int loopEventId;
-	int keys[256];
+	unsigned long id_index;
+	struct events_s{
+		int key;
+		unsigned long id;
+	}
+	std::vector<events_s> events;
 }

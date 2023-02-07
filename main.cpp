@@ -142,8 +142,8 @@ void loopUpdateHandler::handleAll() {
 }
 
 int loopUpdateHandler::call(int id) {
-	if (id >= this->id) return 0;
-	return this->funcs[id]();
+	if(this->id_s.end() == std::find(this->id_s.begin(),this-id_s.end(),id))return -1;
+	return this->funcs[std::find(this->id_s.begin(),this->id_s.end(), id)]();
 }
 
 inputHandler::inputHandler(loopUpdateHandler* loop){
@@ -153,20 +153,33 @@ inputHandler::inputHandler(loopUpdateHandler* loop){
 	for(uint16_t i = 0; i < 256; i++){
 		this->keys = 0;
 	}
+	this->id = 0;
 }
 
-int inputHandler::addListener(std::function<int()> f, int key){
+int inputHandler::addListener(std::function<int(int,int)> f, int key){
 	this->funcs.push_back(f, key);
+	events_s t = {key,this->id_index++};
+	this->events.push_back(t);
 }
 
 int inputHandler::remove(int id){
-
+	for(uint32_t i = 0; i < this->events.size(); i++){
+		if(this->events[i].id == id) {
+			this->events.erase(id);
+			this->funcs.erase(id);
+		}
+	}
 }
 
 int inputHandler::call(int id){
-
+	for(uint32_t i = 0; i < this->events.size(); i++){
+		if(this->events[i].id == id){
+			return this->funcs[i]();
+		}
+	}
+	return -1;
 }
 
 void inputHandler::handleInput(){
-
+	// 
 }
