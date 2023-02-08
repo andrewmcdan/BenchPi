@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE_EXTENDED
 #include <ncurses.h>
 #include <locale.h>
 #include <time.h>
@@ -9,10 +10,12 @@
 #include "menu.h"
 #include "consoleHandler.h"
 #include "main.h"
+#include <algorithm>
+//#include <iterator>
 
 
 int main() {
-	setlocale(LC_ALL, "en_US.UTF-8");
+	setlocale(LC_ALL, "en_US.utf8");
 	initscr();
 	cbreak();
 	noecho();
@@ -20,11 +23,11 @@ int main() {
 	curs_set(0);
 	timeout(0);
 	raw();
+	refresh();
 
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
 	
-	int i = loop.addEvent([]() {return 654; });
 
 	shortcutItem serialMonitorF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Exit Serial", textField::textAlignment::center);
 	shortcutItem serialMonitorF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Something", textField::textAlignment::center);
@@ -43,7 +46,7 @@ int main() {
 		return serialMonitorF4.tField.draw();
 		});
 
-	refresh();
+	
 	WINDOW* aWin = newwin(3, 30, 5, 10);
 	box(aWin, 1, 1);
 	wprintw(aWin, "test");
@@ -58,7 +61,7 @@ int main() {
 	* 
 	*/
 
-	textField testTextField(1, 10, 30, 1, 0, 7, 0, &mainWindow, textField::textAlignment::left);
+	textField testTextField(1, 10, 30, 1, 0, 7, 1, &mainWindow, textField::textAlignment::left);
 	std::string s = "test Text abcdefghijklmnopqrsdtuvwxyz";
 	char* char_array = new char[s.length() + 1];
 	strcpy(char_array, s.c_str());
@@ -94,7 +97,7 @@ int main() {
 			if (b == 27 and c == 27) run = false;
 		}
 		// Next print escaped sequences, arrows, etc.
-		if (a < 32) {
+		/*if (a < 32) {
 			b = getch();
 			c = getch();
 			std::string s = "a: ";
@@ -104,7 +107,7 @@ int main() {
 			s += " c: ";
 			s += std::to_string((int)c);
 			testTextField.setText(s);
-		}
+		}*/
 
 		// last thing to do in the loop is puch the buffer to the dispaly.
 		refresh();
@@ -130,56 +133,73 @@ int loopUpdateHandler::addEvent(std::function<int()> f) {
 }
 
 int loopUpdateHandler::remove(int id) {
-	this->funcs.erase(std::find(this->id_s.begin(), this->id_s.end(), id));
-	this->id_s.erase(std::find(this->id_s.begin(), this->id_s.end(), id));
+	// get posistion of "id" in id_s vector
+	auto itr = std::find(this->id_s.begin(), this->id_s.end(), id);
+	this->funcs.erase(this->funcs.begin() + std::distance(this->id_s.begin(), itr));
+	this->id_s.erase(itr);
 	return this->funcs.size();
 }
 
 void loopUpdateHandler::handleAll() {
-	for (int i = 0; i < this->funcs.size(); i++) {
+	for (unsigned int i = 0; i < this->funcs.size(); i++) {
 		this->funcs[i]();
 	}
 }
 
 int loopUpdateHandler::call(int id) {
-	if(this->id_s.end() == std::find(this->id_s.begin(),this-id_s.end(),id))return -1;
-	return this->funcs[std::find(this->id_s.begin(),this->id_s.end(), id)]();
+	if(this->id_s.end() == std::find(this->id_s.begin(),this->id_s.end(),id))return -1;
+	auto itr = std::find(this->id_s.begin(), this->id_s.end(), id);
+	return this->funcs[std::distance(this->id_s.begin(),itr)]();
 }
 
 inputHandler::inputHandler(loopUpdateHandler* loop){
 	this->loopEventId = loop->addEvent([this](){
 		this->handleInput();
-	});
-	for(uint16_t i = 0; i < 256; i++){
-		this->keys = 0;
-	}
-	this->id = 0;
+		return 0;
+		});
+
+	this->id_index = 0;
 }
 
 int inputHandler::addListener(std::function<int(int,int)> f, int key){
-	this->funcs.push_back(f, key);
-	events_s t = {key,this->id_index++};
+	this->funcs.push_back(f);
+	events_struct t = {key,this->id_index++};
 	this->events.push_back(t);
+	return this->events.size();
 }
 
-int inputHandler::remove(int id){
-	for(uint32_t i = 0; i < this->events.size(); i++){
+int inputHandler::remove(unsigned long id){
+	if (id > this->events.size())return -1;
+	for(unsigned int i = 0; i < this->events.size(); i++){
 		if(this->events[i].id == id) {
-			this->events.erase(id);
-			this->funcs.erase(id);
-		}
-	}
-}
-
-int inputHandler::call(int id){
-	for(uint32_t i = 0; i < this->events.size(); i++){
-		if(this->events[i].id == id){
-			return this->funcs[i]();
+			this->events.erase(this->events.begin() + i);
+			this->funcs.erase(this->funcs.begin() + i);
+			return this->events.size();
 		}
 	}
 	return -1;
 }
 
+int inputHandler::call(unsigned long id, int a, int b){
+	for(unsigned int i = 0; i < this->events.size(); i++){
+		unsigned int t = this->events[i].id;
+		if(t == id){
+			return this->funcs[i](a, b);
+		}
+	}
+	
+	return -1;
+}
+
 void inputHandler::handleInput(){
 	// 
+	int c = getch();
+	if (c < 1) {
+		char cc = (char)c;
+		printw(&cc);
+	}
+	for (unsigned int i = 0; i < this->events.size(); i++) {
+		printw("w");
+	}
+	return;
 }

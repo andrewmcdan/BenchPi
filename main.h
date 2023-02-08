@@ -26,33 +26,32 @@ private:
 	std::vector<unsigned long> id_s;
 };
 
-class inputHandler{
+class inputHandler {
 public:
 	// Handle input from the keyboard. The loopUpdateHanlder object must be
 	// passed to the inputhandler so that it can register handleInput()
 	inputHandler(loopUpdateHandler* loop);
-	
+
 	// Add listener for "key" and register a function to be called when that key
 	// is pressed. Reuturns an int id.
-	int addListener(std::function<int(int,int)> f, int key);
+	int addListener(std::function<int(int, int)> f, int key);
 
 	// Remove a listener. Returns number of registered listneres. 
-	int remove(int id);
+	int remove(unsigned long id);
 
 	// Call a specific listener's associated function.
-	int call(int id);
+	int call(unsigned long id, int a, int b);
 
 	// Handle all the keyboard related input stuff. 
 	void handleInput();
 
-
 private:
-	std::vector<std::function<int(int,int)>> funcs;
+	std::vector<std::function<int(int, int)>> funcs;
 	int loopEventId;
 	unsigned long id_index;
-	struct events_s{
+	struct events_struct {
 		int key;
 		unsigned long id;
-	}
-	std::vector<events_s> events;
-}
+	};
+	std::vector<events_struct> events;
+};
