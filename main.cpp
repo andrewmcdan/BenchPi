@@ -165,8 +165,8 @@ inputHandler::inputHandler(loopUpdateHandler* loop){
 }
 
 int inputHandler::addListener(std::function<int(int,int)> f, int key){
-	this->funcs.push_back(f);
-	events_struct t = {key,this->id_index++};
+	//this->funcs.push_back(f);
+	events_struct t = {key,this->id_index++,f};
 	this->events.push_back(t);
 	return this->events.size();
 }
@@ -176,7 +176,7 @@ int inputHandler::remove(unsigned long id){
 	for(unsigned int i = 0; i < this->events.size(); i++){
 		if(this->events[i].id == id) {
 			this->events.erase(this->events.begin() + i);
-			this->funcs.erase(this->funcs.begin() + i);
+			//this->funcs.erase(this->funcs.begin() + i);
 			return this->events.size();
 		}
 	}
@@ -187,7 +187,7 @@ int inputHandler::call(unsigned long id, int a, int b){
 	for(unsigned int i = 0; i < this->events.size(); i++){
 		unsigned int t = this->events[i].id;
 		if(t == id){
-			return this->funcs[i](a, b);
+			return this->events[i].func(a, b);
 		}
 	}
 	

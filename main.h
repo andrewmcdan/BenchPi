@@ -24,6 +24,11 @@ private:
 	unsigned long id;
 	std::vector<std::function<int()>> funcs;
 	std::vector<unsigned long> id_s;
+	struct event_struct {
+		unsigned long id;
+		std::function<int()> func;
+	};
+	std::vector<event_struct> events;
 };
 
 class inputHandler {
@@ -49,12 +54,13 @@ public:
 	void printToTextField(textField* tF);
 
 private:
-	std::vector<std::function<int(int, int)>> funcs;
+	//std::vector<std::function<int(int, int)>> funcs;
 	int loopEventId;
 	unsigned long id_index;
 	struct events_struct {
 		int key;
 		unsigned long id;
+		std::function<int(int, int) > func;
 	};
 	std::vector<events_struct> events;
 	textField* printToScreen;
