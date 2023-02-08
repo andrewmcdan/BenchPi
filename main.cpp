@@ -14,7 +14,6 @@
 #include <ctime>
 #include "SerialHandler.h"
 
-
 int main() {
 	setlocale(LC_ALL, "en_US.utf8");
 	initscr();
@@ -25,14 +24,17 @@ int main() {
 	timeout(0);
 	raw();
 	refresh();
-
+	if (has_colors() == FALSE) {
+		endwin();
+		puts("Your terminal does not support color");
+		exit(1);
+	}
+	start_color();
 	bool run = true;
 
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
-	inputHandler userInput = inputHandler(&loop);
-	
-	
+	inputHandler userInput = inputHandler(&loop);	
 
 	shortcutItem serialMonitorF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Exit Serial", textField::textAlignment::center);
 	shortcutItem serialMonitorF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Something", textField::textAlignment::center);
@@ -70,10 +72,14 @@ int main() {
 	* 
 	*/
 
-	textField testTextField(0, 0, mainWindow.width / 2, 10, COLOR_BLACK, COLOR_WHITE, BORDER_ENABLED, &mainWindow, textField::textAlignment::center);
+	textField testTextField(0, 0, mainWindow.width / 2, 10, COLOR_BLACK, COLOR_WHITE, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	std::string s = "test Text";
 	testTextField.setText(s);
 	testTextField.draw();
+
+	textField anotherTF(0, 12, mainWindow.width / 4, 5, COLOR_WHITE, COLOR_BLUE, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
+	anotherTF.setText("some more text");
+	anotherTF.draw();
 
 	std::chrono::steady_clock::now();
 
@@ -100,7 +106,11 @@ int main() {
 	loop.addEvent([&testTextField]() {
 		return testTextField.draw();
 		});
-	SerialHandler serialManager = SerialHandler();
+	loop.addEvent([&anotherTF]() {
+		return anotherTF.draw();
+		});
+	SerialHandler serialPortManager = SerialHandler();
+
 	while (run) {
 		/*
 		* Stuff that needs to go in main loop
@@ -112,11 +122,11 @@ int main() {
 
 		loop.handleAll(); // handles all the loop events that hanve been registered
 		refresh();
-		// last thing to do in the loop is puch the buffer to the dispaly.
+		// last thing to do in the loop is push the buffer to the dispaly.
 		
 		//wrefresh(aWin);
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
-		//std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 	
 	endwin();

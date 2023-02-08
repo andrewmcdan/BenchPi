@@ -32,6 +32,7 @@ private:
 		std::string name;
 		int baud;
 		bool open;
+		bool available;
 		int port_descriptor;
 		struct termios tty;
 	};

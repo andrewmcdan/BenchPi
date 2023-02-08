@@ -20,7 +20,7 @@ SerialHandler::SerialHandler() {
 					printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
 				}
 				// add port info to the "ports" vector
-				ports.push_back({portName,-1,false,ser_port_descriptor,tty_temp});
+				ports.push_back({portName,-1,false,true,ser_port_descriptor,tty_temp});
 			}
 			// close the port at this point since we don't know which ports the ser wants to use
 			close(ser_port_descriptor);
