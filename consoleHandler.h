@@ -10,7 +10,6 @@ public:
 	consoleHandler();
 	void clearScreen();
 	bool setCursorPos(int, int);
-	void hideCursor();
 	int width, height; 
 };
 
@@ -23,12 +22,14 @@ public:
 	bool setText(std::string);
 	int  draw();
 	void toggleBorder();
+	bool toggleEnabled();
+	void setClearOnPrint(bool b);
 
 private:
 	std::chrono::system_clock::time_point startTime = std::chrono::high_resolution_clock::now();
 	int scrollSpeed, width, height, textLength, x, y, fgColor, bgColor, border;
 	textAlignment alignment;
-	bool scrolling, invert, enabled, needDraw;
+	bool scrolling, invert, enabled, needDraw, clearOnPrint;
 	char theString[MAX_TEXTFIELD_STRING_LENGTH];
 	consoleHandler* mainConsole;
 };

@@ -11,9 +11,9 @@
 #include "consoleHandler.h"
 #include "main.h"
 #include <algorithm>
-//#include <iterator>
+#include <ctime>
+#include "SerialHandler.h"
 
-bool run = true;
 
 int main() {
 	setlocale(LC_ALL, "en_US.utf8");
@@ -26,9 +26,12 @@ int main() {
 	raw();
 	refresh();
 
+	bool run = true;
+
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
 	inputHandler userInput = inputHandler(&loop);
+	
 	
 
 	shortcutItem serialMonitorF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Exit Serial", textField::textAlignment::center);
@@ -49,11 +52,15 @@ int main() {
 		});
 
 	
-	WINDOW* aWin = newwin(3, 30, 5, 10);
-	box(aWin, 1, 1);
-	wprintw(aWin, "test");
-	wrefresh(aWin);
+	//WINDOW* aWin = newwin(3, 30, 5, 10);
+	//box(aWin, 1, 1);
+	//wprintw(aWin, "test");
+	//wrefresh(aWin);
 	
+	userInput.addListener([&run](int a, TIMEPOINT_T t) {
+		run = false;
+		return 1; 
+		}, KEY_F0 + 4);
 
 	/*
 	* Setup items:
@@ -63,19 +70,37 @@ int main() {
 	* 
 	*/
 
-	textField testTextField(1, 10, 30, 1, 0, 7, 1, &mainWindow, textField::textAlignment::left);
-	std::string s = "test Text abcdefghijklmnopqrsdtuvwxyz";
-	char* char_array = new char[s.length() + 1];
-	strcpy(char_array, s.c_str());
-	testTextField.setText(char_array, s.length());
+	textField testTextField(0, 0, mainWindow.width / 2, 10, COLOR_BLACK, COLOR_WHITE, BORDER_ENABLED, &mainWindow, textField::textAlignment::center);
+	std::string s = "test Text";
+	testTextField.setText(s);
 	testTextField.draw();
+
+	std::chrono::steady_clock::now();
+
+	// testing toggle a textField being visible or not
+	userInput.addListener([&testTextField,&mainWindow](int c, TIMEPOINT_T t) {
+		testTextField.toggleEnabled();
+		mainWindow.clearScreen();
+		
+		std::string st = std::to_string((std::chrono::duration_cast<std::chrono::milliseconds> (t.time_since_epoch())).count());
+		printw(st.c_str());
+		return 0;
+		}, KEY_F0 + 2);
+
+	// testing printing text from keyboard into textField
+	testTextField.setClearOnPrint(false);
+	userInput.addListener([&testTextField](int c, TIMEPOINT_T t) {
+		char c1 = c;
+		std::string s = std::string(&c1, 1);
+
+		testTextField.setText(s);
+		return 0;
+		}, KEY_ALL_ASCII);
 
 	loop.addEvent([&testTextField]() {
 		return testTextField.draw();
 		});
-
-	int a, b, c;
-	
+	SerialHandler serialManager = SerialHandler();
 	while (run) {
 		/*
 		* Stuff that needs to go in main loop
@@ -86,36 +111,12 @@ int main() {
 		*/
 
 		loop.handleAll(); // handles all the loop events that hanve been registered
-		//wprintw(aWin, "t");
-		//int temp = getch();
-		//if(temp>0) a = temp;
-		
-		//std::string s = std::to_string(a);
-		//printw(s.c_str());
-		// first check for ESC, ESC, ESC in order to exit program
-		/*if (a == 27) {
-			b = getch();
-			c = getch();
-			if (b == 27 and c == 27) run = false;
-		}*/
-		// Next print escaped sequences, arrows, etc.
-		/*if (a < 32) {
-			b = getch();
-			c = getch();
-			std::string s = "a: ";
-			s += std::to_string((int)a);
-			s += " b: ";
-			s += std::to_string((int)b);
-			s += " c: ";
-			s += std::to_string((int)c);
-			testTextField.setText(s);
-		}*/
-
-		// last thing to do in the loop is puch the buffer to the dispaly.
 		refresh();
-		wrefresh(aWin);
+		// last thing to do in the loop is puch the buffer to the dispaly.
+		
+		//wrefresh(aWin);
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 	
 	endwin();
@@ -164,7 +165,7 @@ inputHandler::inputHandler(loopUpdateHandler* loop){
 	this->printToScreenEn = false;
 }
 
-int inputHandler::addListener(std::function<int(int,int)> f, int key){
+int inputHandler::addListener(std::function<int(int, TIMEPOINT_T)> f, int key){
 	//this->funcs.push_back(f);
 	events_struct t = {key,this->id_index++,f};
 	this->events.push_back(t);
@@ -183,11 +184,11 @@ int inputHandler::remove(unsigned long id){
 	return -1;
 }
 
-int inputHandler::call(unsigned long id, int a, int b){
+int inputHandler::call(unsigned long id, int a){
+	TIMEPOINT_T t = std::chrono::steady_clock::now();
 	for(unsigned int i = 0; i < this->events.size(); i++){
-		unsigned int t = this->events[i].id;
-		if(t == id){
-			return this->events[i].func(a, b);
+		if(this->events[i].id == id){
+			return this->events[i].func(a, t);
 		}
 	}
 	
@@ -195,29 +196,32 @@ int inputHandler::call(unsigned long id, int a, int b){
 }
 
 void inputHandler::printToTextField(textField* tF) {
+	
 	return;
 }
 
 void inputHandler::handleInput(){
 	// 
+	auto t = std::chrono::steady_clock::now();
 	int c = getch();
-	/*for (unsigned int i = 0; i < this->events.size(); i++) {
-		printw("w");
-	}*/
+	for (unsigned int i = 0; i < this->events.size(); i++) {
+		if (this->events[i].key == c) {
+			this->events[i].func(c, t);
+		}
+		if (this->events[i].key == KEY_ALL_ASCII && c > 31 && c < 127) {
+			this->events[i].func(c, t);
+		}
+	}
 	if (c == 27) printw("escape     ");
 	else if (c == KEY_F0 + 1) printw("F1       ");
 	else if (c == KEY_F0 + 2) printw("F2       ");
 	else if (c == KEY_F0 + 3) printw("F3       ");
 	else if (c == KEY_F0 + 4) { 
-		run = false;
+		//run = false;
 		printw("F4       "); 
 	}
 	else if (c == 13) printw("Enter 13       ");
 	else if (c == 10) printw("Enter 10       ");
-	else if (c >= 32 && c <= 126) { 
-		printw("%c", c); 
-		printw("          ");
-	}
 	
 	return;
 }

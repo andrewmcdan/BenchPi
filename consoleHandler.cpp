@@ -61,6 +61,7 @@ textField::textField(int x_coord, int y_coord, int width, int height, int textCo
 	this->invert = false;
 	this->enabled = true;
 	this->needDraw = true;
+	this->clearOnPrint = true;
 	this->width = width;
 	this->height = height;
 	this->startTime = std::chrono::high_resolution_clock::now();
@@ -70,29 +71,58 @@ textField::textField(int x_coord, int y_coord, int width, int height, int textCo
 	return;
 }
 
+void textField::setClearOnPrint(bool b) {
+	this->clearOnPrint = b;
+}
+
 bool textField::setText(char* s, int len) {
 	if (len > MAX_TEXTFIELD_STRING_LENGTH)return false;
-	for (int i = 0; i < 256; i++) {
-		this->theString[i] = '\0';
+	if (this->clearOnPrint) {
+		for (int i = 0; i < 256; i++) {
+			this->theString[i] = '\0';
+		}
+		this->textLength = len;
+		for (int i = 0; i < len; i++) {
+			this->theString[i] = s[i];
+		}
 	}
-	this->textLength = len;
-	for (int i = 0; i < len; i++) {
-		this->theString[i] = s[i];
+	else {
+		int temp = this->textLength;
+		this->textLength += len;
+		for (int i = temp; i < this->textLength; i++) {
+			this->theString[i] = s[i - temp];
+		}
 	}
+	
+	
 	return true;
 }
 
 bool textField::setText(std::string s) {
-	// @TODO
 	if (s.length() > MAX_TEXTFIELD_STRING_LENGTH)return false;
-	for (int i = 0; i < 256; i++) {
-		this->theString[i] = '\0';
+	if (this->clearOnPrint) {
+		for (int i = 0; i < 256; i++) {
+			this->theString[i] = '\0';
+		}
+		char* c = new char[s.length()];
+		strcpy(c, s.c_str());
+		this->textLength = s.length();
+		for (uint16_t i = 0; i < s.length(); i++) {
+			this->theString[i] = c[i];
+		}
 	}
-	char* c = new char[s.length()];
-	strcpy(c, s.c_str());
-	this->textLength = s.length();
-	for (uint16_t i = 0; i < s.length(); i++) {
-		this->theString[i] = c[i];
+	else {
+		std::string temp = this->theString;
+		temp += s;
+		for (int i = 0; i < 256; i++) {
+			this->theString[i] = '\0';
+		}
+		char* c = new char[temp.length()];
+		strcpy(c, temp.c_str());
+		this->textLength = temp.length();
+		for (uint16_t i = 0; i < temp.length(); i++) {
+			this->theString[i] = c[i];
+		}
 	}
 	return true;
 }
@@ -207,4 +237,9 @@ int textField::draw() {
 void textField::toggleBorder() {
 	if (border == 0) border = 1;
 	if (border == 1) border = 0;
+}
+
+bool textField::toggleEnabled() {
+	this->enabled = !this->enabled;
+	return this->enabled;
 }

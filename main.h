@@ -1,4 +1,9 @@
 #pragma once
+#define BORDER_ENABLED 1
+#define BORDER_DISABLED 0
+#define TIMEPOINT_T std::chrono::time_point<std::chrono::steady_clock>
+#define KEY_ALL_ASCII 999999
+
 class loopUpdateHandler {
 public:
 	// LoopUpdateHandler handles all the functions that are registered to run 
@@ -39,13 +44,13 @@ public:
 
 	// Add listener for "key" and register a function to be called when that key
 	// is pressed. Reuturns an int id.
-	int addListener(std::function<int(int, int)> f, int key);
+	int addListener(std::function<int(int, std::chrono::_V2::steady_clock::time_point)> f, int key);
 
 	// Remove a listener. Returns number of registered listneres. 
 	int remove(unsigned long id);
 
 	// Call a specific listener's associated function.
-	int call(unsigned long id, int a, int b);
+	int call(unsigned long id, int a);
 
 	// Handle all the keyboard related input stuff. 
 	void handleInput();
@@ -60,7 +65,7 @@ private:
 	struct events_struct {
 		int key;
 		unsigned long id;
-		std::function<int(int, int) > func;
+		std::function<int(int, std::chrono::_V2::steady_clock::time_point) > func;
 	};
 	std::vector<events_struct> events;
 	textField* printToScreen;
