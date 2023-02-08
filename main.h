@@ -45,6 +45,9 @@ public:
 	// Handle all the keyboard related input stuff. 
 	void handleInput();
 
+	// pass a textField object in and normal ASCII characters will be printed in the field
+	void printToTextField(textField* tF);
+
 private:
 	std::vector<std::function<int(int, int)>> funcs;
 	int loopEventId;
@@ -54,4 +57,6 @@ private:
 		unsigned long id;
 	};
 	std::vector<events_struct> events;
+	textField* printToScreen;
+	bool printToScreenEn;
 };

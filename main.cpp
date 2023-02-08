@@ -13,6 +13,7 @@
 #include <algorithm>
 //#include <iterator>
 
+bool run = true;
 
 int main() {
 	setlocale(LC_ALL, "en_US.utf8");
@@ -27,12 +28,13 @@ int main() {
 
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
+	inputHandler userInput = inputHandler(&loop);
 	
 
 	shortcutItem serialMonitorF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Exit Serial", textField::textAlignment::center);
 	shortcutItem serialMonitorF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Something", textField::textAlignment::center);
 	shortcutItem serialMonitorF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - Something", textField::textAlignment::center);
-	shortcutItem serialMonitorF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Something", textField::textAlignment::center);
+	shortcutItem serialMonitorF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Quit", textField::textAlignment::center);
 	loop.addEvent([&serialMonitorF1]() {
 		return serialMonitorF1.tField.draw();
 		});
@@ -73,7 +75,7 @@ int main() {
 		});
 
 	int a, b, c;
-	bool run = true;
+	
 	while (run) {
 		/*
 		* Stuff that needs to go in main loop
@@ -84,18 +86,18 @@ int main() {
 		*/
 
 		loop.handleAll(); // handles all the loop events that hanve been registered
-		wprintw(aWin, "t");
-		int temp = getch();
-		if(temp>0) a = temp;
+		//wprintw(aWin, "t");
+		//int temp = getch();
+		//if(temp>0) a = temp;
 		
-		std::string s = std::to_string(a);
-		printw(s.c_str());
+		//std::string s = std::to_string(a);
+		//printw(s.c_str());
 		// first check for ESC, ESC, ESC in order to exit program
-		if (a == 27) {
+		/*if (a == 27) {
 			b = getch();
 			c = getch();
 			if (b == 27 and c == 27) run = false;
-		}
+		}*/
 		// Next print escaped sequences, arrows, etc.
 		/*if (a < 32) {
 			b = getch();
@@ -194,12 +196,23 @@ int inputHandler::call(unsigned long id, int a, int b){
 void inputHandler::handleInput(){
 	// 
 	int c = getch();
-	if (c < 1) {
-		char cc = (char)c;
-		printw(&cc);
-	}
-	for (unsigned int i = 0; i < this->events.size(); i++) {
+	/*for (unsigned int i = 0; i < this->events.size(); i++) {
 		printw("w");
+	}*/
+	if (c == 27) printw("escape     ");
+	else if (c == KEY_F0 + 1) printw("F1       ");
+	else if (c == KEY_F0 + 2) printw("F2       ");
+	else if (c == KEY_F0 + 3) printw("F3       ");
+	else if (c == KEY_F0 + 4) { 
+		run = false;
+		printw("F4       "); 
 	}
+	else if (c == 13) printw("Enter 13       ");
+	else if (c == 10) printw("Enter 10       ");
+	else if (c >= 32 && c <= 126) { 
+		printw("%c", c); 
+		printw("          ");
+	}
+	
 	return;
 }
