@@ -161,6 +161,7 @@ inputHandler::inputHandler(loopUpdateHandler* loop){
 		});
 
 	this->id_index = 0;
+	this->printToScreenEn = false;
 }
 
 int inputHandler::addListener(std::function<int(int,int)> f, int key){
@@ -191,6 +192,10 @@ int inputHandler::call(unsigned long id, int a, int b){
 	}
 	
 	return -1;
+}
+
+void inputHandler::printToTextField(textField* tF) {
+	return;
 }
 
 void inputHandler::handleInput(){
