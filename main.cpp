@@ -13,6 +13,9 @@
 #include <algorithm>
 #include <ctime>
 #include "SerialHandler.h"
+#include "RtMidi.h"
+#include "MidiHandler.h"
+
 
 int main() {
 	setlocale(LC_ALL, "en_US.utf8");
@@ -27,10 +30,10 @@ int main() {
 	if (has_colors() == FALSE) {
 		endwin();
 		puts("Your terminal does not support color");
-		exit(1);
 	}
 	start_color();
 	bool run = true;
+
 
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
@@ -72,9 +75,9 @@ int main() {
 	* 
 	*/
 
-	textField testTextField(0, 0, mainWindow.width / 2, 10, COLOR_BLACK, COLOR_WHITE, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
-	std::string s = "test Text";
-	testTextField.setText(s);
+	textField testTextField(0, 0, mainWindow.width / 2, 10, COLOR_BLACK, COLOR_WHITE, BORDER_ENABLED, &mainWindow, textField::textAlignment::center);
+	char s[] = "test Text";
+	testTextField.setText(s,9);
 	testTextField.draw();
 
 	textField anotherTF(0, 12, mainWindow.width / 4, 5, COLOR_WHITE, COLOR_BLUE, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
@@ -97,9 +100,7 @@ int main() {
 	testTextField.setClearOnPrint(false);
 	userInput.addListener([&testTextField](int c, TIMEPOINT_T t) {
 		char c1 = c;
-		std::string s = std::string(&c1, 1);
-
-		testTextField.setText(s);
+		testTextField.setText(&c1, 1);
 		return 0;
 		}, KEY_ALL_ASCII);
 

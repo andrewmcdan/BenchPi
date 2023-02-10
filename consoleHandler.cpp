@@ -32,7 +32,7 @@ textField::textField(){
 	this->width = 0;
 	this->height = 0;
 	this->startTime = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < 256; i++) {
+	for (int i = 0; i < MAX_TEXTFIELD_STRING_LENGTH; i++) {
 		this->theString[i] = '\0';
 	}
 }
@@ -53,7 +53,7 @@ textField::textField(int x_coord, int y_coord, int width, int height, short int 
 	this->width = width;
 	this->height = height;
 	this->startTime = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < 256; i++) {
+	for (int i = 0; i < MAX_TEXTFIELD_STRING_LENGTH; i++) {
 		this->theString[i] = '\0';
 	}
 	return;
@@ -64,9 +64,9 @@ void textField::setClearOnPrint(bool b) {
 }
 
 bool textField::setText(char* s, int len) {
-	if (len > MAX_TEXTFIELD_STRING_LENGTH)return false;
+	if (len + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1)return false;
 	if (this->clearOnPrint) {
-		for (int i = 0; i < 256; i++) {
+		for (int i = 0; i < MAX_TEXTFIELD_STRING_LENGTH; i++) {
 			this->theString[i] = '\0';
 		}
 		this->textLength = len;
@@ -87,31 +87,10 @@ bool textField::setText(char* s, int len) {
 }
 
 bool textField::setText(std::string s) {
-	if (s.length() > MAX_TEXTFIELD_STRING_LENGTH)return false;
-	if (this->clearOnPrint) {
-		for (int i = 0; i < 256; i++) {
-			this->theString[i] = '\0';
-		}
-		char* c = new char[s.length()];
-		strcpy(c, s.c_str());
-		this->textLength = s.length();
-		for (uint16_t i = 0; i < s.length(); i++) {
-			this->theString[i] = c[i];
-		}
-	}
-	else {
-		std::string temp = this->theString;
-		temp += s;
-		for (int i = 0; i < 256; i++) {
-			this->theString[i] = '\0';
-		}
-		char* c = new char[temp.length()];
-		strcpy(c, temp.c_str());
-		this->textLength = temp.length();
-		for (uint16_t i = 0; i < temp.length(); i++) {
-			this->theString[i] = c[i];
-		}
-	}
+	if (s.length() + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1)return false;
+	char* c = new char[s.length()];
+	strcpy(c, s.c_str());
+	this->setText(c, s.length());
 	return true;
 }
 
@@ -152,6 +131,14 @@ int textField::draw() {
 		//print bottom right vorner
 		printw("\u255D");
 
+		// clear the textField so that no remnants of past text show up
+		for (int i = 0; i < this->height; i++) {
+			this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
+			for (int p = 0; p < this->width; p++) {
+				printw(" ");
+			}
+		}
+
 		// print text
 		switch (this->alignment) {
 		case left:
@@ -159,12 +146,20 @@ int textField::draw() {
 				this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
 				for (int p = 0; p < this->width; p++) {
 					int temp = i * this->width + p;
-					if (theString[temp] == '\0') printw(" ");
+					if (theString[temp] == '\0') break;
 					else printw("%c",theString[temp]);
 				}
 			}
 			break;
 		case center:
+			for (int i = 0; i < this->height; i++) {
+				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + 1 + i);
+				for (int p = 0; p < this->width; p++) {
+					int temp = i * this->width + p;
+					if (theString[temp] == '\0') break;
+					else printw("%c", theString[temp]);
+				}
+			}
 			break;
 		case right:
 			break;
@@ -173,57 +168,6 @@ int textField::draw() {
 		}
 	}
 
-
-	//if (this->border == 1) {
-	//	// top left corner
-	//	printw("\u2554");
-	//	for (int i = 0; i < this->width; i++) {
-	//		// crossbar
-	//		printw("\u2550");
-	//	}
-	//	//top right corner
-	//	printw("\u2557");
-	//	this->mainConsole->setCursorPos(this->x, this->y + 1);
-	//	// left edge
-	//	printw("\u2551");
-	//	if (this->alignment == 1) {
-	//		for (int i = 0; i < (this->width - this->textLength) / 2; i++) {
-	//			printw(" ");
-	//		}
-	//		for (int i = 0; i < this->width; i++) {
-	//			if (this->theString[i] != '\0') printw("%c", this->theString[i]);
-	//		}
-	//		for (int i = 0; i < this->width - (this->width - this->textLength) / 2 - this->textLength; i++) {
-	//			printw(" ");
-	//		}
-	//	}
-	//	else if (this->alignment == 2) {
-	//		for (int i = 0; i < this->width - this->textLength; i++) {
-	//			printw(" ");
-	//		}
-	//		for (int i = 0; i < this->width; i++) {
-	//			if (this->theString[i] != '\0') printw("%c", this->theString[i]);
-	//		}
-	//	}
-	//	else {
-	//		for (int i = 0; i < this->width; i++) {
-	//			if (this->theString[i] != '\0') printw("%c", this->theString[i]);
-	//			else printw(" ");
-	//		}
-	//	}
-	//	
-	//	// right edge
-	//	printw("\u2551");
-	//	this->mainConsole->setCursorPos(this->x, this->y + 2);
-	//	// top left corner
-	//	printw("\u255A");
-	//	for (int i = 0; i < this->width; i++) {
-	//		// crossbar
-	//		printw("\u2550");
-	//	}
-	//	//top right corner
-	//	printw("\u255D");
-	//}
 	else  if (this->border == 0) {
 		if (this->alignment == 1) {
 			for (int i = 0; i < (this->width - this->textLength) / 2; i++) {
