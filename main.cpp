@@ -38,31 +38,26 @@ int main() {
 	loopUpdateHandler loop = loopUpdateHandler();
 	inputHandler userInput = inputHandler(&loop);	
 
-	shortcutItem serialMonitorF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
-	shortcutItem serialMonitorF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Options", textField::textAlignment::center);
-	shortcutItem serialMonitorF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - MIDI Config", textField::textAlignment::center);
-	shortcutItem serialMonitorF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Quit", textField::textAlignment::center);
-	loop.addEvent([&serialMonitorF1]() {
-		return serialMonitorF1.tField.draw();
+	shortcutItem shortcutF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
+	shortcutItem shortcutF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Options", textField::textAlignment::center);
+	shortcutItem shortcutF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - MIDI Config", textField::textAlignment::center);
+	shortcutItem shortcutF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Quit", textField::textAlignment::center);
+	loop.addEvent([&shortcutF1]() {
+		return shortcutF1.tField.draw();
 		});
-	loop.addEvent([&serialMonitorF2]() {
-		return serialMonitorF2.tField.draw();
+	loop.addEvent([&shortcutF2]() {
+		return shortcutF2.tField.draw();
 		});
-	loop.addEvent([&serialMonitorF3]() {
-		return serialMonitorF3.tField.draw();
+	loop.addEvent([&shortcutF3]() {
+		return shortcutF3.tField.draw();
 		});
-	loop.addEvent([&serialMonitorF4]() {
-		return serialMonitorF4.tField.draw();
+	loop.addEvent([&shortcutF4]() {
+		return shortcutF4.tField.draw();
 		});
 
-	
-	//WINDOW* aWin = newwin(3, 30, 5, 10);
-	//box(aWin, 1, 1);
-	//wprintw(aWin, "test");
-	//wrefresh(aWin);
 	textField quitConfirm(0, 0, mainWindow.width - 2, mainWindow.height - 1, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::center);
 
-	serialMonitorF4.setInputListenerIdAndKey(
+	shortcutF4.setInputListenerIdAndKey(
 		userInput.addListener(
 			[&userInput,&mainWindow,&loop,&quitConfirm,&run](int a, TIMEPOINT_T t) {
 				mainWindow.clearScreen();
@@ -139,6 +134,12 @@ int main() {
 		return anotherTF.draw();
 		});
 	SerialHandler serialPortManager = SerialHandler();
+
+	std::string portName = "/dev/ttyUSB0";
+	//shortcutF2.tField.setText(std::to_string(serialPortManager.openPort("/dev/ttyUSB0")));
+	serialPortManager.openPort(portName);
+	serialPortManager.setPortConfig(portName, 9600, 8);
+	serialPortManager.setTextFieldForPort("/dev/ttyUSB0", &anotherTF);
 
 	loop.addEvent([&serialPortManager]() {
 		serialPortManager.update();

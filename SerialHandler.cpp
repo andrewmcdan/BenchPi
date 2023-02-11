@@ -4,6 +4,7 @@ SerialHandler::SerialHandler() {
 
 	std::string portName = "";
 	int ser_port_descriptor = 0;
+	textField* temp_tF;
 
 	for (int p = 0; p < NUMBER_OF_SERIAL_PREFIXES; p++) {
 		for (int i = 0; i < 100; i++) {
@@ -20,7 +21,7 @@ SerialHandler::SerialHandler() {
 					printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
 				}
 				// add port info to the "ports" vector
-				ports.push_back({portName,-1,false,true,ser_port_descriptor,tty_temp});
+				ports.push_back({portName,-1,false,true,ser_port_descriptor,tty_temp,temp_tF,HEX});
 			}
 			// close the port at this point since we don't know which ports the ser wants to use
 			close(ser_port_descriptor);
@@ -29,13 +30,14 @@ SerialHandler::SerialHandler() {
 }
 
 int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte) {
-	this->setPortConfig(name, baud, bitPerByte, false, false, false);
+	return this->setPortConfig(name, baud, bitPerByte, false, false, false);
 }
 
 int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, bool parity, bool stopBits, bool hardwareFlow) {
-	for (auto i = 0; i < this->ports.size(); i++) {
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).name.compare(name) == 0) {
 			if (!this->ports.at(i).open) return 0;
+
 			if (parity) this->ports.at(i).tty.c_cflag |= PARENB;
 			else this->ports.at(i).tty.c_cflag &= ~PARENB;
 
@@ -83,28 +85,47 @@ int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, boo
 			if (tcsetattr(this->ports.at(i).port_descriptor, TCSANOW, &tty) != 0) {
 				return -1;
 			}
+			this->ports.at(i).baud = baud;
 			return 1;
 		}
 	}
 	return -2;
-	
 }
-int SerialHandler::getPortConfig(termios* tty_) { return 1; }
+int SerialHandler::getPortConfig(int portDescriptor, termios* tty_) {
+	if (tcgetattr(portDescriptor, tty_) != 0) {
+		return -1;
+	}
+	return 1; 
+}
 
 void SerialHandler::update() {
-	for (auto i = 0; i < this->ports.size(); i++) {
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).available && this->ports.at(i).open) {
 			char read_buf[256];
 			int n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
-			this->ports.at(i).textField_->setText(read_buf, n);
+			switch (this->ports.at(i).printMode_) {
+			case ASCII:
+				this->ports.at(i).textField_->setText(read_buf, n);
+				break;
+			case HEX:
+				for (int itr = 0; itr < n; itr++) {
+					std::ostringstream ss;
+					ss << std::hex << read_buf[itr];
+					std::string s = "0x" + ss.str() + " ";
+					this->ports.at(i).textField_->setText(s);
+				}
+				break;
+			}
+			
 		}
 	}
 }
 
 int SerialHandler::setTextFieldForPort(std::string portName, textField* tF) {
-	for (auto i = 0; i < this->ports.size(); i++) {
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).name.compare(portName) == 0) {
 			this->ports.at(i).textField_ = tF;
+			this->ports.at(i).textField_->setClearOnPrint(false);
 			return 1;
 		}
 	}
@@ -113,9 +134,9 @@ int SerialHandler::setTextFieldForPort(std::string portName, textField* tF) {
 
 int SerialHandler::openPort(std::string name) {
 	int ser_port_descriptor = open(name.c_str(), O_RDWR);
-	// if the descriptor is >= 0 then the por was succesffuly opened.
+	// if the descriptor is >= 0 then the port was succesffuly opened.
 	if (ser_port_descriptor >= 0) {
-		for (auto i = 0; i < this->ports.size(); i++) {
+		for (unsigned int i = 0; i < this->ports.size(); i++) {
 			if (this->ports.at(i).name.compare(name) == 0) {
 				this->ports.at(i).port_descriptor = ser_port_descriptor;
 				this->ports.at(i).open = true;
@@ -126,9 +147,32 @@ int SerialHandler::openPort(std::string name) {
 }
 
 int SerialHandler::closePort(std::string name) {
-	return 1;
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
+		if (this->ports.at(i).name.compare(name) == 0) {
+			close(this->ports.at(i).port_descriptor);
+			this->ports.at(i).open = false;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int SerialHandler::closePort(int portDescriptor) {
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
+		if (this->ports.at(i).port_descriptor == portDescriptor && this->ports.at(i).open) {
+			close(this->ports.at(i).port_descriptor);
+			this->ports.at(i).open = false;
+			return 1;
+		}
+	}
+	return 0;
 }
 
 void SerialHandler::closeAllPorts() {
-
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
+		if (this->ports.at(i).open) {
+			close(this->ports.at(i).port_descriptor);
+			this->ports.at(i).open = false;
+		}
+	}
 }

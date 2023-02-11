@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 #include "consoleHandler.h"
+#include <iostream>
+#include <sstream>
 
 // Linux headers
 #include <fcntl.h> // Contains file controls like O_RDWR
@@ -28,13 +30,16 @@ public:
 	// returns 1 if successful, 0 if port isn't open, -1 if there was an error, -2 if port not found
 	int setPortConfig(std::string name, int baud, int bitPerByte, bool parity, bool stopBits, bool hardwareFlow);
 	int setPortConfig(std::string name, int baud, int bitPerBytes);
-	int getPortConfig(termios* tty_);
+	int getPortConfig(int portDescriptor, termios* tty_);
 	int setTextFieldForPort(std::string portName, textField* tF);
 	int openPort(std::string name);
 	int closePort(std::string name);
+	int closePort(int portDescriptor);
 	void closeAllPorts();
 
 private:
+	enum printMode { ASCII, HEX, BIN };
+
 	struct ports_struct {
 		std::string name;
 		int baud;
@@ -43,7 +48,10 @@ private:
 		int port_descriptor;
 		struct termios tty;
 		textField* textField_;
+		printMode printMode_;
 	};
+
+	
 
 	std::vector<ports_struct>ports;
 
