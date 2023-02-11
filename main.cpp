@@ -73,8 +73,24 @@ int main() {
 				quitConfirm.setText(c,20);
 				userInput.addListener([&](int c2, TIMEPOINT_T t2) { run = false; mainWindow.clearScreen(); return 1;}, 'Y');
 				userInput.addListener([&](int c2, TIMEPOINT_T t2) { run = false; mainWindow.clearScreen(); return 1; }, 'y');
-				userInput.addListener([&, loopEvent](int c2, TIMEPOINT_T t2) { quitConfirm.setEnabled(false); userInput.removeByKey('Y'); userInput.removeByKey('y'); userInput.removeByKey('n'); loop.remove(loopEvent); mainWindow.clearScreen(); return 1; }, 'n');
-				userInput.addListener([&, loopEvent](int c2, TIMEPOINT_T t2) { quitConfirm.setEnabled(false); userInput.removeByKey('Y'); userInput.removeByKey('y'); userInput.removeByKey('n'); loop.remove(loopEvent); mainWindow.clearScreen(); return 1; }, 'N');
+				userInput.addListener([&, loopEvent](int c2, TIMEPOINT_T t2) { 
+					quitConfirm.setEnabled(false); 
+					userInput.removeByKey('Y'); 
+					userInput.removeByKey('y');
+					userInput.removeByKey('n'); 
+					userInput.removeByKey('N');
+					loop.remove(loopEvent); 
+					mainWindow.clearScreen(); 
+					return 1; }, 'n');
+				userInput.addListener([&, loopEvent](int c2, TIMEPOINT_T t2) { 
+					quitConfirm.setEnabled(false); 
+					userInput.removeByKey('Y'); 
+					userInput.removeByKey('y'); 
+					userInput.removeByKey('n'); 
+					userInput.removeByKey('N');
+					loop.remove(loopEvent); 
+					mainWindow.clearScreen(); 
+					return 1; }, 'N');
 				return 1; },
 				KEY_F(4)),
 			KEY_F(4));

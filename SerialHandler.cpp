@@ -28,7 +28,11 @@ SerialHandler::SerialHandler() {
 	}
 }
 
-int SerialHandler::setPortConfig(std::string name, int baud, int bitPerBytes, bool parity = false, bool stopBits = false, bool hardwareFlow = false) {
+int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte) {
+	this->setPortConfig(name, baud, bitPerByte, false, false, false);
+}
+
+int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, bool parity, bool stopBits, bool hardwareFlow) {
 	for (auto i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).name.compare(name) == 0) {
 			if (!this->ports.at(i).open) return 0;
@@ -39,7 +43,7 @@ int SerialHandler::setPortConfig(std::string name, int baud, int bitPerBytes, bo
 			else this->ports.at(i).tty.c_cflag &= ~CSTOPB;
 
 			this->ports.at(i).tty.c_cflag &= ~CSIZE;
-			switch (bitPerBytes) {
+			switch (bitPerByte) {
 			case 5:
 				this->ports.at(i).tty.c_cflag |= CS5;
 				break;
