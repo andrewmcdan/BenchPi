@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #define BORDER_ENABLED 1
 #define BORDER_DISABLED 0
 #define TIMEPOINT_T std::chrono::time_point<std::chrono::steady_clock>
@@ -48,6 +49,10 @@ public:
 
 	// Remove a listener. Returns number of registered listneres. 
 	int remove(unsigned long id);
+
+	int removeByKey(int key);
+
+	void resetEvents();
 
 	// Call a specific listener's associated function.
 	int call(unsigned long id, int a);

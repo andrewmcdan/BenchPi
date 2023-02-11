@@ -14,7 +14,7 @@ public:
 	consoleHandler();
 	void clearScreen();
 	bool setCursorPos(int, int);
-	short int colornum(short int fg, short int bg);
+	int colornum(int fg, int bg);
 	int width, height; 
 };
 
@@ -28,7 +28,9 @@ public:
 	int  draw();
 	void toggleBorder();
 	bool toggleEnabled();
+	void setEnabled(bool b);
 	void setClearOnPrint(bool b);
+	~textField();
 
 private:
 	std::chrono::system_clock::time_point startTime = std::chrono::high_resolution_clock::now();

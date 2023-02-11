@@ -15,8 +15,10 @@ shortcutItem::shortcutItem(int pos, std::function<int()> f,consoleHandler* con, 
 	char* c = new char[text.length()];
 	strcpy(c, text.c_str());
 	this->tField.setText(c,text.length());
-	this->func = f;
-	//this->tField.draw();
-	//this->tField.registerDraw();
-	//this->tFielf.registerKeyscan("F1");
+	this->inputListenerID = -1;
+}
+
+void shortcutItem::setInputListenerIdAndKey(int id, int key) {
+	this->inputListenerID = id;
+	this->key = key;
 }

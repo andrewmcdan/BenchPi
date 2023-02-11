@@ -6,7 +6,6 @@
 #include <cstring>
 #include <chrono>
 #include <thread>
-#include <vector>
 #include "menu.h"
 #include "consoleHandler.h"
 #include "main.h"
@@ -26,22 +25,22 @@ int main() {
 	curs_set(0);
 	timeout(0);
 	raw();
-	refresh();
 	if (has_colors() == FALSE) {
 		endwin();
 		puts("Your terminal does not support color");
 	}
 	start_color();
+	refresh();
 	bool run = true;
-
+	
 
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
 	inputHandler userInput = inputHandler(&loop);	
 
-	shortcutItem serialMonitorF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Exit Serial", textField::textAlignment::center);
-	shortcutItem serialMonitorF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Something", textField::textAlignment::center);
-	shortcutItem serialMonitorF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - Something", textField::textAlignment::center);
+	shortcutItem serialMonitorF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
+	shortcutItem serialMonitorF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Options", textField::textAlignment::center);
+	shortcutItem serialMonitorF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - MIDI Config", textField::textAlignment::center);
 	shortcutItem serialMonitorF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Quit", textField::textAlignment::center);
 	loop.addEvent([&serialMonitorF1]() {
 		return serialMonitorF1.tField.draw();
@@ -61,11 +60,24 @@ int main() {
 	//box(aWin, 1, 1);
 	//wprintw(aWin, "test");
 	//wrefresh(aWin);
-	
-	userInput.addListener([&run](int a, TIMEPOINT_T t) {
-		run = false;
-		return 1; 
-		}, KEY_F0 + 4);
+	textField quitConfirm(0, 0, mainWindow.width - 2, mainWindow.height - 1, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::center);
+
+	serialMonitorF4.setInputListenerIdAndKey(
+		userInput.addListener(
+			[&userInput,&mainWindow,&loop,&quitConfirm,&run](int a, TIMEPOINT_T t) {
+				mainWindow.clearScreen();
+				int loopEvent = loop.addEvent([&quitConfirm]() {quitConfirm.draw(); return 1; });
+				quitConfirm.setClearOnPrint(true);
+				quitConfirm.setEnabled(true);
+				char c[] = "Confirm Quit Y / N ?";
+				quitConfirm.setText(c,20);
+				userInput.addListener([&](int c2, TIMEPOINT_T t2) { run = false; mainWindow.clearScreen(); return 1;}, 'Y');
+				userInput.addListener([&](int c2, TIMEPOINT_T t2) { run = false; mainWindow.clearScreen(); return 1; }, 'y');
+				userInput.addListener([&, loopEvent](int c2, TIMEPOINT_T t2) { quitConfirm.setEnabled(false); userInput.removeByKey('Y'); userInput.removeByKey('y'); userInput.removeByKey('n'); loop.remove(loopEvent); mainWindow.clearScreen(); return 1; }, 'n');
+				userInput.addListener([&, loopEvent](int c2, TIMEPOINT_T t2) { quitConfirm.setEnabled(false); userInput.removeByKey('Y'); userInput.removeByKey('y'); userInput.removeByKey('n'); loop.remove(loopEvent); mainWindow.clearScreen(); return 1; }, 'N');
+				return 1; },
+				KEY_F(4)),
+			KEY_F(4));
 
 	/*
 	* Setup items:
@@ -75,12 +87,12 @@ int main() {
 	* 
 	*/
 
-	textField testTextField(0, 0, mainWindow.width / 2, 10, COLOR_BLACK, COLOR_WHITE, BORDER_ENABLED, &mainWindow, textField::textAlignment::center);
+	textField testTextField(0, 0, mainWindow.width / 2, 10, COLOR_CYAN, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	char s[] = "test Text";
 	testTextField.setText(s,9);
 	testTextField.draw();
 
-	textField anotherTF(0, 12, mainWindow.width / 4, 5, COLOR_WHITE, COLOR_BLUE, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
+	textField anotherTF(0, 12, mainWindow.width / 4, 5, COLOR_WHITE, COLOR_RED, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	anotherTF.setText("some more text");
 	anotherTF.draw();
 
@@ -102,7 +114,7 @@ int main() {
 		char c1 = c;
 		testTextField.setText(&c1, 1);
 		return 0;
-		}, KEY_ALL_ASCII);
+		}, 'p');
 
 	loop.addEvent([&testTextField]() {
 		return testTextField.draw();
@@ -111,6 +123,11 @@ int main() {
 		return anotherTF.draw();
 		});
 	SerialHandler serialPortManager = SerialHandler();
+
+	loop.addEvent([&serialPortManager]() {
+		serialPortManager.update();
+		return 1;
+		});
 
 	while (run) {
 		/*
@@ -147,10 +164,15 @@ int loopUpdateHandler::addEvent(std::function<int()> f) {
 }
 
 int loopUpdateHandler::remove(int id) {
-	// get posistion of "id" in id_s vector
-	auto itr = std::find(this->id_s.begin(), this->id_s.end(), id);
-	this->funcs.erase(this->funcs.begin() + std::distance(this->id_s.begin(), itr));
-	this->id_s.erase(itr);
+	unsigned int i = 0;
+	auto it = this->id_s.begin();
+	auto it2 = this->funcs.begin();
+	for (; i < this->id_s.size() && it != this->id_s.end() && it2 != this->funcs.end(); it++,i++,it2++) {
+		if (this->id_s.at(i) == id) {
+			this->id_s.erase(it);
+			this->funcs.erase(it2);
+		}
+	}
 	return this->funcs.size();
 }
 
@@ -177,29 +199,46 @@ inputHandler::inputHandler(loopUpdateHandler* loop){
 }
 
 int inputHandler::addListener(std::function<int(int, TIMEPOINT_T)> f, int key){
-	//this->funcs.push_back(f);
+	for (unsigned int i = 0; i < this->events.size(); i++) {
+		if (this->events[i].key == key) {
+			this->removeByKey(key);
+		}
+		if (this->events[i].key == KEY_ALL_ASCII && key > 31 && key < 127) {
+			this->removeByKey(KEY_ALL_ASCII);
+		}
+	}
 	events_struct t = {key,this->id_index++,f};
 	this->events.push_back(t);
 	return this->events.size();
 }
 
 int inputHandler::remove(unsigned long id){
-	if (id > this->events.size())return -1;
-	for(unsigned int i = 0; i < this->events.size(); i++){
-		if(this->events[i].id == id) {
-			this->events.erase(this->events.begin() + i);
-			//this->funcs.erase(this->funcs.begin() + i);
-			return this->events.size();
+	auto it = this->events.begin();
+	unsigned int i = 0;
+	for (; i < this->events.size() && it != this->events.end(); i++, it++) {
+		if (this->events.at(i).id == id && (this->events.begin() + i) < this->events.end()) {
+			this->events.erase(it);
 		}
 	}
-	return -1;
+	return this->events.size();
+}
+
+int inputHandler::removeByKey(int key) {
+	auto it = this->events.begin();
+	unsigned int i = 0;
+	for (; i < this->events.size() && it != this->events.end(); i++,it++) {
+		if (this->events.at(i).key == key && (this->events.begin() + i) < this->events.end()) {
+			this->events.erase(it);
+		}
+	}
+	return this->events.size();
 }
 
 int inputHandler::call(unsigned long id, int a){
 	TIMEPOINT_T t = std::chrono::steady_clock::now();
 	for(unsigned int i = 0; i < this->events.size(); i++){
-		if(this->events[i].id == id){
-			return this->events[i].func(a, t);
+		if(this->events.at(i).id == id){
+			return this->events.at(i).func(a, t);
 		}
 	}
 	
@@ -222,17 +261,10 @@ void inputHandler::handleInput(){
 		if (this->events[i].key == KEY_ALL_ASCII && c > 31 && c < 127) {
 			this->events[i].func(c, t);
 		}
-	}
-	if (c == 27) printw("escape     ");
-	else if (c == KEY_F0 + 1) printw("F1       ");
-	else if (c == KEY_F0 + 2) printw("F2       ");
-	else if (c == KEY_F0 + 3) printw("F3       ");
-	else if (c == KEY_F0 + 4) { 
-		//run = false;
-		printw("F4       "); 
-	}
-	else if (c == 13) printw("Enter 13       ");
-	else if (c == 10) printw("Enter 10       ");
-	
+	}	
 	return;
+}
+
+void inputHandler::resetEvents() {
+	this->events.clear();
 }

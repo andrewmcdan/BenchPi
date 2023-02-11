@@ -5,6 +5,7 @@
 #include <ncurses.h>
 #include <vector>
 #include <string>
+#include "consoleHandler.h"
 
 // Linux headers
 #include <fcntl.h> // Contains file controls like O_RDWR
@@ -20,12 +21,17 @@ class SerialHandler
 {
 public:
 	// When instantiated, this object will check all serial ports to see if they are available for use
-	SerialHandler();
+	SerialHandler::SerialHandler();
 	// To be called as often as possible in order to read and send serial data.
-	void update();
+	void SerialHandler::update();
 
-	int setPortConfig(int baud);
-	int getPortConfig(termios* tty_);
+	// returns 1 if successful, 0 if port isn't open, -1 if there was an error, -2 if port not found
+	int SerialHandler::setPortConfig(std::string name, int baud, int bitPerBytes, bool parity = false, bool stopBits = false, bool hardwareFlow = false);
+	int SerialHandler::getPortConfig(termios* tty_);
+	int SerialHandler::setTextFieldForPort(std::string portName, textField* tF);
+	int SerialHandler::openPort(std::string name);
+	int SerialHandler::closePort(std::string name);
+	void SerialHandler::closeAllPorts();
 
 private:
 	struct ports_struct {
@@ -35,6 +41,7 @@ private:
 		bool available;
 		int port_descriptor;
 		struct termios tty;
+		textField* textField_;
 	};
 
 	std::vector<ports_struct>ports;

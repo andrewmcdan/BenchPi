@@ -229,9 +229,13 @@ bool textField::toggleEnabled() {
 	return this->enabled;
 }
 
-short int consoleHandler::colornum(short int fg, short int bg)
+void textField::setEnabled(bool b) {
+	this->enabled = b;
+}
+
+int consoleHandler::colornum(int fg, int bg)
 {
-	short int B, bbb, ffff;
+	int B, bbb, ffff;
 
 	B = 0;// 1 << 7;
 	bbb = (7 & bg) << 4;
@@ -239,3 +243,5 @@ short int consoleHandler::colornum(short int fg, short int bg)
 
 	return (B | bbb | ffff);
 }
+
+textField::~textField(){}
