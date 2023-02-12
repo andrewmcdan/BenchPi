@@ -50,8 +50,10 @@ public:
 	// Remove a listener. Returns number of registered listneres. 
 	int remove(unsigned long id);
 
+	// Remove any / all listeners for a given key
 	int removeByKey(int key);
 
+	// Remove all listeners.
 	void resetEvents();
 
 	// Call a specific listener's associated function.

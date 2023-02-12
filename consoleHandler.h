@@ -29,6 +29,7 @@ public:
 	void toggleBorder();
 	bool toggleEnabled();
 	void setEnabled(bool b);
+	bool getEnabled();
 	void setClearOnPrint(bool b);
 	~textField();
 

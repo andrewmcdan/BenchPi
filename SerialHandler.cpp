@@ -21,7 +21,7 @@ SerialHandler::SerialHandler() {
 					printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
 				}
 				// add port info to the "ports" vector
-				ports.push_back({portName,-1,false,true,ser_port_descriptor,tty_temp,temp_tF,HEX});
+				ports.push_back({portName,-1,false,true,ser_port_descriptor,tty_temp,temp_tF,BIN});
 			}
 			// close the port at this point since we don't know which ports the ser wants to use
 			close(ser_port_descriptor);
@@ -100,7 +100,7 @@ int SerialHandler::getPortConfig(int portDescriptor, termios* tty_) {
 
 void SerialHandler::update() {
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
-		if (this->ports.at(i).available && this->ports.at(i).open) {
+		if (this->ports.at(i).available && this->ports.at(i).open && this->ports.at(i).textField_->getEnabled()) {
 			char read_buf[256];
 			int n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
 			switch (this->ports.at(i).printMode_) {
@@ -110,8 +110,16 @@ void SerialHandler::update() {
 			case HEX:
 				for (int itr = 0; itr < n; itr++) {
 					std::ostringstream ss;
-					ss << std::hex << read_buf[itr];
+					ss << std::hex << (int)read_buf[itr];
 					std::string s = "0x" + ss.str() + " ";
+					this->ports.at(i).textField_->setText(s);
+				}
+				break;
+			case BIN:
+				for (int itr = 0; itr < n; itr++) {
+					std::ostringstream ss;
+					ss << std::bitset<8>((int)read_buf[itr]);
+					std::string s = "0b" + ss.str() + " ";
 					this->ports.at(i).textField_->setText(s);
 				}
 				break;

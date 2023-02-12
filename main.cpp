@@ -136,7 +136,6 @@ int main() {
 	SerialHandler serialPortManager = SerialHandler();
 
 	std::string portName = "/dev/ttyUSB0";
-	//shortcutF2.tField.setText(std::to_string(serialPortManager.openPort("/dev/ttyUSB0")));
 	serialPortManager.openPort(portName);
 	serialPortManager.setPortConfig(portName, 9600, 8);
 	serialPortManager.setTextFieldForPort("/dev/ttyUSB0", &anotherTF);
@@ -147,23 +146,13 @@ int main() {
 		});
 
 	while (run) {
-		/*
-		* Stuff that needs to go in main loop
-		* 1. call draw methods of everything on screen
-		* 2. monitor open serial ports for new data
-		* 3. monitor stdin for user input
-		* 4. call update on methods that register a loop update method
-		*/
-
 		loop.handleAll(); // handles all the loop events that hanve been registered
-		refresh();
 		// last thing to do in the loop is push the buffer to the dispaly.
-		
-		//wrefresh(aWin);
+		refresh();
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
-	
+	serialPortManager.closeAllPorts();
 	endwin();
 	return 0;
 }

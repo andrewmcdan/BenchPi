@@ -8,6 +8,7 @@
 #include "consoleHandler.h"
 #include <iostream>
 #include <sstream>
+#include <bitset>
 
 // Linux headers
 #include <fcntl.h> // Contains file controls like O_RDWR

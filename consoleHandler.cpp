@@ -233,6 +233,10 @@ void textField::setEnabled(bool b) {
 	this->enabled = b;
 }
 
+bool textField::getEnabled() {
+	return this->enabled;
+}
+
 int consoleHandler::colornum(int fg, int bg)
 {
 	int B, bbb, ffff;
