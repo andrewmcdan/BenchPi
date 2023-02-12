@@ -36,7 +36,7 @@
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /**********************************************************************/
-
+#define ___LINUX_ALSA__
 /*!
   \file RtMidi.h
  */

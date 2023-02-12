@@ -36,7 +36,8 @@ int main() {
 
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
-	inputHandler userInput = inputHandler(&loop);	
+	inputHandler userInput = inputHandler(&loop);
+	MidiHandler midi = MidiHandler();
 
 	shortcutItem shortcutF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
 	shortcutItem shortcutF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Options", textField::textAlignment::center);
@@ -98,14 +99,22 @@ int main() {
 	* 
 	*/
 
-	textField testTextField(0, 0, mainWindow.width / 2, 10, COLOR_CYAN, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
-	char s[] = "test Text";
-	testTextField.setText(s,9);
+	textField testTextField(0, 1, mainWindow.width / 2, 10, COLOR_CYAN, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
+	testTextField.setClearOnPrint(false);
+	for (int i = 0; i < midi.midiInDevices.size(); i++) {
+		testTextField.setText(midi.midiInDevices.at(i).name + "\r");
+	}
 	testTextField.draw();
 
-	textField anotherTF(0, 12, mainWindow.width / 4, 5, COLOR_WHITE, COLOR_RED, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
-	anotherTF.setText("some more text");
+	textField anotherTF(0, 13, mainWindow.width - 2, 30, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	anotherTF.draw();
+	anotherTF.setClearOnPrint(false);
+	midi.openInPort(2,false,false,false,&anotherTF);
+	midi.midiInDevices.at(2).enabled = true;
+	loop.addEvent([&midi]() {
+		midi.update();
+		return 1;
+		});
 
 	std::chrono::steady_clock::now();
 

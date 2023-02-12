@@ -95,6 +95,7 @@ bool textField::setText(std::string s) {
 }
 
 int textField::draw() {
+	int printPos = 0;
 	if (!this->enabled)return -1;
 	this->mainConsole->setCursorPos(this->x, this->y);
 	
@@ -140,25 +141,39 @@ int textField::draw() {
 		}
 
 		// print text
+		// @TODO:
+		// need to rework this so that when the text is too long for the window, it can show the most recent text.
 		switch (this->alignment) {
 		case left:
 			for (int i = 0; i < this->height; i++) {
 				this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
 				for (int p = 0; p < this->width; p++) {
-					int temp = i * this->width + p;
-					if (theString[temp] == '\0') break;
-					else printw("%c",theString[temp]);
+					//int temp = i * this->width + p;
+					if (theString[printPos] == '\0') break;
+					else if (theString[printPos] == '\r' || theString[printPos] == '\n') { 
+						printPos++;
+						goto cont1;
+					}
+					else printw("%c",theString[printPos]);
+					printPos++;
 				}
+			cont1:;
 			}
 			break;
 		case center:
 			for (int i = 0; i < this->height; i++) {
 				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + 1 + i);
 				for (int p = 0; p < this->width; p++) {
-					int temp = i * this->width + p;
-					if (theString[temp] == '\0') break;
-					else printw("%c", theString[temp]);
+					//int temp = i * this->width + p;
+					if (theString[printPos] == '\0') break;
+					else if (theString[printPos] == '\r' || theString[printPos] == '\n') {
+						printPos++;
+						goto cont2;
+					}
+					else printw("%c", theString[printPos]);
+					printPos++;
 				}
+			cont2:;
 			}
 			break;
 		case right:
