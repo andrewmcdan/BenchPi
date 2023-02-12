@@ -17,6 +17,7 @@
 
 
 int main() {
+	// Set up all the stuff for ncurses
 	setlocale(LC_ALL, "en_US.utf8");
 	initscr();
 	cbreak();
@@ -31,14 +32,17 @@ int main() {
 	}
 	start_color();
 	refresh();
+
+	// this variable is used in the loop below to exit the program
 	bool run = true;
 	
-
+	// Init all the handler onjects
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
 	inputHandler userInput = inputHandler(&loop);
 	MidiHandler midi = MidiHandler();
 
+	// Set up the F-key shortcuts
 	shortcutItem shortcutF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
 	shortcutItem shortcutF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Options", textField::textAlignment::center);
 	shortcutItem shortcutF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - MIDI Config", textField::textAlignment::center);
@@ -56,20 +60,27 @@ int main() {
 		return shortcutF4.tField.draw();
 		});
 
+	// Init a textfield for confirming quit. 
 	textField quitConfirm(0, 0, mainWindow.width - 2, mainWindow.height - 1, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::center);
-
+	// Connect the F4 shortcut with its key listener and instantiate all the events to happen when user responds to confirm
 	shortcutF4.setInputListenerIdAndKey(
 		userInput.addListener(
 			[&userInput,&mainWindow,&loop,&quitConfirm,&run](int a, TIMEPOINT_T t) {
+				// when the user pressed F4, clear the screen...
 				mainWindow.clearScreen();
+				// draw the quitConfirm textField
 				int loopEvent = loop.addEvent([&quitConfirm]() {quitConfirm.draw(); return 1; });
 				quitConfirm.setClearOnPrint(true);
 				quitConfirm.setEnabled(true);
 				char c[] = "Confirm Quit Y / N ?";
 				quitConfirm.setText(c,20);
+				// Add listeners for Y, y, N, n
 				userInput.addListener([&](int c2, TIMEPOINT_T t2) { run = false; mainWindow.clearScreen(); return 1;}, 'Y');
 				userInput.addListener([&](int c2, TIMEPOINT_T t2) { run = false; mainWindow.clearScreen(); return 1; }, 'y');
 				userInput.addListener([&, loopEvent](int c2, TIMEPOINT_T t2) { 
+					// if the user declines to quit, disable the quitConfirm textfield, remove the
+					// listeners for Y, y, N, and n, remove the loop event for drawing the text field, 
+					// and clear screen to go back to what was being done before. 
 					quitConfirm.setEnabled(false); 
 					userInput.removeByKey('Y'); 
 					userInput.removeByKey('y');
@@ -99,7 +110,7 @@ int main() {
 	* 
 	*/
 
-	textField testTextField(0, 1, mainWindow.width / 2, 10, COLOR_CYAN, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
+	textField testTextField(0, 1, mainWindow.width / 2, 10, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	testTextField.setClearOnPrint(false);
 	for (int i = 0; i < midi.midiInDevices.size(); i++) {
 		testTextField.setText(midi.midiInDevices.at(i).name + "\r");
@@ -116,7 +127,9 @@ int main() {
 		return 1;
 		});
 
-	std::chrono::steady_clock::now();
+	anotherTF.setBorderColor(COLOR_CYAN);
+
+	//std::chrono::steady_clock::now();
 
 	// testing toggle a textField being visible or not
 	userInput.addListener([&testTextField,&mainWindow](int c, TIMEPOINT_T t) {
@@ -148,6 +161,7 @@ int main() {
 	serialPortManager.openPort(portName);
 	serialPortManager.setPortConfig(portName, 9600, 8);
 	serialPortManager.setTextFieldForPort("/dev/ttyUSB0", &anotherTF);
+	
 
 	loop.addEvent([&serialPortManager]() {
 		serialPortManager.update();

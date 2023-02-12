@@ -21,10 +21,11 @@ bool consoleHandler::setCursorPos(int x, int y) {
 
 textField::textField(){
 	this->border = 0;
+	this->borderColor = COLOR_WHITE;
 	this->x = 0;
 	this->y = 0;
-	this->fgColor = 7;
-	this->bgColor = 0;
+	this->fgColor = COLOR_WHITE;
+	this->bgColor = COLOR_BLACK;
 	this->scrolling = false;
 	this->invert = false;
 	this->enabled = true;
@@ -38,13 +39,14 @@ textField::textField(){
 }
 textField::textField(int x_coord, int y_coord, int width, int height, short int textColor, short int bgColor, int borderEn, consoleHandler* con, textField::textAlignment align) {
 	this->alignment = align;
+	this->borderColor = COLOR_WHITE;
 	this->border = borderEn;
 	this->x = x_coord;
 	this->y = y_coord;
 	this->fgColor = textColor;
 	this->bgColor = bgColor;
 	this->mainConsole = con;
-	init_pair(this->mainConsole->colornum(this->fgColor, this->bgColor), this->fgColor, this->bgColor);
+	//init_pair(this->mainConsole->colornum(this->fgColor, this->bgColor), this->fgColor, this->bgColor);
 	this->scrolling = false;
 	this->invert = false;
 	this->enabled = true;
@@ -101,6 +103,8 @@ int textField::draw() {
 	
 	attron(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
 	if (this->border == 1) {
+		attroff(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
+		attron(COLOR_PAIR(this->mainConsole->colornum(this->borderColor, this->bgColor)));
 		// print top left corner
 		printw("\u2554");
 
@@ -132,6 +136,8 @@ int textField::draw() {
 		//print bottom right vorner
 		printw("\u255D");
 
+		attroff(COLOR_PAIR(this->mainConsole->colornum(this->borderColor, this->bgColor)));
+		attron(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
 		// clear the textField so that no remnants of past text show up
 		for (int i = 0; i < this->height; i++) {
 			this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
@@ -257,10 +263,16 @@ int consoleHandler::colornum(int fg, int bg)
 	int B, bbb, ffff;
 
 	B = 0;// 1 << 7;
-	bbb = (7 & bg) << 4;
+	bbb = (7 & bg) << 3;
 	ffff = 7 & fg;
+	short r = (B | bbb | ffff);
+	init_pair(r, fg, bg);
+	return r;
+}
 
-	return (B | bbb | ffff);
+void textField::setBorderColor(int color) {
+	this->borderColor = color;
+	return;
 }
 
 textField::~textField(){}

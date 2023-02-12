@@ -31,11 +31,12 @@ public:
 	void setEnabled(bool b);
 	bool getEnabled();
 	void setClearOnPrint(bool b);
+	void setBorderColor(int color);
 	~textField();
 
 private:
 	std::chrono::system_clock::time_point startTime = std::chrono::high_resolution_clock::now();
-	int scrollSpeed, width, height, textLength, x, y, border;
+	int scrollSpeed, width, height, textLength, x, y, border, borderColor;
 	short int fgColor, bgColor;
 	textAlignment alignment;
 	bool scrolling, invert, enabled, needDraw, clearOnPrint;

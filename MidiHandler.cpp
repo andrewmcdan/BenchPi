@@ -76,66 +76,250 @@ int MidiHandler::update() {
             unsigned int u = 0;
             while (this->midiInDevices.at(i).message.size() > 0)
             {
-                switch (this->midiInDevices.at(i).message.at(u).m.size()) {
-                case 1: // 1 byte messages
-                    this->midiInDevices.at(i).textField_->setText("no1");
-                    break;
-                case 2: // 2 byte messages
-                    this->midiInDevices.at(i).textField_->setText("no2");
-                    break;
-                case 3: // 3 byte messages
+                unsigned char k = this->midiInDevices.at(i).message.at(u).m[0] & 0xf0;
+                switch (k) {
+                case 0x80: // note off
                 {
-                    unsigned char k = this->midiInDevices.at(i).message.at(u).m[0] & 0xf0;
-                    switch (k) {
-                    case 0x80: // note off
-                        this->midiInDevices.at(i).textField_->setText(std::to_string(this->midiInDevices.at(i).message.at(u).m[0]));
-                        break;
-                    case 0x90: // note on
+                    switch (this->midiInDevices.at(i).printStyle_) {
+                    case PRETTY:
                     {
-                        switch (this->midiInDevices.at(i).printStyle_) {
-                        case PRETTY:
-                        {
-                            std::string s = "Note On Event - Ch: ";
-                            unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
-                            s += std::to_string(ch);
-                            s += " - Note Value: ";
-                            s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
-                            s += " - Velocity: ";
-                            s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
-                            s += '\r';
-                            this->midiInDevices.at(i).textField_->setText(s);
-                            break;
-                        }
-                        case RAW_BYTES:
-                        {
-                            std::ostringstream ss;
-                            ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
-                            std::string s = "0x" + ss.str() + " ";
-                            ss.str("");
-                            ss.clear();
-                            ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
-                            s += "0x" + ss.str() + " ";
-                            ss.str("");
-                            ss.clear();
-                            ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(2);
-                            s += "0x" + ss.str() + " ";
-                            s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
-                            this->midiInDevices.at(i).textField_->setText(s);
-                            break;
-                        }
-                        }
-                        
+                        std::string s = "Note Off Event - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += " - Note Value: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += " - Velocity: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
+                        s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
                         break;
                     }
-                    default:
-                        this->midiInDevices.at(i).textField_->setText("no " + std::to_string(k) + " \r");
+                    case RAW_BYTES:
+                    {
+                        std::ostringstream ss;
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
+                        std::string s = "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
+                        s += "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(2);
+                        s += "0x" + ss.str() + " ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
+                        this->midiInDevices.at(i).textField_->setText(s);
                         break;
+                    }
                     }
                     break;
                 }
-                default: // all other length messages
-                    this->midiInDevices.at(i).textField_->setText("no3");
+                case 0x90: // note on
+                {
+                    switch (this->midiInDevices.at(i).printStyle_) {
+                    case PRETTY:
+                    {
+                        std::string s = "Note On Event - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += " - Note Value: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += " - Velocity: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
+                        s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    case RAW_BYTES:
+                    {
+                        std::ostringstream ss;
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
+                        std::string s = "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
+                        s += "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(2);
+                        s += "0x" + ss.str() + " ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    }
                     break;
+                }
+                case 0xa0: // key pressure
+                {
+                    switch (this->midiInDevices.at(i).printStyle_) {
+                    case PRETTY:
+                    {
+                        std::string s = "Key Pressure Event - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += " - Key: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += " - Pressure: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
+                        s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    case RAW_BYTES:
+                    {
+                        std::ostringstream ss;
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
+                        std::string s = "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
+                        s += "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(2);
+                        s += "0x" + ss.str() + " ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    }
+                    break;
+                }
+                case 0xb0: // controller change
+                {
+                    switch (this->midiInDevices.at(i).printStyle_) {
+                    case PRETTY:
+                    {
+                        std::string s = "Controller Change - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += " - Controller: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += " - Value: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
+                        s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    case RAW_BYTES:
+                    {
+                        std::ostringstream ss;
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
+                        std::string s = "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
+                        s += "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(2);
+                        s += "0x" + ss.str() + " ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    }
+                    break;
+                }
+                case 0xc0: // controller change
+                {
+                    switch (this->midiInDevices.at(i).printStyle_) {
+                    case PRETTY:
+                    {
+                        std::string s = "Program Change - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += " - Program Number: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    case RAW_BYTES:
+                    {
+                        std::ostringstream ss;
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
+                        std::string s = "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
+                        s += "0x" + ss.str() + " ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    }
+                    break;
+                }
+                case 0xd0: // Channel pressure
+                {
+                    switch (this->midiInDevices.at(i).printStyle_) {
+                    case PRETTY:
+                    {
+                        std::string s = "Channel Pressure - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += " - Pressure: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    case RAW_BYTES:
+                    {
+                        std::ostringstream ss;
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
+                        std::string s = "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
+                        s += "0x" + ss.str() + " ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    }
+                    break;
+                }
+                case 0xe0: // pitch bend
+                {
+                    switch (this->midiInDevices.at(i).printStyle_) {
+                    case PRETTY:
+                    {
+                        std::string s = "Pitch Bend Event - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += " - Bend LSB: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += " - Bend MSB: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
+                        s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    case RAW_BYTES:
+                    {
+                        std::ostringstream ss;
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
+                        std::string s = "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
+                        s += "0x" + ss.str() + " ";
+                        ss.str("");
+                        ss.clear();
+                        ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(2);
+                        s += "0x" + ss.str() + " ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    }
+                    break;
+                }
+                    default:
+                        break;
                 }
                 this->midiInDevices.at(i).message.erase(this->midiInDevices.at(i).message.begin());
             }
