@@ -129,8 +129,6 @@ int main() {
 
 	anotherTF.setBorderColor(COLOR_CYAN);
 
-	//std::chrono::steady_clock::now();
-
 	// testing toggle a textField being visible or not
 	userInput.addListener([&testTextField,&mainWindow](int c, TIMEPOINT_T t) {
 		testTextField.toggleEnabled();
