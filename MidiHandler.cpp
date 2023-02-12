@@ -1,9 +1,12 @@
 #include "MidiHandler.h"
 
 MidiHandler::MidiHandler() {
+    // first we init the RtMidi objects just to get port counts and names
+    RtMidiIn* inDevs;
+    RtMidiOut* outDevs;
     try {
-        this->inDevs = new RtMidiIn();
-        this->outDevs = new RtMidiOut();
+        inDevs = new RtMidiIn();
+        outDevs = new RtMidiOut();
     }
     catch (RtMidiError& error) {
         error.printMessage();
@@ -12,9 +15,9 @@ MidiHandler::MidiHandler() {
 
     unsigned int nMidiInPorts = inDevs->getPortCount();
     unsigned int nMidiOutPorts = outDevs->getPortCount();
-
     std::string portName;
 
+    // iterate through the all the midi in and out devices and save them in the objects
     for (unsigned int i = 0; i < nMidiInPorts; i++) {
         this->midiInDevices.push_back({new RtMidiIn(), inDevs->getPortName(i), false, false});
     }
@@ -34,7 +37,8 @@ int MidiHandler::openInPort(int portNum, bool sysex, bool timing, bool activeSen
     }
     this->midiInDevices.at(portNum).open = true;
     this->midiInDevices.at(portNum).textField_ = tF;
-    this->midiInDevices.at(portNum).printStyle_ = RAW_BYTES;
+    //this->midiInDevices.at(portNum).printStyle_ = RAW_BYTES; // Default to printing raw bytes
+    this->midiInDevices.at(portNum).printStyle_ = PRETTY;
     return 1;
 }
 
@@ -87,10 +91,42 @@ int MidiHandler::update() {
                         this->midiInDevices.at(i).textField_->setText(std::to_string(this->midiInDevices.at(i).message.at(u).m[0]));
                         break;
                     case 0x90: // note on
-                        this->midiInDevices.at(i).textField_->setText(std::to_string(this->midiInDevices.at(i).message.at(u).m[0]));
-                        this->midiInDevices.at(i).textField_->setText(" " + std::to_string(this->midiInDevices.at(i).message.at(u).m[1]));
-                        this->midiInDevices.at(i).textField_->setText(" " + std::to_string(this->midiInDevices.at(i).message.at(u).m[2]));
+                    {
+                        switch (this->midiInDevices.at(i).printStyle_) {
+                        case PRETTY:
+                        {
+                            std::string s = "Note On Event - Ch: ";
+                            unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                            s += std::to_string(ch);
+                            s += " - Note Value: ";
+                            s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                            s += " - Velocity: ";
+                            s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
+                            s += '\r';
+                            this->midiInDevices.at(i).textField_->setText(s);
+                            break;
+                        }
+                        case RAW_BYTES:
+                        {
+                            std::ostringstream ss;
+                            ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(0);
+                            std::string s = "0x" + ss.str() + " ";
+                            ss.str("");
+                            ss.clear();
+                            ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(1);
+                            s += "0x" + ss.str() + " ";
+                            ss.str("");
+                            ss.clear();
+                            ss << std::hex << (int)this->midiInDevices.at(i).message.at(u).m.at(2);
+                            s += "0x" + ss.str() + " ";
+                            s += std::to_string(this->midiInDevices.at(i).message.at(u).t) + "\r";
+                            this->midiInDevices.at(i).textField_->setText(s);
+                            break;
+                        }
+                        }
+                        
                         break;
+                    }
                     default:
                         this->midiInDevices.at(i).textField_->setText("no " + std::to_string(k) + " \r");
                         break;
