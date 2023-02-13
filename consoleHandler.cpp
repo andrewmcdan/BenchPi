@@ -105,7 +105,7 @@ void textField::shortenTheString(int l) {
 int textField::draw() {
 	int printPos = 0;
 	if (!this->enabled)return -1;
-	this->mainConsole->setCursorPos(this->x, this->y);
+	if(!this->mainConsole->setCursorPos(this->x, this->y))return -1;
 	
 	attron(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
 	if (this->border == 1) {

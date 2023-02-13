@@ -77,7 +77,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
-      <LibraryDependencies>ncursesw;asound;pthread;drm</LibraryDependencies>
+      <LibraryDependencies>ncursesw;asound;pthread</LibraryDependencies>
     </Link>
     <RemotePostBuildEvent>
       <Command>exit</Command>
@@ -88,7 +88,7 @@
   <ItemGroup>
     <ClCompile Include="consoleHandler.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="menu.cpp" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MidiHandler.cpp" />
     <ClCompile Include="RtMidi.cpp" />
     <ClCompile Include="SerialHandler.cpp" />
@@ -96,7 +96,7 @@
   <ItemGroup>
     <ClInclude Include="consoleHandler.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="menu.h" />
+    <ClInclude Include="Menu.h" />
     <ClInclude Include="MidiHandler.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RtMidi.h" />

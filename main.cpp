@@ -6,7 +6,7 @@
 #include <cstring>
 #include <chrono>
 #include <thread>
-#include "menu.h"
+#include "Menu.h"
 #include "consoleHandler.h"
 #include "main.h"
 #include <algorithm>
@@ -59,9 +59,10 @@ int main() {
 
 	// Set up the F-key shortcuts
 	shortcutItem shortcutF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
-	shortcutItem shortcutF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Options", textField::textAlignment::center);
+	shortcutItem shortcutF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Config", textField::textAlignment::center);
 	shortcutItem shortcutF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - MIDI Config", textField::textAlignment::center);
-	shortcutItem shortcutF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Quit", textField::textAlignment::center);
+	shortcutItem shortcutF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Options ", textField::textAlignment::center);
+	shortcutItem shortcutF5 = shortcutItem(5, []() {return 1; }, &mainWindow, "F5 - Quit", textField::textAlignment::center);
 	loop.addEvent([&shortcutF1]() {
 		return shortcutF1.tField.draw();
 		});
@@ -74,11 +75,14 @@ int main() {
 	loop.addEvent([&shortcutF4]() {
 		return shortcutF4.tField.draw();
 		});
+	loop.addEvent([&shortcutF5]() {
+		return shortcutF5.tField.draw();
+		});
 
 	// Init a textfield for confirming quit. 
 	textField quitConfirm(0, 0, mainWindow.width - 2, mainWindow.height - 1, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::center);
 	// Connect the F4 shortcut with its key listener and instantiate all the events to happen when user responds to confirm
-	shortcutF4.setInputListenerIdAndKey(
+	shortcutF5.setInputListenerIdAndKey(
 		userInput.addListener(
 			[&userInput,&mainWindow,&loop,&quitConfirm,&run](int a, TIMEPOINT_T t) {
 				// when the user pressed F4, clear the screen...
@@ -114,8 +118,8 @@ int main() {
 					mainWindow.clearScreen(); 
 					return 1; }, 'N');
 				return 1; },
-				KEY_F(4)),
-			KEY_F(4));
+				KEY_F(5)),
+			KEY_F(5));
 
 	/*
 	* Setup items:

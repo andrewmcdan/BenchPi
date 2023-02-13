@@ -2,19 +2,34 @@
 #include <functional>
 #include "consoleHandler.h"
 #include "main.h"
-class menu
+class Menu
 {
 public:
-	menu();
+	Menu(loopUpdateHandler* l, consoleHandler* con);
+	void setReferringMenu(Menu* m);
+	void enableMenu();
+	void disableMenu();
+	void upKey();
+	void downKey();
+	void enterKey();
 	bool visible;
+private:
+	int selectionPosition;
+	int viewPosition;
+	textField tField;
+	std::string menuText;
+	Menu* referringMenu;
+	bool isRootMenu;
+	loopUpdateHandler* loop;
+	consoleHandler* mainWindow;
 };
 
-class menuItem {
+class MenuItem {
 public:
 	/*
 	Selectable menu item. Has action associated with it.
 	*/
-	menuItem();
+	MenuItem();
 	// the action to be performed when selecting the menu item
 private:
 	std::function<void()>action;
