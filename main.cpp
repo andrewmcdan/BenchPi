@@ -117,7 +117,7 @@ int main() {
 	}
 	testTextField.draw();
 
-	textField anotherTF(0, 13, mainWindow.width - 2, 30, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
+	textField anotherTF(0, 13, mainWindow.width / 4 - 10, 30, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	anotherTF.draw();
 	anotherTF.setClearOnPrint(false);
 	midi.openInPort(2,false,false,false,&anotherTF);

@@ -66,7 +66,7 @@ void textField::setClearOnPrint(bool b) {
 }
 
 bool textField::setText(char* s, int len) {
-	if (len + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1)return false;
+	if (len + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1) this->shortenTheString(len);
 	if (this->clearOnPrint) {
 		for (int i = 0; i < MAX_TEXTFIELD_STRING_LENGTH; i++) {
 			this->theString[i] = '\0';
@@ -83,17 +83,23 @@ bool textField::setText(char* s, int len) {
 			this->theString[i] = s[i - temp];
 		}
 	}
-	
-	
 	return true;
 }
 
 bool textField::setText(std::string s) {
-	if (s.length() + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1)return false;
+	if (s.length() + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1) this->shortenTheString(s.length());
 	char* c = new char[s.length()];
 	strcpy(c, s.c_str());
 	this->setText(c, s.length());
 	return true;
+}
+
+void textField::shortenTheString(int l) {
+	for (int i = 0; i < this->textLength - l; i++) {
+		this->theString[i] = this->theString[i + l];
+	}
+	this->textLength -= l;
+	this->theString[this->textLength] = '\0';
 }
 
 int textField::draw() {
@@ -151,21 +157,45 @@ int textField::draw() {
 		// need to rework this so that when the text is too long for the window, it can show the most recent text.
 		switch (this->alignment) {
 		case left:
+		{
+			int lineCount = 1;
+			for (int i = 0; i < this->textLength; i++) {
+				if (this->theString[i] == '\r') {
+					lineCount++;
+					if (this->theString[i + 1] == '\n') i += 2;
+				}
+				else if (this->theString[i] == '\n') {
+					lineCount++;
+					if (this->theString[i + 1] == '\r') i += 2;
+				}
+			}
+			int lineNo = 0;
+			for (; lineCount - lineNo > this->height; printPos++) {
+				if (this->theString[printPos] == '\r') {
+					lineNo++;
+					if (this->theString[printPos + 1] == '\n') printPos += 2;
+				}
+				else if (this->theString[printPos] == '\n') {
+					lineNo++;
+					if (this->theString[printPos + 1] == '\r') printPos += 2;
+				}
+			}
 			for (int i = 0; i < this->height; i++) {
 				this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
 				for (int p = 0; p < this->width; p++) {
 					//int temp = i * this->width + p;
 					if (theString[printPos] == '\0') break;
-					else if (theString[printPos] == '\r' || theString[printPos] == '\n') { 
+					else if (theString[printPos] == '\r' || theString[printPos] == '\n') {
 						printPos++;
 						goto cont1;
 					}
-					else printw("%c",theString[printPos]);
+					else printw("%c", theString[printPos]);
 					printPos++;
 				}
 			cont1:;
 			}
 			break;
+		}
 		case center:
 			for (int i = 0; i < this->height; i++) {
 				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + 1 + i);
