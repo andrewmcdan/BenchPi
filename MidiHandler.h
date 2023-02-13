@@ -21,6 +21,8 @@ public:
 	// send Midi timing messages out all pors that have it enabled, prints incoming data to text fields. 
 	int update();
 
+	void sendNoteOn(int portNum, int channel, int noteValue, int velocity);
+
 	enum printStyle {
 		RAW_BYTES, // HEX formatted + timestamp
 		PRETTY_1, // String formatted

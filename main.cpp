@@ -16,7 +16,20 @@
 #include "MidiHandler.h"
 
 
+//
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <stdarg.h>
+//#include <fcntl.h>
+//#include <xf86drm.h>
+//#include <xf86drmMode.h>
+
+
 int main() {
+	/*drmModeRes* resources;
+	int fd = open("/dev/dri/card0", O_RDWR);
+	resources = drmModeGetResources(fd);*/
+
 	// Set up all the stuff for ncurses
 	setlocale(LC_ALL, "en_US.utf8");
 	initscr();
@@ -117,11 +130,11 @@ int main() {
 	}
 	testTextField.draw();
 
-	textField anotherTF(0, 13, mainWindow.width / 6, 30, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
+	textField anotherTF(0, 13, mainWindow.width - 2, mainWindow.height/2, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	anotherTF.draw();
 	anotherTF.setClearOnPrint(false);
 	midi.openInPort(2,false,false,false,&anotherTF);
-	midi.midiInDevices.at(2).enabled = true;
+	if(midi.midiInDevices.size() > 1) midi.midiInDevices.at(2).enabled = true;
 	loop.addEvent([&midi]() {
 		midi.update();
 		return 1;

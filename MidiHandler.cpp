@@ -27,6 +27,7 @@ MidiHandler::MidiHandler() {
 }
 
 int MidiHandler::openInPort(int portNum, bool sysex, bool timing, bool activeSense, textField* tF) {
+    if (this->midiInDevices.size() <= portNum) return -1;
     try {
         this->midiInDevices.at(portNum).RtMidi_device->openPort(portNum);
         this->midiInDevices.at(portNum).RtMidi_device->ignoreTypes(sysex, timing, activeSense);
@@ -38,11 +39,12 @@ int MidiHandler::openInPort(int portNum, bool sysex, bool timing, bool activeSen
     this->midiInDevices.at(portNum).open = true;
     this->midiInDevices.at(portNum).textField_ = tF;
     //this->midiInDevices.at(portNum).printStyle_ = RAW_BYTES; // Default to printing raw bytes
-    this->midiInDevices.at(portNum).printStyle_ = PRETTY_2;
+    this->midiInDevices.at(portNum).printStyle_ = PRETTY_1;
     return 1;
 }
 
 int MidiHandler::openOutPort(int portNum) {
+    if (this->midiOutDevices.size() <= portNum) return -1;
     try {
         this->midiOutDevices.at(portNum).RtMidi_device->openPort(portNum);
     }
@@ -55,28 +57,41 @@ int MidiHandler::openOutPort(int portNum) {
 }
 
 int MidiHandler::update() {
+    // this loop iterates through all the midiIn devices and checks for messages from the RtMidi library
     for (unsigned int i = 0; i < this->midiInDevices.size(); i++) {
+        // check if the device is open
         if (this->midiInDevices.at(i).RtMidi_device->isPortOpen()) {
             int size = 0;
             do {
+                // get the message into tempMes and store the timestamp
                 std::vector<unsigned char> tempMes;
                 double stamp = this->midiInDevices.at(i).RtMidi_device->getMessage(&tempMes);
                 size = tempMes.size();
                 if (size == 0)break;
+                // create a temporary message object
                 midiMes tM;
                 tM.t = stamp;
+                // add the data bytes to the object
                 for (unsigned int it = 0; it < tempMes.size(); it++) {
                     tM.m.push_back(tempMes.at(it));
                 }
+                // add the message to the vector inside the midiIn device object
                 if (tempMes.size() > 0) this->midiInDevices.at(i).message.push_back(tM);
             } while (size > 0);
         }
     }
+
+    // iterate through each of the midi In devices.
     for (unsigned int i = 0; i < this->midiInDevices.size(); i++) {
+        // check for the device being enabled and open
         if (this->midiInDevices.at(i).enabled && this->midiInDevices.at(i).open) {
             unsigned int u = 0;
+
+            // the message vector object gets shrunk with each iteratation of this while loop,
+            // so it should loop until the vector size is 0
             while (this->midiInDevices.at(i).message.size() > 0)
             {
+                // switch on the upper nibble of the first byte
                 unsigned char k = this->midiInDevices.at(i).message.at(u).m[0] & 0xf0;
                 switch (k) {
                 case 0x80: // note off
@@ -345,12 +360,86 @@ int MidiHandler::update() {
                     }
                     break;
                 }
-                    default:
+                case 0xf0:
+                {
+                    unsigned char type_ = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                    switch (type_) {
+                    case 0x0: // SysEx
+                    {
+                        this->midiInDevices.at(i).textField_->setText("SysEx");
                         break;
+                    }
+                    case 0x2: // song position
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Song Posistion");
+                        break;
+                    }
+                    case 0x3: // song select
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Song Select");
+                        break;
+                    }
+                    case 0x5: // bus select
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Bus Select");
+                        break;
+                    }
+                    case 0x6: // tune request
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Tune Request");
+                        break;
+                    }
+                    case 0x7: // SysEx end
+                    {
+                        this->midiInDevices.at(i).textField_->setText("SysEx End");
+                        break;
+                    }
+                    case 0x8: // Timing Tick
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Timing tick");
+                        break;
+                    }
+                    case 0xa: // start song
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Start Song");
+                        break;
+                    }
+                    case 0xb: // Continue song
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Continue Song");
+                        break;
+                    }
+                    case 0xc: // stop song
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Stop Song");
+                        break;
+                    }
+                    case 0xe: // active sensing
+                    {
+                        this->midiInDevices.at(i).textField_->setText("Active Sensing");
+                        break;
+                    }
+                    case 0xf: // System reset
+                    {
+                        this->midiInDevices.at(i).textField_->setText("System Reset");
+                        break;
+                    }
+                    }
+                    break;
+                }
+                    default:
+                        this->midiInDevices.at(i).textField_->setText("Unknown Midi Message.");
+                    break;
                 }
                 this->midiInDevices.at(i).message.erase(this->midiInDevices.at(i).message.begin());
             }
         }
     }
+
+
     return 1;
+}
+
+void MidiHandler::sendNoteOn(int portNum, int channel, int noteValue, int velocity) {
+
 }

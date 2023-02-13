@@ -246,6 +246,7 @@ int textField::draw() {
 			}
 		}
 	}
+	// the next section is for flashing border. NOT IMPLEMENTED YET.
 	else if (this->border == 2) {
 		auto newNow = std::chrono::high_resolution_clock::now();
 		auto mod = std::chrono::milliseconds(1000);
@@ -282,6 +283,10 @@ bool textField::toggleEnabled() {
 
 void textField::setEnabled(bool b) {
 	this->enabled = b;
+}
+
+void textField::setScroll(bool b) {
+	this->scrolling = b;
 }
 
 bool textField::getEnabled() {

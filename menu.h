@@ -16,7 +16,10 @@ public:
 	*/
 	menuItem();
 	// the action to be performed when selecting the menu item
-	std::function<int(int, int)>action;
+private:
+	std::function<void()>action;
+	std::string itemText;
+
 };
 
 class shortcutItem {

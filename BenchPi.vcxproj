@@ -98,8 +98,12 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="MidiHandler.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="RtMidi.h" />
     <ClInclude Include="SerialHandler.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="BenchPi.rc" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>

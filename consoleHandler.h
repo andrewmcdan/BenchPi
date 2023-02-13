@@ -32,6 +32,7 @@ public:
 	bool getEnabled();
 	void setClearOnPrint(bool b);
 	void setBorderColor(int color);
+	void setScroll(bool b);
 	void shortenTheString(int l);
 	~textField();
 
