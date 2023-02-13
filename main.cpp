@@ -16,21 +16,21 @@
 #include "MidiHandler.h"
 
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <fcntl.h>
-#include <xf86drm.h>
-#include <xf86drmMode.h>
+//
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <stdarg.h>
+//#include <fcntl.h>
+//#include <xf86drm.h>
+//#include <xf86drmMode.h>
 
 
 int main() {
-	drmModeRes* resources;
+	/*drmModeRes* resources;
 	int fd = open("/dev/dri/card0", O_RDWR);
-	resources = drmModeGetResources(fd);
+	resources = drmModeGetResources(fd);*/
 
-	int max_width = resources->max_width;
+	//int max_width = resources->max_width;
 
 	// Set up all the stuff for ncurses
 	setlocale(LC_ALL, "en_US.utf8");
@@ -80,7 +80,7 @@ int main() {
 	// Connect the F4 shortcut with its key listener and instantiate all the events to happen when user responds to confirm
 	shortcutF4.setInputListenerIdAndKey(
 		userInput.addListener(
-			[&userInput,&mainWindow,&loop,&quitConfirm,&run,max_width](int a, TIMEPOINT_T t) {
+			[&userInput,&mainWindow,&loop,&quitConfirm,&run](int a, TIMEPOINT_T t) {
 				// when the user pressed F4, clear the screen...
 				mainWindow.clearScreen();
 				// draw the quitConfirm textField
@@ -89,7 +89,6 @@ int main() {
 				quitConfirm.setEnabled(true);
 				char c[] = "Confirm Quit Y / N ?";
 				quitConfirm.setText(c,20);
-				quitConfirm.setText("max width" + std::to_string(max_width));
 				// Add listeners for Y, y, N, n
 				userInput.addListener([&](int c2, TIMEPOINT_T t2) { run = false; mainWindow.clearScreen(); return 1;}, 'Y');
 				userInput.addListener([&](int c2, TIMEPOINT_T t2) { run = false; mainWindow.clearScreen(); return 1; }, 'y');
