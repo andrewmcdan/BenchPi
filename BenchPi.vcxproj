@@ -77,7 +77,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
-      <LibraryDependencies>ncursesw;asound;pthread</LibraryDependencies>
+      <LibraryDependencies>ncursesw;asound;pthread;drm</LibraryDependencies>
     </Link>
     <RemotePostBuildEvent>
       <Command>exit</Command>
@@ -102,9 +102,6 @@
     <ClInclude Include="RtMidi.h" />
     <ClInclude Include="SerialHandler.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="BenchPi.rc" />
-  </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
       <AdditionalOptions>
@@ -113,7 +110,7 @@
       <VerboseOutput>false</VerboseOutput>
     </Link>
     <ClCompile>
-      <Optimization>Disabled</Optimization>
+      <Optimization>Full</Optimization>
       <UndefinePreprocessorDefinitions>__LINUX_ALSA__;%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
       <AdditionalOptions>-D__LINUX_ALSA__ %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
