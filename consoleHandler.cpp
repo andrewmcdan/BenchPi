@@ -87,7 +87,7 @@ bool textField::setText(char* s, int len) {
 }
 
 bool textField::setText(std::string s) {
-	if (s.length() + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1) this->shortenTheString(s.length());
+	//if (s.length() + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1) this->shortenTheString(s.length());
 	char* c = new char[s.length()];
 	strcpy(c, s.c_str());
 	this->setText(c, s.length());
@@ -99,7 +99,7 @@ void textField::shortenTheString(int l) {
 		this->theString[i] = this->theString[i + l];
 	}
 	this->textLength -= l;
-	this->theString[this->textLength] = '\0';
+	//this->theString[this->textLength] = '\0';
 }
 
 int textField::draw() {

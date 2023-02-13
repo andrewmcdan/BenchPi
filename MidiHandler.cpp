@@ -38,7 +38,7 @@ int MidiHandler::openInPort(int portNum, bool sysex, bool timing, bool activeSen
     this->midiInDevices.at(portNum).open = true;
     this->midiInDevices.at(portNum).textField_ = tF;
     //this->midiInDevices.at(portNum).printStyle_ = RAW_BYTES; // Default to printing raw bytes
-    this->midiInDevices.at(portNum).printStyle_ = PRETTY;
+    this->midiInDevices.at(portNum).printStyle_ = PRETTY_2;
     return 1;
 }
 
@@ -62,6 +62,7 @@ int MidiHandler::update() {
                 std::vector<unsigned char> tempMes;
                 double stamp = this->midiInDevices.at(i).RtMidi_device->getMessage(&tempMes);
                 size = tempMes.size();
+                if (size == 0)break;
                 midiMes tM;
                 tM.t = stamp;
                 for (unsigned int it = 0; it < tempMes.size(); it++) {
@@ -81,7 +82,7 @@ int MidiHandler::update() {
                 case 0x80: // note off
                 {
                     switch (this->midiInDevices.at(i).printStyle_) {
-                    case PRETTY:
+                    case PRETTY_1:
                     {
                         std::string s = "Note Off Event - Ch: ";
                         unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
@@ -91,6 +92,19 @@ int MidiHandler::update() {
                         s += " - Velocity: ";
                         s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
                         s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    case PRETTY_2:
+                    {
+                        std::string s = "Note Off Event - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += "\rNote Value: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += "\rVelocity: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
+                        s += "\r \r";
                         this->midiInDevices.at(i).textField_->setText(s);
                         break;
                     }
@@ -117,7 +131,7 @@ int MidiHandler::update() {
                 case 0x90: // note on
                 {
                     switch (this->midiInDevices.at(i).printStyle_) {
-                    case PRETTY:
+                    case PRETTY_1:
                     {
                         std::string s = "Note On Event - Ch: ";
                         unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
@@ -127,6 +141,19 @@ int MidiHandler::update() {
                         s += " - Velocity: ";
                         s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
                         s += '\r';
+                        this->midiInDevices.at(i).textField_->setText(s);
+                        break;
+                    }
+                    case PRETTY_2:
+                    {
+                        std::string s = "Note On Event - Ch: ";
+                        unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
+                        s += std::to_string(ch);
+                        s += "\rNote Value: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(1));
+                        s += "\rVelocity: ";
+                        s += std::to_string(this->midiInDevices.at(i).message.at(u).m.at(2));
+                        s += "\r \r";
                         this->midiInDevices.at(i).textField_->setText(s);
                         break;
                     }
@@ -153,7 +180,7 @@ int MidiHandler::update() {
                 case 0xa0: // key pressure
                 {
                     switch (this->midiInDevices.at(i).printStyle_) {
-                    case PRETTY:
+                    case PRETTY_1:
                     {
                         std::string s = "Key Pressure Event - Ch: ";
                         unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
@@ -189,7 +216,7 @@ int MidiHandler::update() {
                 case 0xb0: // controller change
                 {
                     switch (this->midiInDevices.at(i).printStyle_) {
-                    case PRETTY:
+                    case PRETTY_1:
                     {
                         std::string s = "Controller Change - Ch: ";
                         unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
@@ -225,7 +252,7 @@ int MidiHandler::update() {
                 case 0xc0: // controller change
                 {
                     switch (this->midiInDevices.at(i).printStyle_) {
-                    case PRETTY:
+                    case PRETTY_1:
                     {
                         std::string s = "Program Change - Ch: ";
                         unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
@@ -255,7 +282,7 @@ int MidiHandler::update() {
                 case 0xd0: // Channel pressure
                 {
                     switch (this->midiInDevices.at(i).printStyle_) {
-                    case PRETTY:
+                    case PRETTY_1:
                     {
                         std::string s = "Channel Pressure - Ch: ";
                         unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;
@@ -285,7 +312,7 @@ int MidiHandler::update() {
                 case 0xe0: // pitch bend
                 {
                     switch (this->midiInDevices.at(i).printStyle_) {
-                    case PRETTY:
+                    case PRETTY_1:
                     {
                         std::string s = "Pitch Bend Event - Ch: ";
                         unsigned char ch = this->midiInDevices.at(i).message.at(u).m.at(0) & 0x0f;

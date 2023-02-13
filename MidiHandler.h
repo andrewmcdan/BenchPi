@@ -23,7 +23,8 @@ public:
 
 	enum printStyle {
 		RAW_BYTES, // HEX formatted + timestamp
-		PRETTY, // String formatted
+		PRETTY_1, // String formatted
+		PRETTY_2,
 	};
 
 	// 
