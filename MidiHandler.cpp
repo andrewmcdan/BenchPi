@@ -366,69 +366,69 @@ int MidiHandler::update() {
                     switch (type_) {
                     case 0x0: // SysEx
                     {
-                        this->midiInDevices.at(i).textField_->setText("SysEx");
+                        this->midiInDevices.at(i).textField_->setText("SysEx\r");
                         break;
                     }
                     case 0x2: // song position
                     {
-                        this->midiInDevices.at(i).textField_->setText("Song Posistion");
+                        this->midiInDevices.at(i).textField_->setText("Song Posistion\r");
                         break;
                     }
                     case 0x3: // song select
                     {
-                        this->midiInDevices.at(i).textField_->setText("Song Select");
+                        this->midiInDevices.at(i).textField_->setText("Song Select\r");
                         break;
                     }
                     case 0x5: // bus select
                     {
-                        this->midiInDevices.at(i).textField_->setText("Bus Select");
+                        this->midiInDevices.at(i).textField_->setText("Bus Select\r");
                         break;
                     }
                     case 0x6: // tune request
                     {
-                        this->midiInDevices.at(i).textField_->setText("Tune Request");
+                        this->midiInDevices.at(i).textField_->setText("Tune Request\r");
                         break;
                     }
                     case 0x7: // SysEx end
                     {
-                        this->midiInDevices.at(i).textField_->setText("SysEx End");
+                        this->midiInDevices.at(i).textField_->setText("SysEx End\r");
                         break;
                     }
                     case 0x8: // Timing Tick
                     {
-                        this->midiInDevices.at(i).textField_->setText("Timing tick");
+                        this->midiInDevices.at(i).textField_->setText("Timing tick\r");
                         break;
                     }
                     case 0xa: // start song
                     {
-                        this->midiInDevices.at(i).textField_->setText("Start Song");
+                        this->midiInDevices.at(i).textField_->setText("Start Song\r");
                         break;
                     }
                     case 0xb: // Continue song
                     {
-                        this->midiInDevices.at(i).textField_->setText("Continue Song");
+                        this->midiInDevices.at(i).textField_->setText("Continue Song\r");
                         break;
                     }
                     case 0xc: // stop song
                     {
-                        this->midiInDevices.at(i).textField_->setText("Stop Song");
+                        this->midiInDevices.at(i).textField_->setText("Stop Song\r");
                         break;
                     }
                     case 0xe: // active sensing
                     {
-                        this->midiInDevices.at(i).textField_->setText("Active Sensing");
+                        this->midiInDevices.at(i).textField_->setText("Active Sensing\r");
                         break;
                     }
                     case 0xf: // System reset
                     {
-                        this->midiInDevices.at(i).textField_->setText("System Reset");
+                        this->midiInDevices.at(i).textField_->setText("System Reset\r");
                         break;
                     }
                     }
                     break;
                 }
                     default:
-                        this->midiInDevices.at(i).textField_->setText("Unknown Midi Message.");
+                        this->midiInDevices.at(i).textField_->setText("Unknown Midi Message.\r");
                     break;
                 }
                 this->midiInDevices.at(i).message.erase(this->midiInDevices.at(i).message.begin());
