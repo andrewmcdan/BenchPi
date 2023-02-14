@@ -21,35 +21,65 @@ void Menu::setReferringMenu(Menu* m) {
 }
 
 void Menu::enableMenu() {
+	//if (rootListenerID == -1)this->rootListenerID = this->referringMenu->rootListenerID;
+	//else this->rootListenerID = rootListenerID;
+	//this->rootListenerID = rootListenerID;
 	this->selectionPosition = 0;
 	this->viewPosition = 0;
 	this->visible = true;
+	this->tField.setText("test");
 	if (!this->tField.getEnabled()) {
-		tField.setEnabled(true);
-		tField.setText(this->menuText);
+		this->tField.setEnabled(true);
+		this->tField.setText(this->menuText);
 		this->tFieldDraw_loopID = this->loop->addEvent([&]() {
 			this->tField.draw();
 			return 1;
 			});
 		this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
-			if (this->selectionPosition < this->menuItems.size() - 1) {
-				this->selectionPosition++;
-				if (this->selectionPosition > this->mainWindow->height - 8 )this->viewPosition++;
-			}
-			this->enableMenuItems();
+			this->downKey();
 			return 1;
 			}, KEY_DOWN);
 		this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
-			if (this->selectionPosition > 0) {
-				this->selectionPosition--;
-				if (this->viewPosition > 0)this->viewPosition--;
-			}
-			this->enableMenuItems();
+			this->upKey();
 			return 1;
 			}, KEY_UP);
+		this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+			this->enterKey();
+			return 1;
+			}, KEY_ENTER);
 		this->enableMenuItems();
 	}
-	
+
+	if (this->isRootMenu) {
+		/*this->userInputHandler->addListener([&, rootListenerID](int c2, TIMEPOINT_T time2) {
+			this->userInputHandler->remove(rootListenerID);
+		this->userInputHandler->removeByKey(KEY_UP);
+		this->userInputHandler->removeByKey(KEY_DOWN);
+		this->disableMenu();
+		this->mainWindow->clearScreen();
+		return 1;
+			}, KEY_ESC);*/
+	}
+	else {
+		//this->userInputHandler->addListener([&,rootListenerID](int c2, TIMEPOINT_T time2) {
+		//	//this->disableMenu();
+		//	this->referringMenu->enableMenu(rootListenerID);
+		//	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+		//		this->referringMenu->upKey();
+		//		return 1;
+		//		}, KEY_UP);
+		//	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+		//		this->referringMenu->downKey();
+		//		return 1;
+		//		}, KEY_DOWN);
+		//	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+		//		this->referringMenu->enterKey();
+		//		return 1;
+		//		}, KEY_ENTER);
+		//	this->mainWindow->clearScreen();
+		//	return 1;
+		//	}, KEY_ESC);
+	}
 }
 
 void Menu::enableMenuItems(){
@@ -101,10 +131,31 @@ void Menu::addMenuItem(std::string text, std::function<void()> action, consoleHa
 }
 
 void Menu::upKey(){
-	
+	if (this->selectionPosition > 0) {
+		this->selectionPosition--;
+		if (this->viewPosition > 0)this->viewPosition--;
+	}
+	this->enableMenuItems();
 }
-void Menu::downKey(){}
-void Menu::enterKey(){}
+
+void Menu::downKey(){
+	if (this->selectionPosition < this->menuItems.size() - 1) {
+		this->selectionPosition++;
+		if (this->selectionPosition > this->mainWindow->height - 8)this->viewPosition++;
+	}
+	this->enableMenuItems();
+}
+
+void Menu::enterKey(){
+	this->menuItems.at(this->selectionPosition).action();
+}
+
+void Menu::escKey() {
+	this->escapeKeyFunc();
+}
+void Menu::setEscKey(std::function<void()>f) {
+	this->escapeKeyFunc = f;
+}
 
 
 MenuItem::MenuItem(std::string text, std::function<void()> act, consoleHandler* con) {

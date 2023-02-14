@@ -27,9 +27,14 @@ public:
 	void upKey();
 	void downKey();
 	void enterKey();
+	void escKey();
+	void setEscKey(std::function<void()>f);
 	void addMenuItem(std::string text, std::function<void()> action, consoleHandler* con);
 	std::vector<MenuItem>menuItems;
 	consoleHandler* mainWindow;
+	Menu* referringMenu;
+	inputHandler* userInputHandler;
+	
 private:
 	void enableMenuItems();
 	bool visible;
@@ -38,10 +43,10 @@ private:
 	int tFieldDraw_loopID;
 	textField tField;
 	std::string menuText;
-	Menu* referringMenu;
-	bool isRootMenu;
 	loopUpdateHandler* loop;
-	inputHandler* userInputHandler;
+	bool isRootMenu;
+	int rootListenerID;
+	std::function<void()>escapeKeyFunc;
 };
 
 
@@ -51,6 +56,7 @@ public:
 	void setInputListenerIdAndKey(int id, int key);
 	textField tField;
 	int key;
-private:
 	int inputListenerID;
+private:
+	
 };

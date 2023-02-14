@@ -47,3 +47,8 @@ private:
 	char theString[MAX_TEXTFIELD_STRING_LENGTH];
 	consoleHandler* mainConsole;
 };
+
+class WindowManager {
+public:
+	WindowManager();
+};

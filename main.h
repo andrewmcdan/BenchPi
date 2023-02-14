@@ -5,6 +5,7 @@
 #define TIMEPOINT_T std::chrono::time_point<std::chrono::steady_clock>
 #define KEY_ALL_ASCII 999999
 #define KEY_ESC 27
+#define KEY_ENTER 10
 
 class loopUpdateHandler {
 public:
@@ -66,6 +67,8 @@ public:
 	// pass a textField object in and normal ASCII characters will be printed in the field
 	void printToTextField(textField* tF);
 
+	void setKeyDisabled(int key, bool en);
+
 private:
 	//std::vector<std::function<int(int, int)>> funcs;
 	int loopEventId;
@@ -74,6 +77,7 @@ private:
 		int key;
 		unsigned long id;
 		std::function<int(int, std::chrono::_V2::steady_clock::time_point) > func;
+		bool disabled;
 	};
 	std::vector<events_struct> events;
 	textField* printToScreen;

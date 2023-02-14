@@ -39,7 +39,7 @@ int main() {
 	noecho();
 	keypad(stdscr, TRUE);
 	curs_set(0);
-	timeout(0);
+	timeout(1);
 	ESCDELAY = 0;
 	raw();
 	if (has_colors() == FALSE) {
@@ -62,7 +62,7 @@ int main() {
 	shortcutItem shortcutF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
 	shortcutItem shortcutF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Config", textField::textAlignment::center);
 	shortcutItem shortcutF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - MIDI Config", textField::textAlignment::center);
-	shortcutItem shortcutF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Options ", textField::textAlignment::center);
+	shortcutItem shortcutF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Text Area Options ", textField::textAlignment::center);
 	shortcutItem shortcutF5 = shortcutItem(5, []() {return 1; }, &mainWindow, "F5 - Quit", textField::textAlignment::center);
 	loop.addEvent([&shortcutF1]() {
 		return shortcutF1.tField.draw();
@@ -131,9 +131,45 @@ int main() {
 	// Build the menus
 	// 
 	//
+	
+	Menu aSubMenu = Menu(&loop, &mainWindow, &userInput, "A Sub Menu");
+	aSubMenu.addMenuItem("sub menu menu item1", []() {return 1; }, &mainWindow);
+	aSubMenu.addMenuItem("sub menu menu item2", []() {return 1; }, &mainWindow);
+	
+
 	// build the main menu, F1
 	Menu mainMenu = Menu(&loop, &mainWindow, &userInput, "Main Menu");
-	mainMenu.addMenuItem("testMenu Item", []() {return; }, &mainWindow);
+	aSubMenu.setReferringMenu(&mainMenu);
+
+	mainMenu.addMenuItem("a sub menu", [&]() {
+		aSubMenu.enableMenu();
+		aSubMenu.setEscKey([&]() {
+			aSubMenu.disableMenu();
+			mainMenu.enableMenu();
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.upKey();
+				return 1;
+				}, KEY_UP);
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.downKey();
+				return 1;
+				}, KEY_DOWN);
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.enterKey();
+				return 1;
+				}, KEY_ENTER);
+			userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+				mainMenu.escKey();
+				return 1;
+				}, KEY_ESC);
+			mainWindow.clearScreen();
+			});
+		userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+			aSubMenu.escKey();
+			return 1;
+			}, KEY_ESC);
+		return; 
+		}, &mainWindow);
 	mainMenu.addMenuItem("another menu item", []() { return; }, &mainWindow);
 	mainMenu.addMenuItem("testMenu Item1", []() {return; }, &mainWindow);
 	mainMenu.addMenuItem("testMenu Item2", []() {return; }, &mainWindow);
@@ -171,49 +207,25 @@ int main() {
 	mainMenu.addMenuItem("testMenu Item34", []() {return; }, & mainWindow);
 	mainMenu.addMenuItem("testMenu Item35", []() {return; }, & mainWindow);
 	mainMenu.addMenuItem("testMenu Item36", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item37", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item38", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item39", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item40", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item41", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item42", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item43", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item44", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item45", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item46", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item47", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item48", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item49", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item50", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item51", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item52", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item53", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item54", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item55", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item56", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item57", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item58", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item59", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item60", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item61", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item62", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item63", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item64", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item65", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item66", []() {return; }, & mainWindow);
+
 
 	shortcutF1.setInputListenerIdAndKey(
 		userInput.addListener(
-			[&mainMenu,&userInput,&mainWindow](int c, TIMEPOINT_T time) {
-				mainMenu.enableMenu();
-				userInput.addListener([&](int c2, TIMEPOINT_T time2) {
-					mainMenu.disableMenu();
-					userInput.removeByKey(KEY_ESC);
+			[&](int c, TIMEPOINT_T time) {
+				userInput.setKeyDisabled(KEY_F(1), true);
+				mainMenu.setEscKey([&]() {
+					userInput.remove(shortcutF1.inputListenerID);
 					userInput.removeByKey(KEY_UP);
 					userInput.removeByKey(KEY_DOWN);
-					mainWindow.clearScreen();
-					return 1; 
-					},KEY_ESC);
+					mainMenu.disableMenu();
+					mainWindow.clearScreen(); 
+					userInput.setKeyDisabled(KEY_F(1), false);
+					});
+				mainMenu.enableMenu();
+				userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+					mainMenu.escKey();
+						return 1;
+						}, KEY_ESC);
 				return 1;
 			},
 			KEY_F(1)),
@@ -249,7 +261,7 @@ int main() {
 		std::string st = std::to_string((std::chrono::duration_cast<std::chrono::milliseconds> (t.time_since_epoch())).count());
 		printw(st.c_str());
 		return 0;
-		}, KEY_F0 + 2);
+		}, KEY_F(2));
 
 	// testing printing text from keyboard into textField
 	testTextField.setClearOnPrint(false);
@@ -346,7 +358,7 @@ int inputHandler::addListener(std::function<int(int, TIMEPOINT_T)> f, int key){
 			this->removeByKey(KEY_ALL_ASCII);
 		}
 	}
-	events_struct t = {key,this->id_index++,f};
+	events_struct t = {key,this->id_index++,f,false};
 	this->events.push_back(t);
 	return this->events.size();
 }
@@ -363,11 +375,9 @@ int inputHandler::remove(unsigned long id){
 }
 
 int inputHandler::removeByKey(int key) {
-	auto it = this->events.begin();
-	unsigned int i = 0;
-	for (; i < this->events.size() && it != this->events.end(); i++,it++) {
-		if (this->events.at(i).key == key && (this->events.begin() + i) < this->events.end()) {
-			this->events.erase(this->events.begin() + i);
+	for (unsigned int i = 0; i < this->events.size(); i++) {
+		if (this->events.at(i).key == key) {
+			this->remove(this->events.at(i).id);
 		}
 	}
 	return this->events.size();
@@ -394,14 +404,20 @@ void inputHandler::handleInput(){
 	auto t = std::chrono::steady_clock::now();
 	int c = getch();
 	for (unsigned int i = 0; i < this->events.size(); i++) {
-		if (this->events[i].key == c) {
+		if (this->events[i].key == c && !this->events[i].disabled) {
 			this->events[i].func(c, t);
 		}
-		if (this->events[i].key == KEY_ALL_ASCII && c > 31 && c < 127) {
+		if (this->events[i].key == KEY_ALL_ASCII && c > 31 && c < 127 && !this->events[i].disabled) {
 			this->events[i].func(c, t);
 		}
 	}	
 	return;
+}
+
+void inputHandler::setKeyDisabled(int key, bool en) {
+	for (unsigned int i = 0; i < this->events.size(); i++) {
+		if (this->events.at(i).key == key) this->events.at(i).disabled = en;
+	}
 }
 
 void inputHandler::resetEvents() {
