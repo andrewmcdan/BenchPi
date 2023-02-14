@@ -139,8 +139,8 @@ int main() {
 	textField anotherTF(0, 13, mainWindow.width - 2, mainWindow.height/2, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	anotherTF.draw();
 	anotherTF.setClearOnPrint(false);
-	midi.openInPort(2,false,false,false,&anotherTF);
-	if(midi.midiInDevices.size() > 1) midi.midiInDevices.at(2).enabled = true;
+	midi.openInPort(3,false,false,false,&anotherTF);
+	if(midi.midiInDevices.size() > 1) midi.midiInDevices.at(3).enabled = true;
 	loop.addEvent([&midi]() {
 		midi.update();
 		return 1;
