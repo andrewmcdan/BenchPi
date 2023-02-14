@@ -12,7 +12,6 @@ void consoleHandler::clearScreen() {
 }
 
 bool consoleHandler::setCursorPos(int x, int y) {
-	//printw("w: %d h: %d x: %d y: %d", this->width, this->height, x, y);
 	if (x > this->width || y > this->height) { return false; }
 	move(y, x);
 	return true;
@@ -91,7 +90,6 @@ bool textField::setText(char* s, int len) {
 }
 
 bool textField::setText(std::string s) {
-	//if (s.length() + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1) this->shortenTheString(s.length());
 	char* c = new char[s.length()];
 	strcpy(c, s.c_str());
 	this->setText(c, s.length());
@@ -103,7 +101,6 @@ void textField::shortenTheString(int l) {
 		this->theString[i] = this->theString[i + l];
 	}
 	this->textLength -= l;
-	//this->theString[this->textLength] = '\0';
 }
 
 int textField::draw() {
@@ -275,7 +272,7 @@ int textField::draw() {
 		case center:
 			for (int i = 0; i < this->height; i++) {
 
-				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i)) > 0) ? (this->x) : (this->x + this->width / 2 - (this->textLength % this->width) / 2), this->y + i);
+				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + i);
 				for (int p = 0; p < this->width; p++) {
 					//int temp = i * this->width + p;
 					if (theString[printPos] == '\0') break;
@@ -344,8 +341,8 @@ bool textField::getEnabled() {
 
 void textField::move(int x, int y) {
 	if (x > this->mainConsole->width - this->width || y > this->mainConsole->height - this->height) return;
-	this->x = x;
-	this->y = y;
+	this->x = (x == -1) ? this->x : x;
+	this->y = (y == -1) ? this->y : y;
 }
 
 int consoleHandler::colornum(int fg, int bg)

@@ -132,7 +132,7 @@ int main() {
 	// 
 	//
 	// build the main menu, F1
-	Menu mainMenu = Menu(&loop, &mainWindow, "Main Menu");
+	Menu mainMenu = Menu(&loop, &mainWindow, &userInput, "Main Menu");
 	mainMenu.addMenuItem("testMenu Item", []() {return; }, &mainWindow);
 	mainMenu.addMenuItem("another menu item", []() { return; }, &mainWindow);
 	mainMenu.addMenuItem("testMenu Item1", []() {return; }, &mainWindow);
@@ -208,14 +208,16 @@ int main() {
 				mainMenu.enableMenu();
 				userInput.addListener([&](int c2, TIMEPOINT_T time2) {
 					mainMenu.disableMenu();
-					userInput.removeByKey(27);
+					userInput.removeByKey(KEY_ESC);
+					userInput.removeByKey(KEY_UP);
+					userInput.removeByKey(KEY_DOWN);
 					mainWindow.clearScreen();
 					return 1; 
-					},27);
+					},KEY_ESC);
 				return 1;
 			},
-			'`'),
-		'`');
+			KEY_F(1)),
+		KEY_F(1));
 
 
 
@@ -365,7 +367,7 @@ int inputHandler::removeByKey(int key) {
 	unsigned int i = 0;
 	for (; i < this->events.size() && it != this->events.end(); i++,it++) {
 		if (this->events.at(i).key == key && (this->events.begin() + i) < this->events.end()) {
-			this->events.erase(it);
+			this->events.erase(this->events.begin() + i);
 		}
 	}
 	return this->events.size();

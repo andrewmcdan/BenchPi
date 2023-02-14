@@ -4,6 +4,7 @@
 #define BORDER_DISABLED 0
 #define TIMEPOINT_T std::chrono::time_point<std::chrono::steady_clock>
 #define KEY_ALL_ASCII 999999
+#define KEY_ESC 27
 
 class loopUpdateHandler {
 public:

@@ -1,7 +1,7 @@
 #include "Menu.h"
 #include "consoleHandler.h"
 
-Menu::Menu(loopUpdateHandler* l, consoleHandler* con, std::string text) {
+Menu::Menu(loopUpdateHandler* l, consoleHandler* con, inputHandler* inputHandler_, std::string text) {
 	this->menuText = text;
 	this->visible = false;
 	this->loop = l;
@@ -11,6 +11,8 @@ Menu::Menu(loopUpdateHandler* l, consoleHandler* con, std::string text) {
 	tField.setText(this->menuText);
 	this->selectionPosition = 0;
 	this->viewPosition = 0;
+	this->mainWindow = con;
+	this->userInputHandler = inputHandler_;
 }
 
 void Menu::setReferringMenu(Menu* m) {
@@ -29,20 +31,57 @@ void Menu::enableMenu() {
 			this->tField.draw();
 			return 1;
 			});
-		for (size_t itr = 0; itr < this->menuItems.size(); itr++) {
-			if ((this->mainWindow->height - 4 - 3) > itr) {
-				if (!this->menuItems.at(itr).tField.getEnabled()) {
-					this->menuItems.at(itr).tField.setEnabled(true);
-					this->menuItems.at(itr).tFieldDraw_loopID = this->loop->addEvent([&, itr]() {
-						this->menuItems.at(itr).tField.draw();
-						return 1;
-						});
-				}
+		this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+			if (this->selectionPosition < this->menuItems.size() - 1) {
+				this->selectionPosition++;
+				if (this->selectionPosition > this->mainWindow->height - 8 )this->viewPosition++;
 			}
-
-		}
+			this->enableMenuItems();
+			return 1;
+			}, KEY_DOWN);
+		this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+			if (this->selectionPosition > 0) {
+				this->selectionPosition--;
+				if (this->viewPosition > 0)this->viewPosition--;
+			}
+			this->enableMenuItems();
+			return 1;
+			}, KEY_UP);
+		this->enableMenuItems();
 	}
 	
+}
+
+void Menu::enableMenuItems(){
+	int firstItemIndex = this->viewPosition;
+	int lastItemIndex = this->viewPosition + this->mainWindow->height - 8;
+
+	for (size_t itr = 0; itr < this->menuItems.size(); itr++) {
+		if (firstItemIndex <= itr && lastItemIndex >= itr) {
+			if (!this->menuItems.at(itr).tField.getEnabled()) {
+				this->menuItems.at(itr).tField.setEnabled(true);
+				this->menuItems.at(itr).tFieldDraw_loopID = this->loop->addEvent([&, itr]() {
+					this->menuItems.at(itr).tField.draw();
+				return 1;
+					});
+			}
+		}
+		else {
+			this->menuItems.at(itr).tField.setEnabled(false);
+			this->loop->remove(this->menuItems.at(itr).tFieldDraw_loopID);
+		}
+
+		this->menuItems.at(itr).tField.move(-1, 4 + itr - this->viewPosition);
+
+		if (this->selectionPosition == itr) {
+			this->menuItems.at(itr).selected = true;
+			this->menuItems.at(itr).tField.setTextColor(COLOR_BLACK, COLOR_WHITE);
+		}
+		else {
+			this->menuItems.at(itr).selected = false;
+			this->menuItems.at(itr).tField.setTextColor(COLOR_WHITE, COLOR_BLACK);
+		}
+	}
 }
 
 void Menu::disableMenu() {
@@ -53,24 +92,26 @@ void Menu::disableMenu() {
 		this->menuItems.at(itr).tField.setEnabled(false);
 		this->loop->remove(this->menuItems.at(itr).tFieldDraw_loopID);
 	}
+	if (!this->isRootMenu)this->referringMenu->enableMenu();
 }
 
+
 void Menu::addMenuItem(std::string text, std::function<void()> action, consoleHandler* con) {
-	//MenuItem tempItem = MenuItem(text,action,this->mainWindow);
 	this->menuItems.push_back(MenuItem(text, action, con));
 }
 
-void Menu::upKey(){}
+void Menu::upKey(){
+	
+}
 void Menu::downKey(){}
 void Menu::enterKey(){}
 
 
 MenuItem::MenuItem(std::string text, std::function<void()> act, consoleHandler* con) {
-	tField = textField((con->width / 4) + 1, 5, (con->width / 2) - 2, 1, COLOR_WHITE, COLOR_BLACK, BORDER_DISABLED, con, textField::center);
+	tField = textField((con->width / 4) + 1, 4, (con->width / 2) - 1, 1, COLOR_WHITE, COLOR_BLACK, BORDER_DISABLED, con, textField::center);
 	tField.setText(text);
 	tField.setEnabled(false);
 	action = act;
-	//tField.setTextColor(COLOR_WHITE,COLOR_BLACK);
 }
 
 shortcutItem::shortcutItem(int pos, std::function<int()> f,consoleHandler* con, std::string text, textField::textAlignment align) {

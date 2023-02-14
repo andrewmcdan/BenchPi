@@ -20,17 +20,18 @@ public:
 class Menu
 {
 public:
-	Menu(loopUpdateHandler* l, consoleHandler* con, std::string text);
+	Menu(loopUpdateHandler* l, consoleHandler* con, inputHandler* inputHandler_, std::string text);
 	void setReferringMenu(Menu* m);
 	void enableMenu();
 	void disableMenu();
 	void upKey();
 	void downKey();
 	void enterKey();
-	void addMenuItem(std::string text, std::function<void()> action,consoleHandler* con);
+	void addMenuItem(std::string text, std::function<void()> action, consoleHandler* con);
 	std::vector<MenuItem>menuItems;
 	consoleHandler* mainWindow;
 private:
+	void enableMenuItems();
 	bool visible;
 	int selectionPosition;
 	int viewPosition;
@@ -40,6 +41,7 @@ private:
 	Menu* referringMenu;
 	bool isRootMenu;
 	loopUpdateHandler* loop;
+	inputHandler* userInputHandler;
 };
 
 
