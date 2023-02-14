@@ -35,7 +35,7 @@ void Menu::enableMenu() {
 					this->menuItems.at(itr).tField.setEnabled(true);
 					this->menuItems.at(itr).tFieldDraw_loopID = this->loop->addEvent([&, itr]() {
 						this->menuItems.at(itr).tField.draw();
-					return 1;
+						return 1;
 						});
 				}
 			}
