@@ -40,6 +40,7 @@ int main() {
 	keypad(stdscr, TRUE);
 	curs_set(0);
 	timeout(0);
+	ESCDELAY = 0;
 	raw();
 	if (has_colors() == FALSE) {
 		endwin();
@@ -79,6 +80,11 @@ int main() {
 		return shortcutF5.tField.draw();
 		});
 
+	
+	//
+	// Build the quit confirm screen.
+	// 
+	// 
 	// Init a textfield for confirming quit. 
 	textField quitConfirm(0, 0, mainWindow.width - 2, mainWindow.height - 1, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::center);
 	// Connect the F4 shortcut with its key listener and instantiate all the events to happen when user responds to confirm
@@ -121,13 +127,98 @@ int main() {
 				KEY_F(5)),
 			KEY_F(5));
 
-	/*
-	* Setup items:
-	* 1. get list of all serial ports and query them to see what sort of device is attached.
-	* 2. for all ammeters attached, set them up along with ammeter objects
-	* 3. build menus
-	* 
-	*/
+	//
+	// Build the menus
+	// 
+	//
+	// build the main menu, F1
+	Menu mainMenu = Menu(&loop, &mainWindow, "Main Menu");
+	mainMenu.addMenuItem("testMenu Item", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("another menu item", []() { return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item1", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item2", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item3", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item4", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item5", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item6", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item7", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item8", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("testMenu Item9", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item10", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item11", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item12", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item13", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item14", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item15", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item16", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item17", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item18", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item19", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item20", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item21", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item22", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item23", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item24", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item25", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item26", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item27", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item28", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item29", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item30", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item31", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item32", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item33", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item34", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item35", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item36", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item37", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item38", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item39", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item40", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item41", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item42", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item43", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item44", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item45", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item46", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item47", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item48", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item49", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item50", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item51", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item52", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item53", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item54", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item55", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item56", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item57", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item58", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item59", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item60", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item61", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item62", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item63", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item64", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item65", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("testMenu Item66", []() {return; }, & mainWindow);
+
+	shortcutF1.setInputListenerIdAndKey(
+		userInput.addListener(
+			[&mainMenu,&userInput,&mainWindow](int c, TIMEPOINT_T time) {
+				mainMenu.enableMenu();
+				userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+					mainMenu.disableMenu();
+					userInput.removeByKey(27);
+					mainWindow.clearScreen();
+					return 1; 
+					},27);
+				return 1;
+			},
+			'`'),
+		'`');
+
+
+
 
 	textField testTextField(0, 1, mainWindow.width / 2, 10, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	testTextField.setClearOnPrint(false);
@@ -136,8 +227,8 @@ int main() {
 	}
 	testTextField.draw();
 
-	textField anotherTF(0, 13, mainWindow.width - 2, mainWindow.height/2, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
-	anotherTF.draw();
+	textField anotherTF(0, 13, mainWindow.width - 2, mainWindow.height/2, COLOR_WHITE, COLOR_BLACK, BORDER_DISABLED, &mainWindow, textField::textAlignment::left);
+	//anotherTF.draw();
 	anotherTF.setClearOnPrint(false);
 	midi.openInPort(3,false,false,false,&anotherTF);
 	if(midi.midiInDevices.size() > 1) midi.midiInDevices.at(3).enabled = true;
@@ -164,7 +255,7 @@ int main() {
 		char c1 = c;
 		testTextField.setText(&c1, 1);
 		return 0;
-		}, 'p');
+		}, KEY_ALL_ASCII);
 
 	loop.addEvent([&testTextField]() {
 		return testTextField.draw();

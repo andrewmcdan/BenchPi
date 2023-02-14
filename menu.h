@@ -2,40 +2,46 @@
 #include <functional>
 #include "consoleHandler.h"
 #include "main.h"
-class Menu
-{
-public:
-	Menu(loopUpdateHandler* l, consoleHandler* con);
-	void setReferringMenu(Menu* m);
-	void enableMenu();
-	void disableMenu();
-	void upKey();
-	void downKey();
-	void enterKey();
-	bool visible;
-private:
-	int selectionPosition;
-	int viewPosition;
-	textField tField;
-	std::string menuText;
-	Menu* referringMenu;
-	bool isRootMenu;
-	loopUpdateHandler* loop;
-	consoleHandler* mainWindow;
-};
 
 class MenuItem {
 public:
 	/*
 	Selectable menu item. Has action associated with it.
 	*/
-	MenuItem();
+	MenuItem(std::string text, std::function<void()> action, consoleHandler* con);
 	// the action to be performed when selecting the menu item
-private:
+	textField tField;
+	int tFieldDraw_loopID;
 	std::function<void()>action;
-	std::string itemText;
-
+	//std::string itemText;
+	bool selected;
 };
+
+class Menu
+{
+public:
+	Menu(loopUpdateHandler* l, consoleHandler* con, std::string text);
+	void setReferringMenu(Menu* m);
+	void enableMenu();
+	void disableMenu();
+	void upKey();
+	void downKey();
+	void enterKey();
+	void addMenuItem(std::string text, std::function<void()> action,consoleHandler* con);
+	std::vector<MenuItem>menuItems;
+	consoleHandler* mainWindow;
+private:
+	bool visible;
+	int selectionPosition;
+	int viewPosition;
+	int tFieldDraw_loopID;
+	textField tField;
+	std::string menuText;
+	Menu* referringMenu;
+	bool isRootMenu;
+	loopUpdateHandler* loop;
+};
+
 
 class shortcutItem {
 public:

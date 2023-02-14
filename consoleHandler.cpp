@@ -12,6 +12,7 @@ void consoleHandler::clearScreen() {
 }
 
 bool consoleHandler::setCursorPos(int x, int y) {
+	//printw("w: %d h: %d x: %d y: %d", this->width, this->height, x, y);
 	if (x > this->width || y > this->height) { return false; }
 	move(y, x);
 	return true;
@@ -20,6 +21,7 @@ bool consoleHandler::setCursorPos(int x, int y) {
 
 
 textField::textField(){
+	this->alignment = left;
 	this->border = 0;
 	this->borderColor = COLOR_WHITE;
 	this->x = 0;
@@ -30,9 +32,11 @@ textField::textField(){
 	this->invert = false;
 	this->enabled = true;
 	this->needDraw = true;
+	this->clearOnPrint = true;
 	this->width = 0;
 	this->height = 0;
 	this->startTime = std::chrono::high_resolution_clock::now();
+	this->textLength = 0;
 	for (int i = 0; i < MAX_TEXTFIELD_STRING_LENGTH; i++) {
 		this->theString[i] = '\0';
 	}
@@ -46,7 +50,6 @@ textField::textField(int x_coord, int y_coord, int width, int height, short int 
 	this->fgColor = textColor;
 	this->bgColor = bgColor;
 	this->mainConsole = con;
-	//init_pair(this->mainConsole->colornum(this->fgColor, this->bgColor), this->fgColor, this->bgColor);
 	this->scrolling = false;
 	this->invert = false;
 	this->enabled = true;
@@ -55,6 +58,7 @@ textField::textField(int x_coord, int y_coord, int width, int height, short int 
 	this->width = width;
 	this->height = height;
 	this->startTime = std::chrono::high_resolution_clock::now();
+	this->textLength = 0;
 	for (int i = 0; i < MAX_TEXTFIELD_STRING_LENGTH; i++) {
 		this->theString[i] = '\0';
 	}
@@ -220,30 +224,75 @@ int textField::draw() {
 	}
 
 	else  if (this->border == 0) {
-		if (this->alignment == 1) {
-			for (int i = 0; i < (this->width - this->textLength) / 2; i++) {
-				printw(" ");
-			}
-			for (int i = 0; i < this->width; i++) {
-				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
-			}
-			for (int i = 0; i < this->width - (this->width - this->textLength) / 2 - this->textLength; i++) {
+		//clear the text field 
+		for (int i = 0; i < this->height; i++) {
+			this->mainConsole->setCursorPos(this->x, this->y + i);
+			for (int p = 0; p < this->width; p++) {
 				printw(" ");
 			}
 		}
-		else if (this->alignment == 2) {
-			for (int i = 0; i < this->width - this->textLength; i++) {
-				printw(" ");
+		switch(this->alignment) {
+		case left:
+		{
+			int lineCount = 1;
+			for (int i = 0; i < this->textLength; i++) {
+				if (this->theString[i] == '\r') {
+					lineCount++;
+					if (this->theString[i + 1] == '\n') i += 2;
+				}
+				else if (this->theString[i] == '\n') {
+					lineCount++;
+					if (this->theString[i + 1] == '\r') i += 2;
+				}
 			}
-			for (int i = 0; i < this->width; i++) {
-				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
+			int lineNo = 0;
+			for (; lineCount - lineNo > this->height; printPos++) {
+				if (this->theString[printPos] == '\r') {
+					lineNo++;
+					if (this->theString[printPos + 1] == '\n') printPos += 2;
+				}
+				else if (this->theString[printPos] == '\n') {
+					lineNo++;
+					if (this->theString[printPos + 1] == '\r') printPos += 2;
+				}
 			}
+			for (int i = 0; i < this->height; i++) {
+				this->mainConsole->setCursorPos(this->x, this->y + i);
+				for (int p = 0; p < this->width; p++) {
+					//int temp = i * this->width + p;
+					if (theString[printPos] == '\0') break;
+					else if (theString[printPos] == '\r' || theString[printPos] == '\n') {
+						printPos++;
+						goto cont3;
+					}
+					else printw("%c", theString[printPos]);
+					printPos++;
+				}
+			cont3:;
+			}
+			break;
 		}
-		else {
-			for (int i = 0; i < this->width; i++) {
-				if (this->theString[i] != '\0') printw("%c", this->theString[i]);
-				else printw(" ");
+		case center:
+			for (int i = 0; i < this->height; i++) {
+
+				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i)) > 0) ? (this->x) : (this->x + this->width / 2 - (this->textLength % this->width) / 2), this->y + i);
+				for (int p = 0; p < this->width; p++) {
+					//int temp = i * this->width + p;
+					if (theString[printPos] == '\0') break;
+					else if (theString[printPos] == '\r' || theString[printPos] == '\n') {
+						printPos++;
+						goto cont4;
+					}
+					else printw("%c", theString[printPos]);
+					printPos++;
+				}
+			cont4:;
 			}
+			break;
+		case right:
+			break;
+		default:
+			break;
 		}
 	}
 	// the next section is for flashing border. NOT IMPLEMENTED YET.
@@ -293,6 +342,12 @@ bool textField::getEnabled() {
 	return this->enabled;
 }
 
+void textField::move(int x, int y) {
+	if (x > this->mainConsole->width - this->width || y > this->mainConsole->height - this->height) return;
+	this->x = x;
+	this->y = y;
+}
+
 int consoleHandler::colornum(int fg, int bg)
 {
 	int B, bbb, ffff;
@@ -307,6 +362,12 @@ int consoleHandler::colornum(int fg, int bg)
 
 void textField::setBorderColor(int color) {
 	this->borderColor = color;
+	return;
+}
+
+void textField::setTextColor(short int fg, short int bg) {
+	this->fgColor = fg;
+	this->bgColor = bg;
 	return;
 }
 
