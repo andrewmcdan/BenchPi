@@ -38,6 +38,7 @@ public:
 	struct midiIn {
 		RtMidiIn* RtMidi_device;
 		std::string name; // Name of the connected midi device
+		std::string alias;
 		bool enabled;
 		bool open; // gets set to true once the port is opened.
 		std::vector<midiMes>message; // messages with timestamps
@@ -51,6 +52,7 @@ public:
 	struct midiOut {
 		RtMidiOut* RtMidi_device;
 		std::string name;
+		std::string alias;
 		bool enabled;
 		bool open;
 		bool clockEn;

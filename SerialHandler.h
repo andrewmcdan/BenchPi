@@ -31,18 +31,26 @@ public:
 	// returns 1 if successful, 0 if port isn't open, -1 if there was an error, -2 if port not found
 	int setPortConfig(std::string name, int baud, int bitPerByte, bool parity, bool stopBits, bool hardwareFlow);
 	int setPortConfig(std::string name, int baud, int bitPerBytes);
+	void setPortAlias(std::string s, std::string port);
 	int getPortConfig(int portDescriptor, termios* tty_);
 	int setTextFieldForPort(std::string portName, textField* tF);
 	int openPort(std::string name);
 	int closePort(std::string name);
 	int closePort(int portDescriptor);
 	void closeAllPorts();
+	int getNumberOfPorts();
+	void getPortName(int index, std::string& name);
+	void getPortAlias(int index, std::string& alias);
+	int getPortBaud(int index);
+	bool getPortAvailable(int index);
+	void setPortAvaialble(int i, bool b);
 
 private:
 	enum printMode { ASCII, HEX, BIN };
 
 	struct ports_struct {
 		std::string name;
+		std::string alias;
 		int baud;
 		bool open;
 		bool available;
@@ -70,4 +78,8 @@ private:
 		"/dev/ttyS", 
 		"/dev/ttyAMA"
 		};
+};
+
+class AddonController {
+	AddonController();
 };

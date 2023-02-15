@@ -90,7 +90,7 @@ bool textField::setText(char* s, int len) {
 }
 
 bool textField::setText(std::string s) {
-	char* c = new char[s.length()];
+	char* c = new char[s.length()+1];
 	strcpy(c, s.c_str());
 	this->setText(c, s.length());
 	return true;

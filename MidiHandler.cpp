@@ -19,10 +19,10 @@ MidiHandler::MidiHandler() {
 
     // iterate through the all the midi in and out devices and save them in the objects
     for (unsigned int i = 0; i < nMidiInPorts; i++) {
-        this->midiInDevices.push_back({new RtMidiIn(), inDevs->getPortName(i), false, false});
+        this->midiInDevices.push_back({new RtMidiIn(), inDevs->getPortName(i), "", false, false});
     }
     for (unsigned int i = 0; i < nMidiOutPorts; i++) {
-        this->midiOutDevices.push_back({new RtMidiOut(), outDevs->getPortName(i), false, false, false });
+        this->midiOutDevices.push_back({new RtMidiOut(), outDevs->getPortName(i), "", false, false, false});
     }
 }
 

@@ -57,6 +57,7 @@ int main() {
 	loopUpdateHandler loop = loopUpdateHandler();
 	inputHandler userInput = inputHandler(&loop);
 	MidiHandler midi = MidiHandler();
+	SerialHandler serialPortManager = SerialHandler();
 
 	// Set up the F-key shortcuts
 	shortcutItem shortcutF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
@@ -135,13 +136,97 @@ int main() {
 	Menu aSubMenu = Menu(&loop, &mainWindow, &userInput, "A Sub Menu");
 	aSubMenu.addMenuItem("sub menu menu item1", []() {return 1; }, &mainWindow);
 	aSubMenu.addMenuItem("sub menu menu item2", []() {return 1; }, &mainWindow);
+
+	Menu loadConfigMenu = Menu(&loop, &mainWindow, &userInput, "Load Configuration From Disk");
+	Menu saveConfigMenu = Menu(&loop, &mainWindow, &userInput, "Save Configuration To Disk");
+	Menu enDisSerialDevsMenu = Menu(&loop, &mainWindow, &userInput, "Enable / Disable Serial Devices");
+	Menu enDisMidiInDevsMenu = Menu(&loop, &mainWindow, &userInput, "Enable / Disable MIDI Input Devices");
+	Menu enDisMidiOutDevsMenu = Menu(&loop, &mainWindow, &userInput, "Enable / Disable MIDI Output Devices");
+	Menu configAmmetersVoltmetersMenu = Menu(&loop, &mainWindow, &userInput, "Config Ammeters / Voltmeters");
+	Menu configMultiMeterMenu = Menu(&loop, &mainWindow, &userInput, "Configure Serial MultiMeter");
+
+
 	
 
 	// build the main menu, F1
 	Menu mainMenu = Menu(&loop, &mainWindow, &userInput, "Main Menu");
+	Menu serialConfigMenu = Menu(&loop, &mainWindow, &userInput, "Serial Config");
+	Menu midiConfigMenu = Menu(&loop, &mainWindow, &userInput, "MIDI Config");
+	Menu tAreaMenu = Menu(&loop, &mainWindow, &userInput, "Text Area Options");
 	aSubMenu.setReferringMenu(&mainMenu);
+	loadConfigMenu.setReferringMenu(&mainMenu);
+	saveConfigMenu.setReferringMenu(&mainMenu);
+	enDisSerialDevsMenu.setReferringMenu(&mainMenu);
+	enDisMidiInDevsMenu.setReferringMenu(&mainMenu);
+	enDisMidiOutDevsMenu.setReferringMenu(&mainMenu);
+	configAmmetersVoltmetersMenu.setReferringMenu(&mainMenu);
+	configMultiMeterMenu.setReferringMenu(&mainMenu);
 
-	mainMenu.addMenuItem("a sub menu", [&]() {
+
+	for (int i = 0; i < serialPortManager.getNumberOfPorts(); i++) {
+		std::string temp1;
+		serialPortManager.getPortName(i, temp1);
+		std::string temp2;
+		serialPortManager.getPortAlias(i, temp2);
+		std::string temp3 = serialPortManager.getPortAvailable(i) ? "Enabled" : "Disabled";
+		std::string temp4 = "";
+		if (temp2.length() > 0) temp4 = temp1 + " : " + temp2 + " - " + temp3;
+		else temp4 = temp1 + " - " + temp3;
+		enDisSerialDevsMenu.addMenuItem(temp4, [&,i]() {
+			serialPortManager.setPortAvaialble(i, !serialPortManager.getPortAvailable(i));
+			std::string temp5;
+			serialPortManager.getPortName(i, temp5);
+			std::string temp6;
+			serialPortManager.getPortAlias(i, temp2);
+			std::string temp7 = serialPortManager.getPortAvailable(i) ? "Enabled" : "Disabled";
+			std::string temp8 = "";
+			if (temp6.length() > 0) temp8 = temp5 + " : " + temp6 + " - " + temp7;
+			else temp8 = temp5 + " - " + temp7;
+			enDisSerialDevsMenu.menuItems.at(i).tField.setText(temp8);
+			return;
+			}, &mainWindow);
+	}
+
+
+	for (int i = 0; i < midi.midiInDevices.size(); i++) {
+		std::string temp2 = midi.midiInDevices.at(i).alias;
+		std::string temp3 = midi.midiInDevices.at(i).enabled ? "Enabled" : "Disabled";
+		std::string temp4 = "";
+		if (temp2.length() == 0)temp4 = midi.midiInDevices.at(i).name + " - " + temp3;
+		else temp4 = temp2 + " - " + temp3;
+		enDisMidiInDevsMenu.addMenuItem(temp4, [&, i]() {
+			midi.midiInDevices.at(i).enabled = !midi.midiInDevices.at(i).enabled;
+			std::string temp6 = midi.midiInDevices.at(i).alias;
+			std::string temp7 = midi.midiInDevices.at(i).enabled ? "Enabled" : "Disabled";
+			std::string temp8 = "";
+			if (temp6.length() == 0)temp8 = midi.midiInDevices.at(i).name + " - " + temp7;
+			else temp8 = temp6 + " - " + temp7;
+			enDisMidiInDevsMenu.menuItems.at(i).tField.setText(temp8);
+			return;
+			}, &mainWindow);
+	}
+
+	for (int i = 0; i < midi.midiOutDevices.size(); i++) {
+		std::string temp2 = midi.midiOutDevices.at(i).alias;
+		std::string temp3 = midi.midiOutDevices.at(i).enabled ? "Enabled" : "Disabled";
+		std::string temp4 = "";
+		if (temp2.length() == 0)temp4 = midi.midiOutDevices.at(i).name + " - " + temp3;
+		else temp4 = temp2 + " - " + temp3;
+		enDisMidiOutDevsMenu.addMenuItem(temp4, [&, i]() {
+			midi.midiOutDevices.at(i).enabled = !midi.midiOutDevices.at(i).enabled;
+			std::string temp6 = midi.midiOutDevices.at(i).alias;
+			std::string temp7 = midi.midiOutDevices.at(i).enabled ? "Enabled" : "Disabled";
+			std::string temp8 = "";
+			if (temp6.length() == 0)temp8 = midi.midiOutDevices.at(i).name + " - " + temp7;
+			else temp8 = temp6 + " - " + temp7;
+			enDisMidiOutDevsMenu.menuItems.at(i).tField.setText(temp8);
+			return;
+			}, &mainWindow);
+	}
+	
+
+
+	mainMenu.addMenuItem("A Sub Menu", [&]() {
 		aSubMenu.enableMenu();
 		aSubMenu.setEscKey([&]() {
 			aSubMenu.disableMenu();
@@ -170,43 +255,97 @@ int main() {
 			}, KEY_ESC);
 		return; 
 		}, &mainWindow);
-	mainMenu.addMenuItem("another menu item", []() { return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item1", []() {return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item2", []() {return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item3", []() {return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item4", []() {return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item5", []() {return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item6", []() {return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item7", []() {return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item8", []() {return; }, &mainWindow);
-	mainMenu.addMenuItem("testMenu Item9", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item10", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item11", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item12", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item13", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item14", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item15", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item16", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item17", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item18", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item19", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item20", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item21", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item22", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item23", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item24", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item25", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item26", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item27", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item28", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item29", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item30", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item31", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item32", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item33", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item34", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item35", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("testMenu Item36", []() {return; }, & mainWindow);
+	
+	
+	
+	mainMenu.addMenuItem("Load Config", []() { return; }, &mainWindow);
+	mainMenu.addMenuItem("Save Config", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("En/Disable Serial Devices", [&]() {
+		enDisSerialDevsMenu.enableMenu();
+		enDisSerialDevsMenu.setEscKey([&]() {
+			enDisSerialDevsMenu.disableMenu();
+			mainMenu.enableMenu();
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.upKey();
+				return 1;
+				}, KEY_UP);
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.downKey();
+				return 1;
+				}, KEY_DOWN);
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.enterKey();
+				return 1;
+				}, KEY_ENTER);
+			userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+				mainMenu.escKey();
+				return 1;
+				}, KEY_ESC);
+			});
+		userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+			enDisSerialDevsMenu.escKey();
+			return 1;
+			}, KEY_ESC);
+		return; 
+		}, &mainWindow);
+	mainMenu.addMenuItem("En/Disable MIDI Input Devices", [&]() {
+		enDisMidiInDevsMenu.enableMenu();
+		enDisMidiInDevsMenu.setEscKey([&]() {
+			enDisMidiInDevsMenu.disableMenu();
+			mainMenu.enableMenu();
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.upKey();
+				return 1;
+				}, KEY_UP);
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.downKey();
+				return 1;
+				}, KEY_DOWN);
+			userInput.addListener([&](int c, TIMEPOINT_T t) {
+				mainMenu.enterKey();
+				return 1;
+				}, KEY_ENTER);
+			userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+				mainMenu.escKey();
+				return 1;
+				}, KEY_ESC);
+			});
+			userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+			enDisMidiInDevsMenu.escKey();
+			return 1;
+			}, KEY_ESC);
+		return;
+		}, &mainWindow);
+	mainMenu.addMenuItem("En/Disable MIDI Output Devices", [&]() {
+			enDisMidiOutDevsMenu.enableMenu();
+			enDisMidiOutDevsMenu.setEscKey([&]() {
+				enDisMidiOutDevsMenu.disableMenu();
+				mainMenu.enableMenu();
+				userInput.addListener([&](int c, TIMEPOINT_T t) {
+					mainMenu.upKey();
+					return 1;
+					}, KEY_UP);
+				userInput.addListener([&](int c, TIMEPOINT_T t) {
+					mainMenu.downKey();
+					return 1;
+					}, KEY_DOWN);
+				userInput.addListener([&](int c, TIMEPOINT_T t) {
+					mainMenu.enterKey();
+					return 1;
+					}, KEY_ENTER);
+				userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+					mainMenu.escKey();
+					return 1;
+					}, KEY_ESC);
+				});
+			userInput.addListener([&](int c2, TIMEPOINT_T time2) {
+			enDisMidiOutDevsMenu.escKey();
+			return 1;
+			}, KEY_ESC);
+		return;
+		}, &mainWindow);
+	mainMenu.addMenuItem("Configure Addon Controller (Teensy)", []() {return; }, & mainWindow);
+	mainMenu.addMenuItem("Configure Serial MultiMeter", []() {return; }, &mainWindow);
 
 
 	shortcutF1.setInputListenerIdAndKey(
@@ -277,7 +416,7 @@ int main() {
 	loop.addEvent([&anotherTF]() {
 		return anotherTF.draw();
 		});
-	SerialHandler serialPortManager = SerialHandler();
+	
 
 	std::string portName = "/dev/ttyUSB0";
 	serialPortManager.openPort(portName);

@@ -21,7 +21,7 @@ SerialHandler::SerialHandler() {
 					printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
 				}
 				// add port info to the "ports" vector
-				ports.push_back({portName,-1,false,true,ser_port_descriptor,tty_temp,temp_tF,BIN});
+				ports.push_back({portName,"",-1,false,false,ser_port_descriptor,tty_temp,temp_tF,BIN});
 			}
 			// close the port at this point since we don't know which ports the ser wants to use
 			close(ser_port_descriptor);
@@ -183,4 +183,46 @@ void SerialHandler::closeAllPorts() {
 			this->ports.at(i).open = false;
 		}
 	}
+}
+
+void SerialHandler::setPortAlias(std::string s, std::string port) {
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
+		if (this->ports.at(i).name.compare(port) == 0) {
+			this->ports.at(i).alias = s;
+		}
+	}
+}
+
+void SerialHandler::setPortAvaialble(int i,bool b) {
+	if (i < 0 || i > this->ports.size()) return;
+	this->ports.at(i).available = b;
+}
+int SerialHandler::getNumberOfPorts(){
+	return this->ports.size();
+}
+void SerialHandler::getPortName(int index, std::string& name){
+	if (index < 0 || index >= this->ports.size()) {
+		name = "";
+		return;
+	}
+	name = this->ports.at(index).name;
+}
+void SerialHandler::getPortAlias(int index, std::string& alias){
+	if (index < 0 || index >= this->ports.size()) {
+		alias = "";
+		return;
+	}
+	alias = this->ports.at(index).alias;
+}
+int SerialHandler::getPortBaud(int index){
+	if (index < 0 || index >= this->ports.size()) {
+		return -1;
+	}
+	return this->ports.at(index).baud;
+}
+bool SerialHandler::getPortAvailable(int index) {
+	if (index < 0 || index >= this->ports.size()) {
+		return false;
+	}
+	return this->ports.at(index).available;
 }

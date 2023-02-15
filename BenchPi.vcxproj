@@ -112,7 +112,7 @@
       <VerboseOutput>false</VerboseOutput>
     </Link>
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>Disabled</Optimization>
       <UndefinePreprocessorDefinitions>__LINUX_ALSA__;%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
       <AdditionalOptions>-D__LINUX_ALSA__ %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

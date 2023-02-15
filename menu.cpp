@@ -24,7 +24,7 @@ void Menu::enableMenu() {
 	//if (rootListenerID == -1)this->rootListenerID = this->referringMenu->rootListenerID;
 	//else this->rootListenerID = rootListenerID;
 	//this->rootListenerID = rootListenerID;
-	this->selectionPosition = 0;
+	//this->selectionPosition = 0;
 	this->viewPosition = 0;
 	this->visible = true;
 	this->tField.setText("test");

@@ -34,11 +34,11 @@ public:
 	consoleHandler* mainWindow;
 	Menu* referringMenu;
 	inputHandler* userInputHandler;
+	int selectionPosition;
 	
 private:
 	void enableMenuItems();
 	bool visible;
-	int selectionPosition;
 	int viewPosition;
 	int tFieldDraw_loopID;
 	textField tField;
