@@ -127,6 +127,15 @@ void SerialHandler::update() {
 			
 		}
 	}
+	for (unsigned int i = 0; i < this->dataToBeWritten.size(); i++) {
+		if (this->dataToBeWritten.at(i).port_descriptor != -1) {
+			unsigned char charArray[this->dataToBeWritten.at(i).byteVecArray.size()];
+			for(int it = 0; it < this->dataToBeWritten.at(i).byteVecArray.size(); it++){
+				charArray[it] = this->dataToBeWritten.at(i).byteVecArray.at(it);
+			}
+			write(this->dataToBeWritten.at(i).port_descriptor, charArray, this->dataToBeWritten.at(i).byteVecArray.size());
+		}
+	}
 }
 
 int SerialHandler::setTextFieldForPort(std::string portName, textField* tF) {
@@ -225,4 +234,35 @@ bool SerialHandler::getPortAvailable(int index) {
 		return false;
 	}
 	return this->ports.at(index).available;
+}
+
+bool SerialHandler::writeDataToPort(int index, char* data, int len) {
+	if (index < 0 || index > this->ports.size())return false;
+	dataOut temp;
+	temp.port_descriptor = this->ports.at(index).port_descriptor;
+	if (!this->ports.at(index).open)temp.port_descriptor = -1;
+	for (int i = 0; i < len; i++) {
+		temp.byteVecArray.push_back(data[i]);
+	}
+	this->dataToBeWritten.push_back(temp);
+	return true;
+}
+
+bool SerialHandler::writeDataToPort(int index, std::string s) {
+	if (index < 0 || index > this->ports.size())return false;
+	dataOut temp;
+	temp.port_descriptor = this->ports.at(index).port_descriptor;
+	if (!this->ports.at(index).open)temp.port_descriptor = -1;
+	for (int i = 0; i < s.length(); i++) {
+		temp.byteVecArray.push_back(s[i]);
+	}
+	this->dataToBeWritten.push_back(temp);
+}
+
+AddonController::AddonController() {
+
+}
+
+void AddonController::update() {
+
 }

@@ -44,6 +44,8 @@ public:
 	int getPortBaud(int index);
 	bool getPortAvailable(int index);
 	void setPortAvaialble(int i, bool b);
+	bool writeDataToPort(int index, char* data, int len);
+	bool writeDataToPort(int index, std::string s);
 
 private:
 	enum printMode { ASCII, HEX, BIN };
@@ -68,9 +70,10 @@ private:
 
 	struct dataOut {
 		int port_descriptor;
-		std::string aString;
 		std::vector<char>byteVecArray;
 	};
+
+	std::vector<dataOut>dataToBeWritten;
 
 	const std::string portPrefixes[NUMBER_OF_SERIAL_PREFIXES] = {
 		"/dev/ttyUSB", 
@@ -81,5 +84,9 @@ private:
 };
 
 class AddonController {
+public:
 	AddonController();
+	void update();
+	int portFileDescriptor;
+	struct termios tty;
 };
