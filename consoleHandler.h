@@ -5,8 +5,11 @@
 #include <cstring>
 #include <functional>
 #include <ncurses.h>
+#include <vector>
+#include "loopHandler.fwd.h"
 
-
+#define BORDER_ENABLED 1
+#define BORDER_DISABLED 0
 #define MAX_TEXTFIELD_STRING_LENGTH 8192
 class consoleHandler
 {
@@ -54,6 +57,7 @@ public:
 	/// <param name="align"> - text alignemtn within area: left, center, or right</param>
 	textField(int x_coord, int y_coord, int width, int height, short int textColor, short int bgColor, int borderEn, consoleHandler* con,textField::textAlignment align);
 	bool setText(char*, int);
+	void setTitle(std::string t);
 	bool setText(std::string);
 	int  draw();
 	void toggleBorder();
@@ -66,6 +70,7 @@ public:
 	void setScroll(bool b);
 	void shortenTheString(int l);
 	void move(int x, int y);
+	void changeHW(int width, int height);
 	~textField();
 
 private:
@@ -75,10 +80,47 @@ private:
 	textAlignment alignment;
 	bool scrolling, invert, enabled, needDraw, clearOnPrint;
 	char theString[MAX_TEXTFIELD_STRING_LENGTH];
+	std::string title;
 	consoleHandler* mainConsole;
 };
 
 class WindowManager {
+private:
+	enum windowType {
+		NOT_SET, SERIAL_MON, MIDI_MON, KEYBOARD_INPUT, AMMETER, VOLTMETER, MULTIMETER,
+	};
+	enum dataSource {
+		SOURCE_NOT_SET, SERIAL, MIDI, KEYBOARD_ASCII, KEYBOARD_MIDI, KEYBOARD_MIDI_BYTES
+	};
+	struct window_s {
+		textField tField;
+		int x, y, width, height, priority;
+		std::string title;
+		dataSource source;
+		windowType type;
+		unsigned long id;
+		unsigned long loopEventId;
+	};
+	unsigned long id_;
+	consoleHandler* mainConsole;
+	loopUpdateHandler* loopHandler;
+	inputHandler* userInput;
+	std::vector<std::vector<unsigned long>>fieldArray;
+	long long selectedWindowID = -1;
+
 public:
-	WindowManager();
+	WindowManager(consoleHandler* con, loopUpdateHandler* loop, inputHandler* input_h);
+	bool createWindow(int x, int y, int width, int height, std::string title, int priority);
+	bool destroyWindow(unsigned long id);
+	void selectNextWindow();
+	void selectPrevWindow();
+	void enableWindowTitle(std::string title, unsigned long id);
+	void splitWindowVert(unsigned long id);
+	void splitWindowHoriz(unsigned long id);
+	void setWindowType(unsigned long id);
+	void update();
+	void increaseWinodwPriority(unsigned long id);
+	void decreaseWinodwPriority(unsigned long id);
+	std::vector<window_s> windows;
+	
 };

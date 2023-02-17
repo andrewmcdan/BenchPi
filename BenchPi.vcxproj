@@ -88,6 +88,7 @@
   <ItemGroup>
     <ClCompile Include="consoleHandler.cpp" />
     <ClCompile Include="gpio.cpp" />
+    <ClCompile Include="loopHandler.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MidiHandler.cpp" />
@@ -95,8 +96,11 @@
     <ClCompile Include="SerialHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="consoleHandler.fwd.h" />
     <ClInclude Include="consoleHandler.h" />
     <ClInclude Include="gpio.h" />
+    <ClInclude Include="loopHandler.fwd.h" />
+    <ClInclude Include="loopHandler.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="MidiHandler.h" />

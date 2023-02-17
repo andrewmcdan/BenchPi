@@ -1,20 +1,5 @@
-#define _XOPEN_SOURCE_EXTENDED
-#include <ncurses.h>
-#include <locale.h>
-#include <time.h>
-#include <functional>
-#include <cstring>
-#include <chrono>
-#include <thread>
-#include "Menu.h"
-#include "consoleHandler.h"
 #include "main.h"
-#include <algorithm>
-#include <ctime>
-#include "SerialHandler.h"
-#include "MidiHandler.h"
 
-textField* tf_global;
 int main() {
 	// Set up all the stuff for ncurses
 	setlocale(LC_ALL, "en_US.utf8");
@@ -61,6 +46,8 @@ int main() {
 	inputHandler userInput = inputHandler(&loop);
 	MidiHandler midi = MidiHandler();
 	SerialHandler serialPortManager = SerialHandler();
+	WindowManager windowManager = WindowManager(&mainWindow, &loop, &userInput);
+	
 
 	// Set up the F-key shortcuts
 	shortcutItem shortcutF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
@@ -83,6 +70,8 @@ int main() {
 	loop.addEvent([&shortcutF5]() {
 		return shortcutF5.tField.draw();
 		});
+
+	
 
 	// Build the quit confirm screen.
 	// Init a textfield for confirming quit. 
@@ -461,16 +450,10 @@ int main() {
 								}
 								return;
 								}, &mainWindow);
-
 							serialConfigSubMenuItems.at(i).at(2).setEscKey([&, i]() {
-								//mainWindow.clearScreen();
-								tf_global->setText("XXXXXXX  - 4  \r");
 								serialConfigSubMenuItems.at(i).at(2).disableMenu();
-								tf_global->setText("XXXXXXX  - 5  \r");
 								serialConfigMenuItems.at(i).enableMenu();
-								tf_global->setText("XXXXXXX  - 6  \r");
 								serialConfigSubMenuItems.at(i).at(2).resetMenuItemList();
-								tf_global->setText("XXXXXXX  - 7  \r");
 							});
 							serialConfigSubMenuItems.at(i).at(2).enableMenu();
 							return; 
@@ -479,19 +462,13 @@ int main() {
 						serialConfigMenuItems.at(i).addMenuItem("Parity", [&, i]() {/* @TODO: */return; }, &mainWindow);
 						serialConfigMenuItems.at(i).addMenuItem("Stop Bits", [&, i]() {/* @TODO: */return; }, &mainWindow);
 						serialConfigMenuItems.at(i).addMenuItem("Hardware Flow Control", [&, i]() {/* @TODO: */return; }, &mainWindow);
-
 						serialConfigMenuItems.at(i).setEscKey([&,i]() {
-							tf_global->setText("XXXXXXX  - 8  \r");
 							serialConfigMenuItems.at(i).disableMenu();
-							tf_global->setText("XXXXXXX  - 9  \r");
 							while (serialConfigSubMenuItems.at(i).size() > 0) {
 								serialConfigSubMenuItems.at(i).pop_back();
 							}
-							tf_global->setText("XXXXXXX  - 10  \r");
 							serialConfigMenu.enableMenu();
-							tf_global->setText("XXXXXXX  - 11  \r");
 							serialConfigMenuItems.at(i).resetMenuItemList();
-							tf_global->setText("XXXXXXX  - 12  \r");
 						});
 						serialConfigMenuItems.at(i).enableMenu();
 						return; 
@@ -504,22 +481,17 @@ int main() {
 			userInput.setKeyDisabled(KEY_F(3), true);
 			userInput.setKeyDisabled(KEY_F(4), true);
 			serialConfigMenu.setEscKey([&]() {
-				tf_global->setText("XXXXXXX  - 1  \r");
 				userInput.removeByKey(KEY_UP);
 				userInput.removeByKey(KEY_DOWN);
 				serialConfigMenu.disableMenu();
-				tf_global->setText("XXXXXXX  - 2  \r");
 				serialConfigMenu.resetMenuItemList();
-				tf_global->setText("XXXXXXX  - 3  \r");
 				while (serialConfigMenuItems.size() > 0) {
 					serialConfigMenuItems.pop_back();
 				}
-				while (serialConfigSubMenuItems.size() > 0)
-				{
+				while (serialConfigSubMenuItems.size() > 0){
 					serialConfigSubMenuItems.pop_back();
 				}
 				mainWindow.clearScreen();
-				
 				userInput.setKeyDisabled(KEY_F(1), false);
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);
@@ -531,27 +503,31 @@ int main() {
 		),KEY_F(2)
 	);
 
-	textField testTextField(0, 0, mainWindow.width / 2, 5, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
-	testTextField.setClearOnPrint(false);
-	for (int i = 0; i < midi.midiInDevices.size(); i++) {
-		testTextField.setText(midi.midiInDevices.at(i).name + "\r");
-	}
-	testTextField.draw();
+	//textField testTextField(0, 0, mainWindow.width / 2, 5, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
+	//testTextField.setClearOnPrint(false);
+	//for (int i = 0; i < midi.midiInDevices.size(); i++) {
+	//	testTextField.setText(midi.midiInDevices.at(i).name + "\r");
+	//}
+	//testTextField.draw();
 
-	textField anotherTF(0, 7, mainWindow.width - 2, mainWindow.height - 11, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
-	tf_global = &anotherTF;
-	//anotherTF.draw();
-	anotherTF.setClearOnPrint(false);
-	midi.openInPort(3, false, false, false, &anotherTF);
-	if (midi.midiInDevices.size() > 1) midi.midiInDevices.at(3).enabled = true;
-	loop.addEvent([&midi]() {
-		midi.update();
-	return 1;
-		});
-	anotherTF.setBorderColor(COLOR_CYAN);
+	//textField anotherTF(0, 7, mainWindow.width / 3, mainWindow.height - 11, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
+	//tf_global = &anotherTF;
+	////anotherTF.draw();
+	//anotherTF.setClearOnPrint(false);
+	//midi.openInPort(2, false, false, false, &anotherTF);
+	//try {
+	//	if (midi.midiInDevices.size() > 1) midi.midiInDevices.at(2).enabled = true;
+	//}
+	//catch(std::out_of_range& oor){}
+	//loop.addEvent([&midi]() {
+	//	midi.update();
+	//return 1;
+	//	});
+	//anotherTF.setBorderColor(COLOR_CYAN);
+	//anotherTF.setTitle("test text area");
 
 	// testing printing text from keyboard into textField
-	testTextField.setClearOnPrint(false);
+	/*testTextField.setClearOnPrint(false);
 	userInput.addListener([&testTextField](int c, TIMEPOINT_T t) {
 		char c1 = c;
 		testTextField.setText(&c1, 1);
@@ -575,7 +551,7 @@ int main() {
 	loop.addEvent([&serialPortManager]() {
 		serialPortManager.update();
 		return 1;
-		});
+		});*/
 
 	while (run) {
 		loop.handleAll(); // handles all the loop events that hanve been registered
@@ -591,120 +567,3 @@ int main() {
 }
 
 
-loopUpdateHandler::loopUpdateHandler() {
-	id = 0;
-}
-
-unsigned long loopUpdateHandler::addEvent(std::function<int()> f) {
-	this->events.push_back({ ++this->id,f });
-	return this->id;
-}
-
-int loopUpdateHandler::remove(unsigned long id) {
-	//std::string temp = "\rparam \"id\": " + std::to_string(id) + "\r";
-	//tf_global->setText(temp);
-	auto itr = events.begin();
-	bool found = false;
-	for (size_t i = 0; i < this->events.size() && itr != events.end(); i++,itr++) {
-		//temp = std::to_string(this->events.at(i).id) + " : ";
-		//tf_global->setText(temp);
-		if (this->events.at(i).id == id) {
-			this->events.erase(itr);
-			found = true;
-		}
-	}
-	if (!found)tf_global->setText(std::to_string(id) + " not found\r");
-	return found ? this->events.size() : -1;
-}
-
-void loopUpdateHandler::handleAll() {
-	for (size_t i = 0; i < this->events.size(); i++) {
-		this->events.at(i).func();
-	}
-}
-
-
-inputHandler::inputHandler(loopUpdateHandler* loop){
-	this->loopEventId = loop->addEvent([this](){
-		this->handleInput();
-		return 0;
-		});
-
-	this->id_index = 0;
-	this->printToScreenEn = false;
-}
-
-int inputHandler::addListener(std::function<int(int, TIMEPOINT_T)> f, int key){
-	for (unsigned int i = 0; i < this->events.size(); i++) {
-		if (this->events[i].key == key) {
-			this->removeByKey(key);
-		}
-		if (this->events[i].key == KEY_ALL_ASCII && key > 31 && key < 127) {
-			this->removeByKey(KEY_ALL_ASCII);
-		}
-	}
-	events_struct t = {key,this->id_index++,f,false};
-	this->events.push_back(t);
-	return this->events.size();
-}
-
-int inputHandler::remove(unsigned long id){
-	auto it = this->events.begin();
-	unsigned int i = 0;
-	for (; i < this->events.size() && it != this->events.end(); i++, it++) {
-		if (this->events.at(i).id == id && (this->events.begin() + i) < this->events.end()) {
-			this->events.erase(it);
-		}
-	}
-	return this->events.size();
-}
-
-int inputHandler::removeByKey(int key) {
-	for (unsigned int i = 0; i < this->events.size(); i++) {
-		if (this->events.at(i).key == key) {
-			this->remove(this->events.at(i).id);
-		}
-	}
-	return this->events.size();
-}
-
-int inputHandler::call(unsigned long id, int a){
-	TIMEPOINT_T t = std::chrono::steady_clock::now();
-	for(unsigned int i = 0; i < this->events.size(); i++){
-		if(this->events.at(i).id == id){
-			return this->events.at(i).func(a, t);
-		}
-	}
-	
-	return -1;
-}
-
-void inputHandler::printToTextField(textField* tF) {
-	
-	return;
-}
-
-void inputHandler::handleInput(){
-	// 
-	auto t = std::chrono::steady_clock::now();
-	int c = getch();
-	for (unsigned int i = 0; i < this->events.size(); i++) {
-		if (this->events[i].key == c && !this->events[i].disabled) {
-			this->events[i].func(c, t);
-		}
-		if (this->events[i].key == KEY_ALL_ASCII && c > 31 && c < 127 && !this->events[i].disabled) {
-			this->events[i].func(c, t);
-		}
-	}	
-	return;
-}
-
-void inputHandler::setKeyDisabled(int key, bool en) {
-	for (unsigned int i = 0; i < this->events.size(); i++) {
-		if (this->events.at(i).key == key) this->events.at(i).disabled = en;
-	}
-}
-
-void inputHandler::resetEvents() {
-	this->events.clear();
-}

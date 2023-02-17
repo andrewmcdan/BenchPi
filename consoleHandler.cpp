@@ -1,5 +1,5 @@
 #include "consoleHandler.h"
-
+#include "loopHandler.h"
 
 consoleHandler::consoleHandler() {
 	// get the height and width from the ncurses library
@@ -73,6 +73,10 @@ void textField::setClearOnPrint(bool b) {
 	this->clearOnPrint = b;
 }
 
+void textField::setTitle(std::string t) {
+	this->title = t;
+}
+
 bool textField::setText(char* s, int len) {
 	// first check to make sure there is enough room in the buffer.
 	// if not, shorten the string by calling...
@@ -138,6 +142,7 @@ int textField::draw() {
 		// print top right corner
 		printw("\u2557");
 
+
 		// print left side bar
 		for (int i = 0; i < this->height; i++) {
 			this->mainConsole->setCursorPos(this->x, this->y + i + 1);
@@ -158,17 +163,41 @@ int textField::draw() {
 		//print bottom right vorner
 		printw("\u255D");
 
+		if (this->title.length() > 0) {
+			// print title crossbar
+			this->mainConsole->setCursorPos(this->x, this->y + 2);
+			printw("\u2560");
+			this->mainConsole->setCursorPos(this->x + this->width + 1, this->y + 2);
+			printw("\u2563");
+			this->mainConsole->setCursorPos(this->x + 1, this->y + 2);
+			for (int i = 0; i < this->width; i++) {
+				printw("\u2550");
+			}
+		}
+
 		// switch back to the text color
 		attroff(COLOR_PAIR(this->mainConsole->colornum(this->borderColor, this->bgColor)));
 		attron(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
 		
+		int titleOffset = 0;
+		if (this->title.length() > 0) {
+			// the position of the first letter of the titel if found by...
+			// start at the x of the text area, add half the width of the area to get to the middle, then subtract half the length
+			// of the string to back up so that the string is centered.
+			this->mainConsole->setCursorPos(this->x + this->width / 2 - this->title.length() / 2, this->y + 1);
+			printw(this->title.c_str());
+			titleOffset = 2;
+		}
+
 		// clear the textField so that no remnants of past text show up
-		for (int i = 0; i < this->height; i++) {
-			this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
+		for (int i = 0; i < this->height - titleOffset; i++) {
+			this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i + titleOffset);
 			for (int p = 0; p < this->width; p++) {
 				printw(" ");
 			}
 		}
+
+		
 
 		// print text
 		// @TODO:
@@ -193,7 +222,7 @@ int textField::draw() {
 			// skip into the string as far as needed to ensure that the most
 			// recent lines are shown and older lines are not.
 			int lineNo = 0;
-			for (; lineCount - lineNo > this->height; printPos++) {
+			for (; lineCount - lineNo > this->height - titleOffset; printPos++) {
 				if (this->theString[printPos] == '\r') {
 					lineNo++;
 					if (this->theString[printPos + 1] == '\n') printPos += 2;
@@ -204,8 +233,8 @@ int textField::draw() {
 				}
 			}
 			// iterate through all the characters in the string print them.
-			for (int i = 0; i < this->height; i++) {
-				this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
+			for (int i = 0; i < this->height - titleOffset; i++) {
+				this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i + titleOffset);
 				for (int p = 0; p < this->width; p++) {
 					//int temp = i * this->width + p;
 					if (theString[printPos] == '\0') break;
@@ -222,7 +251,7 @@ int textField::draw() {
 		}
 		case center:
 			for (int i = 0; i < this->height; i++) {
-				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + 1 + i);
+				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + 1 + i + titleOffset);
 				for (int p = 0; p < this->width; p++) {
 					//int temp = i * this->width + p;
 					if (theString[printPos] == '\0') break;
@@ -251,6 +280,12 @@ int textField::draw() {
 				printw(" ");
 			}
 		}
+		int titleOffset = 0;
+		if (this->title.length() > 0) {
+			this->mainConsole->setCursorPos(this->x + this->width / 2, this->y);
+			printw(this->title.c_str());
+			titleOffset = 2;
+		}
 		switch(this->alignment) {
 		case left:
 		{
@@ -266,7 +301,7 @@ int textField::draw() {
 				}
 			}
 			int lineNo = 0;
-			for (; lineCount - lineNo > this->height; printPos++) {
+			for (; lineCount - lineNo > this->height - titleOffset; printPos++) {
 				if (this->theString[printPos] == '\r') {
 					lineNo++;
 					if (this->theString[printPos + 1] == '\n') printPos += 2;
@@ -276,8 +311,8 @@ int textField::draw() {
 					if (this->theString[printPos + 1] == '\r') printPos += 2;
 				}
 			}
-			for (int i = 0; i < this->height; i++) {
-				this->mainConsole->setCursorPos(this->x, this->y + i);
+			for (int i = 0; i < this->height - titleOffset; i++) {
+				this->mainConsole->setCursorPos(this->x, this->y + i + titleOffset);
 				for (int p = 0; p < this->width; p++) {
 					//int temp = i * this->width + p;
 					if (theString[printPos] == '\0') break;
@@ -293,8 +328,8 @@ int textField::draw() {
 			break;
 		}
 		case center:
-			for (int i = 0; i < this->height; i++) {
-				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + i);
+			for (int i = 0; i < this->height - titleOffset; i++) {
+				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + i + titleOffset);
 				for (int p = 0; p < this->width; p++) {
 					//int temp = i * this->width + p;
 					if (theString[printPos] == '\0') break;
@@ -347,11 +382,13 @@ void textField::toggleBorder() {
 
 bool textField::toggleEnabled() {
 	this->enabled = !this->enabled;
+	if (this->enabled)this->mainConsole->clearScreen();
 	return this->enabled;
 }
 
 void textField::setEnabled(bool b) {
 	this->enabled = b;
+	if (this->enabled)this->mainConsole->clearScreen();
 }
 
 void textField::setScroll(bool b) {
@@ -392,4 +429,163 @@ void textField::setTextColor(short int fg, short int bg) {
 	return;
 }
 
+void textField::changeHW(int width, int height) {
+	this->width = width;
+	this->height = height;
+}
+
 textField::~textField(){}
+
+WindowManager::WindowManager(consoleHandler* con, loopUpdateHandler* loop, inputHandler* input_h) {
+	this->mainConsole = con;
+	this->loopHandler = loop;
+	this->userInput = input_h;
+	this->id_ = 1;
+	for (int x = 0; x < con->width - 1; x++) {
+		std::vector<unsigned long> temp;
+		for (int y = 0; y < con->height - 4; y++) {
+			temp.push_back(0);
+		}
+		this->fieldArray.push_back(temp);
+	}
+	this->createWindow(0, 0, con->width - 1, con->height - 4, "", 0);
+	this->userInput->addListener([this](int c, TIMEPOINT_T t) {
+		this->selectNextWindow();
+		return 1;
+	}, KEY_F(12));
+	this->userInput->addListener([this](int c, TIMEPOINT_T t) {
+		this->selectPrevWindow();
+		return 1;
+	}, KEY_F(11));
+	this->loopHandler->addEvent([&]() {this->update(); return 1; });
+}
+
+bool WindowManager::createWindow(int x, int y, int width, int height, std::string title, int priority) {
+	for (int x_ = x; x_ < x + width; x_++) {
+		for (int y_ = y; y_ < y + height; y_++) {
+			this->fieldArray.at(x_).at(y_) = this->id_;
+		}
+	}
+	struct window_s window;
+	window.x = x;
+	window.y = y;
+	window.height = height;
+	window.width = width;
+	window.id = this->id_;
+	window.type = windowType::NOT_SET;
+	window.source = dataSource::SOURCE_NOT_SET;
+	window.tField = textField(x, y, width, height, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, this->mainConsole, textField::left);
+	window.tField.setTitle(title);
+	window.loopEventId = 0;
+	window.priority = priority;
+	this->windows.push_back(window);
+	size_t t = this->windows.size() - 1;
+	this->windows.at(t).loopEventId = this->loopHandler->addEvent([this,t]() {
+		this->windows.at(t).tField.draw(); 
+		return 1; 
+	}, priority);
+	this->id_++;
+	return true; 
+}
+
+bool WindowManager::destroyWindow(unsigned long id) { 
+	auto itr = this->windows.begin();
+	for (size_t i = 0; i < this->windows.size() && itr != this->windows.end(); i++, itr++) {
+		if (this->windows.at(i).id == id) {
+			this->loopHandler->remove(this->windows.at(i).loopEventId);
+			this->windows.erase(itr);
+		}
+	}
+	return true; 
+}
+
+void WindowManager::selectNextWindow(){
+	if (this->selectedWindowID == -1) {
+		this->selectedWindowID = this->windows.at(0).id;
+	}
+	else {
+		for (size_t i = 0; i < this->windows.size(); i++) {
+			if (this->selectedWindowID == this->windows.at(i).id && i < this->windows.size() - 1) {
+				this->selectedWindowID = this->windows.at(i + 1).id;
+			}
+			else if (this->selectedWindowID == this->windows.at(i).id && i == this->windows.size() - 1) {
+				this->selectedWindowID = -1;
+			}
+		}
+	}
+}
+
+void WindowManager::selectPrevWindow(){
+	if (this->selectedWindowID == -1) {
+		this->selectedWindowID = this->windows.at(this->windows.size() - 1).id;
+	}
+	else {
+		for (size_t i = 0; i < this->windows.size(); i++) {
+			if (this->selectedWindowID == this->windows.at(i).id && i > 0) {
+				this->selectedWindowID = this->windows.at(i - 1).id;
+			}
+			else if (this->selectedWindowID == this->windows.at(i).id && i == 0) {
+				this->selectedWindowID = -1;
+			}
+		}
+	}
+}
+
+void WindowManager::enableWindowTitle(std::string title, unsigned long id){
+	for (size_t i = 0; i < this->windows.size(); i++) {
+		if (this->windows.at(i).id == id) {
+			this->windows.at(i).tField.setTitle(title);
+		}
+	}
+}
+
+void WindowManager::splitWindowVert(unsigned long id){}
+
+void WindowManager::splitWindowHoriz(unsigned long id){}
+
+void WindowManager::setWindowType(unsigned long id){}
+
+void WindowManager::update() {
+	for (unsigned int i = 0; i < this->windows.size(); i++) {
+		if (this->selectedWindowID == this->windows.at(i).id) {
+			this->windows.at(i).tField.setBorderColor(COLOR_CYAN);
+		}
+		else {
+			this->windows.at(i).tField.setBorderColor(COLOR_WHITE);
+		}
+	}
+}
+
+void WindowManager::increaseWinodwPriority(unsigned long id) {
+	unsigned long eventId;
+	unsigned long priority_t;
+	for (size_t i = 0; i < this->windows.size(); i++) {
+		if (this->windows.at(i).id = id) {
+			eventId = this->windows.at(i).loopEventId; 
+			priority_t = this->windows.at(i).priority;
+			this->loopHandler->remove(eventId);
+			this->windows.at(i).loopEventId = this->loopHandler->addEvent([&, i]() {
+				this->windows.at(i).tField.draw();
+				return 1;
+			}, priority_t + 1);
+			this->windows.at(i).priority++;
+		}
+	}
+}
+
+void WindowManager::decreaseWinodwPriority(unsigned long id) {
+	unsigned long eventId;
+	unsigned long priority_t;
+	for (size_t i = 0; i < this->windows.size(); i++) {
+		if (this->windows.at(i).id = id) {
+			eventId = this->windows.at(i).loopEventId;
+			priority_t = this->windows.at(i).priority;
+			this->loopHandler->remove(eventId);
+			this->windows.at(i).loopEventId = this->loopHandler->addEvent([&, i]() {
+				this->windows.at(i).tField.draw();
+				return 1;
+			}, priority_t - 1);
+			this->windows.at(i).priority--;
+		}
+	}
+}

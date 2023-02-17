@@ -51,7 +51,12 @@ void Menu::enableMenuItems(){
 		if (firstItemIndex <= itr && lastItemIndex >= itr) {
 			this->menuItems.at(itr).tField.setEnabled(true);
 			this->menuItems.at(itr).tFieldDraw_loopID = this->loop->addEvent([&, itr]() {
-				this->menuItems.at(itr).tField.draw();
+				try {
+					this->menuItems.at(itr).tField.draw();
+				}
+				catch (const std::out_of_range& oor) {
+					// std::cerr << "Out of Range error: " << oor.what() << '\n';
+				}
 				return 1;
 			});
 		}

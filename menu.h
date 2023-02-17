@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 #include "consoleHandler.h"
-#include "main.h"
+#include "loopHandler.h"
 
 class MenuItem {
 public:
@@ -33,7 +33,6 @@ public:
 	void resetMenuItemList();
 	std::vector<MenuItem>menuItems;
 	consoleHandler* mainWindow;
-	Menu* referringMenu;
 	inputHandler* userInputHandler;
 	int selectionPosition;
 	
