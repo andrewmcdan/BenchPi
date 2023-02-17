@@ -11,7 +11,7 @@ public:
 	MenuItem(std::string text, std::function<void()> action, consoleHandler* con);
 	
 	textField tField;
-	int tFieldDraw_loopID;
+	unsigned int tFieldDraw_loopID;
 	// the action to be performed when selecting the menu item
 	std::function<void()>action;
 	//std::string itemText;

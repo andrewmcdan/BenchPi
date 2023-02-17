@@ -80,6 +80,7 @@ void Menu::disableMenu() {
 	for (size_t itr = 0; itr < this->menuItems.size(); itr++) {
 		this->menuItems.at(itr).tField.setEnabled(false);
 		this->loop->remove(this->menuItems.at(itr).tFieldDraw_loopID);
+		this->menuItems.at(itr).tFieldDraw_loopID = 0;
 	}
 	this->userInputHandler->removeByKey(KEY_ESC);
 	
@@ -92,9 +93,17 @@ void Menu::addMenuItem(std::string text, std::function<void()> action, consoleHa
 
 void Menu::resetMenuItemList() {
 	//this->disableMenu();
-	while (this->menuItems.size() > 0) {
+	/*while (this->menuItems.size() > 0) {
 		this->menuItems.pop_back();
+	}*/
+	for (size_t itr = 0; itr < this->menuItems.size(); itr++) {
+		if (this->menuItems.at(itr).tFieldDraw_loopID != 0)
+			this->loop->remove(this->menuItems.at(itr).tFieldDraw_loopID);
+		this->menuItems.at(itr).tField.~textField();
 	}
+	
+	this->menuItems.clear();
+	
 }
 
 void Menu::upKey(){

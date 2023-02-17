@@ -7,6 +7,14 @@
 #define KEY_ALL_ASCII 999999
 #define KEY_ESC 27
 #define KEY_ENTER 10
+#define DEBUGKEY
+#ifdef DEBUGKEYS
+#define KEY_ESC '`'
+#define KEY_F(n)  48 + n
+#define KEY_DOWN 'd'
+#define KEY_UP 'u'
+#define KEY_ENTER 'e'
+#endif
 
 class loopUpdateHandler {
 public:
