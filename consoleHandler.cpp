@@ -2,6 +2,7 @@
 
 
 consoleHandler::consoleHandler() {
+	// get the height and width from the ncurses library
 	this->width = stdscr->_maxx;
 	this->height = stdscr->_maxy;
 	return;
@@ -12,7 +13,9 @@ void consoleHandler::clearScreen() {
 }
 
 bool consoleHandler::setCursorPos(int x, int y) {
-	if (x > this->width || y > this->height) { return false; }
+	// bounds check the params
+	if (x > this->width || y > this->height || x < 0 || y < 0) { return false; }
+	// move the cursor to the location uses the ncurses method
 	move(y, x);
 	return true;
 }
@@ -20,6 +23,7 @@ bool consoleHandler::setCursorPos(int x, int y) {
 
 
 textField::textField(){
+	// init all the variable within the object
 	this->alignment = left;
 	this->border = 0;
 	this->borderColor = COLOR_WHITE;
@@ -36,6 +40,7 @@ textField::textField(){
 	this->height = 0;
 	this->startTime = std::chrono::high_resolution_clock::now();
 	this->textLength = 0;
+	// clear out theSting 
 	for (int i = 0; i < MAX_TEXTFIELD_STRING_LENGTH; i++) {
 		this->theString[i] = '\0';
 	}
@@ -69,7 +74,11 @@ void textField::setClearOnPrint(bool b) {
 }
 
 bool textField::setText(char* s, int len) {
+	// first check to make sure there is enough room in the buffer.
+	// if not, shorten the string by calling...
 	if (len + this->textLength > MAX_TEXTFIELD_STRING_LENGTH - 1) this->shortenTheString(len);
+	// if clearOnPrint is true, clear out theString and then add the 
+	// new data to it. Otherwise, append the new data to the end of it. 
 	if (this->clearOnPrint) {
 		for (int i = 0; i < MAX_TEXTFIELD_STRING_LENGTH; i++) {
 			this->theString[i] = '\0';
@@ -104,12 +113,18 @@ void textField::shortenTheString(int l) {
 }
 
 int textField::draw() {
+	// printPos keeeps track of where in theString we are printing from
 	int printPos = 0;
 	if (!this->enabled)return -1;
+	// try to set the cursor to the start position and if that fails,
+	// jsut return.
 	if(!this->mainConsole->setCursorPos(this->x, this->y))return -1;
 	
+	// set the colors. colorNum() returns a number unique to the fg/bg combo.
+	// COLOR_PAIR() is part of ncurses and returns an attribute for the attron() func.
 	attron(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
 	if (this->border == 1) {
+		// the border may be a different color than the text, so change the color to border color.
 		attroff(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
 		attron(COLOR_PAIR(this->mainConsole->colornum(this->borderColor, this->bgColor)));
 		// print top left corner
@@ -143,8 +158,10 @@ int textField::draw() {
 		//print bottom right vorner
 		printw("\u255D");
 
+		// switch back to the text color
 		attroff(COLOR_PAIR(this->mainConsole->colornum(this->borderColor, this->bgColor)));
 		attron(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
+		
 		// clear the textField so that no remnants of past text show up
 		for (int i = 0; i < this->height; i++) {
 			this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
@@ -159,17 +176,22 @@ int textField::draw() {
 		switch (this->alignment) {
 		case left:
 		{
+			// first thing to do is count the number of lines in the text to print
 			int lineCount = 1;
 			for (int i = 0; i < this->textLength; i++) {
 				if (this->theString[i] == '\r') {
 					lineCount++;
+					// skip newline if it immeditely follows a return char
 					if (this->theString[i + 1] == '\n') i += 2;
 				}
 				else if (this->theString[i] == '\n') {
 					lineCount++;
+					// skip return char if it immedaitely follows a return
 					if (this->theString[i + 1] == '\r') i += 2;
 				}
 			}
+			// skip into the string as far as needed to ensure that the most
+			// recent lines are shown and older lines are not.
 			int lineNo = 0;
 			for (; lineCount - lineNo > this->height; printPos++) {
 				if (this->theString[printPos] == '\r') {
@@ -181,6 +203,7 @@ int textField::draw() {
 					if (this->theString[printPos + 1] == '\r') printPos += 2;
 				}
 			}
+			// iterate through all the characters in the string print them.
 			for (int i = 0; i < this->height; i++) {
 				this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i);
 				for (int p = 0; p < this->width; p++) {
@@ -271,7 +294,6 @@ int textField::draw() {
 		}
 		case center:
 			for (int i = 0; i < this->height; i++) {
-
 				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + i);
 				for (int p = 0; p < this->width; p++) {
 					//int temp = i * this->width + p;
@@ -292,6 +314,7 @@ int textField::draw() {
 			break;
 		}
 	}
+	// @TODO:
 	// the next section is for flashing border. NOT IMPLEMENTED YET.
 	else if (this->border == 2) {
 		auto newNow = std::chrono::high_resolution_clock::now();
@@ -340,7 +363,9 @@ bool textField::getEnabled() {
 }
 
 void textField::move(int x, int y) {
+	// bounds check the x and y
 	if (x > this->mainConsole->width - this->width || y > this->mainConsole->height - this->height) return;
+	// if x or y is -1, no change
 	this->x = (x == -1) ? this->x : x;
 	this->y = (y == -1) ? this->y : y;
 }
@@ -348,7 +373,6 @@ void textField::move(int x, int y) {
 int consoleHandler::colornum(int fg, int bg)
 {
 	int B, bbb, ffff;
-
 	B = 0;// 1 << 7;
 	bbb = (7 & bg) << 3;
 	ffff = 7 & fg;

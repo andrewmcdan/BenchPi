@@ -29,8 +29,8 @@ SerialHandler::SerialHandler() {
 	}
 }
 
-int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte) {
-	return this->setPortConfig(name, baud, bitPerByte, false, false, false);
+int SerialHandler::setPortConfig(std::string name, int baud) {
+	return this->setPortConfig(name, baud, 8, false, false, false);
 }
 
 int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, bool parity, bool stopBits, bool hardwareFlow) {

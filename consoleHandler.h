@@ -11,9 +11,27 @@
 class consoleHandler
 {
 public:
+	/// <summary>
+	/// Handles everything related to the screen and the ncurses library
+	/// </summary>
 	consoleHandler();
+	/// <summary>
+	/// /Just clears the screen.
+	/// </summary>
 	void clearScreen();
-	bool setCursorPos(int, int);
+	/// <summary>
+	/// Move the cursor the specifide lcoation. X, Y are indexed at 0 and start at top left corner.
+	/// </summary>
+	/// <param name="x">X Coordinate</param>
+	/// <param name="y">Y Coordinate</param>
+	/// <returns></returns>
+	bool setCursorPos(int x, int y);
+	/// <summary>
+	/// Returns a number unique to the pair of colors passed in
+	/// </summary>
+	/// <param name="fg">Foreground color</param>
+	/// <param name="bg">Background color</param>
+	/// <returns></returns>
 	int colornum(int fg, int bg);
 	int width, height; 
 };
@@ -22,6 +40,18 @@ class textField {
 public:
 	enum textAlignment { left, center, right };
 	textField();
+	/// <summary>
+	/// A text area that can receive data from any source
+	/// </summary>
+	/// <param name="x_coord"> - Starting x xoordinate</param>
+	/// <param name="y_coord"> - Starting y coordinate</param>
+	/// <param name="width"> - overrall width not including border</param>
+	/// <param name="height"> - overrall hiehgt not including border</param>
+	/// <param name="textColor"> - foreground color</param>
+	/// <param name="bgColor"> - background color</param>
+	/// <param name="borderEn"> - border enable disable</param>
+	/// <param name="con"> - consolehandler object reference</param>
+	/// <param name="align"> - text alignemtn within area: left, center, or right</param>
 	textField(int x_coord, int y_coord, int width, int height, short int textColor, short int bgColor, int borderEn, consoleHandler* con,textField::textAlignment align);
 	bool setText(char*, int);
 	bool setText(std::string);

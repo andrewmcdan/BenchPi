@@ -30,7 +30,7 @@ public:
 
 	// returns 1 if successful, 0 if port isn't open, -1 if there was an error, -2 if port not found
 	int setPortConfig(std::string name, int baud, int bitPerByte, bool parity, bool stopBits, bool hardwareFlow);
-	int setPortConfig(std::string name, int baud, int bitPerBytes);
+	int setPortConfig(std::string name, int baud);
 	void setPortAlias(std::string s, std::string port);
 	int getPortConfig(int portDescriptor, termios* tty_);
 	int setTextFieldForPort(std::string portName, textField* tF);

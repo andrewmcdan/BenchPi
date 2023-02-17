@@ -1,4 +1,5 @@
 #pragma once
+#include "RtMidi.h"
 #include <vector>
 #define BORDER_ENABLED 1
 #define BORDER_DISABLED 0
@@ -16,22 +17,19 @@ public:
 
 	// Add an event to the loop. Whatever function is added will be called every time
 	// the loop happens. 
-	int addEvent(std::function<int()> f);
+	unsigned long addEvent(std::function<int()> f);
 
 	// Remove an event from the loop. "id" comes from the returned value from addEvent()
 	// Returns numbered of registered loop events. 
-	int remove(int id);
-	
-	// Call an individual event registered with the loop.
-	int call(int id);
+	int remove(unsigned long id);
 
 	// Handles all the registered evnets. 
 	void handleAll();
 
 private:
 	unsigned long id;
-	std::vector<std::function<int()>> funcs;
-	std::vector<unsigned long> id_s;
+	//std::vector<std::function<int()>> funcs;
+	//std::vector<unsigned long> id_s;
 	struct event_struct {
 		unsigned long id;
 		std::function<int()> func;

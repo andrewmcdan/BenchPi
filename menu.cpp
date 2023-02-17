@@ -5,7 +5,6 @@ Menu::Menu(loopUpdateHandler* l, consoleHandler* con, inputHandler* inputHandler
 	this->menuText = text;
 	this->visible = false;
 	this->loop = l;
-	this->isRootMenu = true;
 	tField = textField(con->width / 4, 0, con->width / 2, con->height - 4, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, con, textField::center);
 	tField.setEnabled(false);
 	tField.setText(this->menuText);
@@ -15,71 +14,33 @@ Menu::Menu(loopUpdateHandler* l, consoleHandler* con, inputHandler* inputHandler
 	this->userInputHandler = inputHandler_;
 }
 
-void Menu::setReferringMenu(Menu* m) {
-	this->referringMenu = m;
-	this->isRootMenu = false;
-}
-
 void Menu::enableMenu() {
-	//if (rootListenerID == -1)this->rootListenerID = this->referringMenu->rootListenerID;
-	//else this->rootListenerID = rootListenerID;
-	//this->rootListenerID = rootListenerID;
-	//this->selectionPosition = 0;
 	this->viewPosition = 0;
 	this->visible = true;
-	this->tField.setText("test");
-	if (!this->tField.getEnabled()) {
-		this->tField.setEnabled(true);
-		this->tField.setText(this->menuText);
-		this->tFieldDraw_loopID = this->loop->addEvent([&]() {
-			this->tField.draw();
-			return 1;
-			});
-		this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
-			this->downKey();
-			return 1;
-			}, KEY_DOWN);
-		this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
-			this->upKey();
-			return 1;
-			}, KEY_UP);
-		this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
-			this->enterKey();
-			return 1;
-			}, KEY_ENTER);
-		this->enableMenuItems();
-	}
-
-	if (this->isRootMenu) {
-		/*this->userInputHandler->addListener([&, rootListenerID](int c2, TIMEPOINT_T time2) {
-			this->userInputHandler->remove(rootListenerID);
-		this->userInputHandler->removeByKey(KEY_UP);
-		this->userInputHandler->removeByKey(KEY_DOWN);
-		this->disableMenu();
-		this->mainWindow->clearScreen();
+	this->tField.setEnabled(true);
+	this->tField.setText(this->menuText);
+	this->tFieldDraw_loopID = this->loop->addEvent([&]() {
+		this->tField.draw();
 		return 1;
-			}, KEY_ESC);*/
-	}
-	else {
-		//this->userInputHandler->addListener([&,rootListenerID](int c2, TIMEPOINT_T time2) {
-		//	//this->disableMenu();
-		//	this->referringMenu->enableMenu(rootListenerID);
-		//	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
-		//		this->referringMenu->upKey();
-		//		return 1;
-		//		}, KEY_UP);
-		//	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
-		//		this->referringMenu->downKey();
-		//		return 1;
-		//		}, KEY_DOWN);
-		//	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
-		//		this->referringMenu->enterKey();
-		//		return 1;
-		//		}, KEY_ENTER);
-		//	this->mainWindow->clearScreen();
-		//	return 1;
-		//	}, KEY_ESC);
-	}
+		});
+	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+		this->downKey();
+		return 1;
+		}, KEY_DOWN);
+	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+		this->upKey();
+		return 1;
+		}, KEY_UP);
+	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+		if (this->menuItems.size() == 0)return 0;
+		this->enterKey();
+		return 1;
+		}, KEY_ENTER);
+	this->userInputHandler->addListener([&](int c, TIMEPOINT_T t) {
+		this->escKey();
+		return 1;
+		}, KEY_ESC);
+	this->enableMenuItems();
 }
 
 void Menu::enableMenuItems(){
@@ -88,13 +49,11 @@ void Menu::enableMenuItems(){
 
 	for (size_t itr = 0; itr < this->menuItems.size(); itr++) {
 		if (firstItemIndex <= itr && lastItemIndex >= itr) {
-			if (!this->menuItems.at(itr).tField.getEnabled()) {
-				this->menuItems.at(itr).tField.setEnabled(true);
-				this->menuItems.at(itr).tFieldDraw_loopID = this->loop->addEvent([&, itr]() {
-					this->menuItems.at(itr).tField.draw();
+			this->menuItems.at(itr).tField.setEnabled(true);
+			this->menuItems.at(itr).tFieldDraw_loopID = this->loop->addEvent([&, itr]() {
+				this->menuItems.at(itr).tField.draw();
 				return 1;
-					});
-			}
+			});
 		}
 		else {
 			this->menuItems.at(itr).tField.setEnabled(false);
@@ -118,16 +77,24 @@ void Menu::disableMenu() {
 	this->tField.setEnabled(false);
 	this->loop->remove(this->tFieldDraw_loopID);
 	this->visible = false;
-	for (unsigned int itr = 0; itr < this->menuItems.size(); itr++) {
+	for (size_t itr = 0; itr < this->menuItems.size(); itr++) {
 		this->menuItems.at(itr).tField.setEnabled(false);
 		this->loop->remove(this->menuItems.at(itr).tFieldDraw_loopID);
 	}
-	if (!this->isRootMenu)this->referringMenu->enableMenu();
+	this->userInputHandler->removeByKey(KEY_ESC);
+	
 }
 
 
 void Menu::addMenuItem(std::string text, std::function<void()> action, consoleHandler* con) {
 	this->menuItems.push_back(MenuItem(text, action, con));
+}
+
+void Menu::resetMenuItemList() {
+	//this->disableMenu();
+	while (this->menuItems.size() > 0) {
+		this->menuItems.pop_back();
+	}
 }
 
 void Menu::upKey(){
