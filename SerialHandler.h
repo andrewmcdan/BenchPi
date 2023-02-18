@@ -68,7 +68,12 @@ private:
 	};
 
 	AddonController* addonCtrlr_;
-	MultiMeter* multiMeter_;
+
+	struct m_meters {
+		MultiMeter* multiMeter_;
+		std::string portName;
+	};
+	std::vector<m_meters> multiMeters_v;
 
 	std::vector<ports_struct>ports;
 
@@ -124,7 +129,7 @@ public:
 	struct midiPort {
 		int id;
 		bool tFready;
-		textField* textField;
+		textField* tField;
 		std::vector<unsigned char>messageIn;
 		std::vector<unsigned char>messageOut;
 	};
@@ -133,7 +138,11 @@ public:
 
 class MultiMeter {
 public:
-	MultiMeter();
+	MultiMeter(SerialHandler* serial, textField* tF);
 	~MultiMeter();
 	void update(char* data, int len);
+	bool setPort(std::string n);
+	SerialHandler* serial_;
+	std::string portName;
+	textField* tField;
 };

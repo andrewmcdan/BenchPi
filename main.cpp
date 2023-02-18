@@ -49,6 +49,7 @@ int main() {
 	WindowManager windowManager = WindowManager(&mainWindow, &loop, &userInput);
 	AddonController teensyController = AddonController(&serialPortManager);
 
+
 	loop.addEvent([&serialPortManager]() {
 		serialPortManager.update();
 		return 1;
@@ -169,6 +170,7 @@ int main() {
 	}
 
 	Menu serialMultiMeterSubMenu_SelectSerialPort = Menu(&loop, &mainWindow, &userInput, "Select Serial Port(s)");
+
 
 	// build the main menu, F1
 	Menu mainMenu = Menu(&loop, &mainWindow, &userInput, "Main Menu");

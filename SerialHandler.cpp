@@ -127,7 +127,12 @@ void SerialHandler::update() {
 				addonCtrlr_->update(read_buf, n);
 				break;
 			case MULTIMETER:
-				multiMeter_->update(read_buf, n);
+				// find the meter tha corresponds to the current port and send the data to that multiMeter class object
+				for (size_t j = 0; j < this->multiMeters_v.size(); j++) {
+					if (this->ports.at(i).name.compare(this->multiMeters_v.at(j).portName) == 0) {
+						this->multiMeters_v.at(j).multiMeter_->update(read_buf, n);
+					}
+				}
 				break;
 			}
 			
@@ -171,9 +176,9 @@ void SerialHandler::setMultiMeterForData(std::string portName, MultiMeter* mtr) 
 		if (this->ports.at(i).name.compare(portName) == 0) {
 			this->ports.at(i).printMode_ = MULTIMETER;
 			this->ports.at(i).alias = "Multimeter";
+			this->multiMeters_v.push_back({ mtr, portName});
 		}
 	}
-	this->multiMeter_ = mtr;
 	/* @TODO: Need to open the port */
 }
 
@@ -296,18 +301,37 @@ void AddonController::update(char* data, int len) {
 }
 
 bool AddonController::setPort(std::string n) {
+	bool found = false;
+	for (int i = 0; i < this->serial_->getNumberOfPorts(); i++) {
+		std::string temp;
+		this->serial_->getPortName(i, temp);
+		if (temp.compare(n) == 0) found = true;
+	}
+	if (!found) return false;
 	this->portName = n;
 	this->serial_->setAddonControllerForData(n, this);
+	return true;
 }
 
-MultiMeter::MultiMeter() {
-	
+MultiMeter::MultiMeter(SerialHandler* serial, textField* tF) {
+	this->tField = tF;
 }
 
-MultiMeter::~MultiMeter() {
-
-}
+MultiMeter::~MultiMeter() {}
 
 void MultiMeter::update(char* data, int len) {
 
+}
+
+bool MultiMeter::setPort(std::string n) {
+	bool found = false;
+	for (int i = 0; i < this->serial_->getNumberOfPorts(); i++) {
+		std::string temp;
+		this->serial_->getPortName(i, temp);
+		if (temp.compare(n) == 0) found = true;
+	}
+	if (!found) return false;
+	this->portName = n;
+	this->serial_->setMultiMeterForData(n, this);
+	return true;
 }
