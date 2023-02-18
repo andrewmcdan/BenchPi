@@ -47,6 +47,12 @@ int main() {
 	MidiHandler midi = MidiHandler();
 	SerialHandler serialPortManager = SerialHandler();
 	WindowManager windowManager = WindowManager(&mainWindow, &loop, &userInput);
+	AddonController teensyController = AddonController(&serialPortManager);
+
+	loop.addEvent([&serialPortManager]() {
+		serialPortManager.update();
+		return 1;
+	});
 	
 
 	// Set up the F-key shortcuts
@@ -139,15 +145,36 @@ int main() {
 	Menu enDisSerialDevsMenu = Menu(&loop, &mainWindow, &userInput, "Enable / Disable Serial Devices");
 	Menu enDisMidiInDevsMenu = Menu(&loop, &mainWindow, &userInput, "Enable / Disable MIDI Input Devices");
 	Menu enDisMidiOutDevsMenu = Menu(&loop, &mainWindow, &userInput, "Enable / Disable MIDI Output Devices");
-	Menu configAddonControllerMenu = Menu(&loop, &mainWindow, &userInput, "Config Ammeters / Voltmeters");
+	Menu configAddonControllerMenu = Menu(&loop, &mainWindow, &userInput, "Configure Addon Controller (Teensy)");
 	Menu configMultiMeterMenu = Menu(&loop, &mainWindow, &userInput, "Configure Serial MultiMeter");
+
+	Menu addonControllerSubMenu_selectSerialPort = Menu(&loop, &mainWindow, &userInput, "Select Serial Port");
+	for (int i = 0, j = 0; i < serialPortManager.getNumberOfPorts(); i++) {
+		std::string name;
+		serialPortManager.getPortName(i, name);
+		std::string alias;
+		serialPortManager.getPortAlias(i, alias);
+		bool available = serialPortManager.getPortAvailable(i);
+		if (available) {
+			addonControllerSubMenu_selectSerialPort.addMenuItem((alias.length() > 0) ? alias : name, [&, j, name]() {
+				if (teensyController.setPort(name)) {
+					addonControllerSubMenu_selectSerialPort.menuItems.at(j).tField.setText("Successful");
+				}
+				else {
+					addonControllerSubMenu_selectSerialPort.menuItems.at(j).tField.setText("ERROR");
+				}
+				}, &mainWindow);
+			j++;
+		}
+	}
+
+	Menu serialMultiMeterSubMenu_SelectSerialPort = Menu(&loop, &mainWindow, &userInput, "Select Serial Port(s)");
 
 	// build the main menu, F1
 	Menu mainMenu = Menu(&loop, &mainWindow, &userInput, "Main Menu");
 	Menu serialConfigMenu = Menu(&loop, &mainWindow, &userInput, "Serial Config");
 	Menu midiConfigMenu = Menu(&loop, &mainWindow, &userInput, "MIDI Config");
 	Menu tAreaMenu = Menu(&loop, &mainWindow, &userInput, "Text Area Options");
-
 	for (int i = 0; i < serialPortManager.getNumberOfPorts(); i++) {
 		std::string temp1;
 		serialPortManager.getPortName(i, temp1);
@@ -171,8 +198,6 @@ int main() {
 			return;
 			}, &mainWindow);
 	}
-
-
 	for (int i = 0; i < midi.midiInDevices.size(); i++) {
 		std::string temp2 = midi.midiInDevices.at(i).alias;
 		std::string temp3 = midi.midiInDevices.at(i).enabled ? "Enabled" : "Disabled";
@@ -190,7 +215,6 @@ int main() {
 			return;
 			}, &mainWindow);
 	}
-
 	for (int i = 0; i < midi.midiOutDevices.size(); i++) {
 		std::string temp2 = midi.midiOutDevices.at(i).alias;
 		std::string temp3 = midi.midiOutDevices.at(i).enabled ? "Enabled" : "Disabled";
@@ -208,17 +232,14 @@ int main() {
 			return;
 			}, &mainWindow);
 	}
-	
-
-	mainMenu.addMenuItem("Load Config", []() { return; }, &mainWindow);
-	mainMenu.addMenuItem("Save Config", []() {return; }, &mainWindow);
+	mainMenu.addMenuItem("Load Config", []() { /* @TODO: */ }, &mainWindow);
+	mainMenu.addMenuItem("Save Config", []() { /* @TODO: */ }, &mainWindow);
 	mainMenu.addMenuItem("En/Disable Serial Devices", [&]() {
 		enDisSerialDevsMenu.enableMenu();
 		enDisSerialDevsMenu.setEscKey([&]() {
 			enDisSerialDevsMenu.disableMenu();
 			mainMenu.enableMenu();
 			});
-			return; 
 		}, &mainWindow);
 	mainMenu.addMenuItem("En/Disable MIDI Input Devices", [&]() {
 		enDisMidiInDevsMenu.enableMenu();
@@ -226,7 +247,6 @@ int main() {
 			enDisMidiInDevsMenu.disableMenu();
 			mainMenu.enableMenu();
 			});
-			return;
 		}, &mainWindow);
 	mainMenu.addMenuItem("En/Disable MIDI Output Devices", [&]() {
 		enDisMidiOutDevsMenu.enableMenu();
@@ -234,14 +254,37 @@ int main() {
 			enDisMidiOutDevsMenu.disableMenu();
 			mainMenu.enableMenu();
 			});
-			return;
 		}, &mainWindow);
-	mainMenu.addMenuItem("Configure Addon Controller (Teensy)", []() {return; }, & mainWindow);
-	mainMenu.addMenuItem("Configure Serial MultiMeter", []() {return; }, &mainWindow);
-
+	mainMenu.addMenuItem("Configure Addon Controller (Teensy)", [&]() {
+		configAddonControllerMenu.enableMenu();
+		configAddonControllerMenu.setEscKey([&]() {
+			configAddonControllerMenu.disableMenu();
+			mainMenu.enableMenu();
+			});
+		}, & mainWindow);
+	mainMenu.addMenuItem("Configure Serial MultiMeter", [&]() {
+		configMultiMeterMenu.enableMenu();
+		configMultiMeterMenu.setEscKey([&]() {
+			configMultiMeterMenu.disableMenu();
+			mainMenu.enableMenu();
+			});
+		}, &mainWindow);
+	configAddonControllerMenu.addMenuItem("Select Serial Port", [&]() {
+		addonControllerSubMenu_selectSerialPort.enableMenu();
+		addonControllerSubMenu_selectSerialPort.setEscKey([&]() {
+			addonControllerSubMenu_selectSerialPort.disableMenu();
+			configAddonControllerMenu.enableMenu();
+			});
+		}, &mainWindow);
+	configMultiMeterMenu.addMenuItem("Select Serial Port(s)", [&]() {
+		serialMultiMeterSubMenu_SelectSerialPort.enableMenu();
+		serialMultiMeterSubMenu_SelectSerialPort.setEscKey([&]() {
+			serialMultiMeterSubMenu_SelectSerialPort.disableMenu();
+			configMultiMeterMenu.enableMenu();
+			});
+		}, &mainWindow);
 	std::vector<Menu> serialConfigMenuItems;
 	std::vector<std::vector<Menu>> serialConfigSubMenuItems;
-
 	shortcutF1.setInputListenerIdAndKey(
 		userInput.addListener([&](int c, TIMEPOINT_T time) {
 			userInput.setKeyDisabled(KEY_F(1), true);
@@ -263,7 +306,6 @@ int main() {
 		},
 		KEY_F(1)),
 	KEY_F(1));
-
 	shortcutF2.setInputListenerIdAndKey(
 		userInput.addListener([&](int c, TIMEPOINT_T time) {
 			for (int i = 0; i < serialPortManager.getNumberOfPorts(); i++) {
@@ -475,7 +517,6 @@ int main() {
 					}, &mainWindow);
 				}
 			}
-
 			userInput.setKeyDisabled(KEY_F(1), true);
 			userInput.setKeyDisabled(KEY_F(2), true);
 			userInput.setKeyDisabled(KEY_F(3), true);
@@ -548,10 +589,7 @@ int main() {
 	serialPortManager.setTextFieldForPort("/dev/ttyUSB0", &anotherTF);
 	
 
-	loop.addEvent([&serialPortManager]() {
-		serialPortManager.update();
-		return 1;
-		});*/
+	*/
 
 	while (run) {
 		loop.handleAll(); // handles all the loop events that hanve been registered

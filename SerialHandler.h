@@ -19,6 +19,9 @@
 
 #define NUMBER_OF_SERIAL_PREFIXES 4
 
+class AddonController;
+class MultiMeter;
+
 // Handles all things related to the serial ports.
 class SerialHandler
 {
@@ -46,9 +49,11 @@ public:
 	void setPortAvaialble(int i, bool b);
 	bool writeDataToPort(int index, char* data, int len);
 	bool writeDataToPort(int index, std::string s);
+	void setAddonControllerForData(std::string portName, AddonController* ctrl);
+	void setMultiMeterForData(std::string portName, MultiMeter* mtr);
 
 private:
-	enum printMode { ASCII, HEX, BIN };
+	enum printMode { ASCII, HEX, BIN, ADDON_CONTROLLER, MULTIMETER };
 
 	struct ports_struct {
 		std::string name;
@@ -62,7 +67,8 @@ private:
 		printMode printMode_;
 	};
 
-	
+	AddonController* addonCtrlr_;
+	MultiMeter* multiMeter_;
 
 	std::vector<ports_struct>ports;
 
@@ -85,8 +91,49 @@ private:
 
 class AddonController {
 public:
-	AddonController();
-	void update();
-	int portFileDescriptor;
+	AddonController(SerialHandler* serial);
+	void update(char* data, int len);
+	bool setPort(std::string n);
+	std::vector<unsigned char>unprocessedData;
+	std::string portName;
 	struct termios tty;
+	SerialHandler* serial_;
+	struct ammeter {
+		std::string name;
+		textField* tField;
+		int id;
+		bool tFready;
+	};
+	std::vector<ammeter> ammeters_v;
+	struct voltmeter {
+		std::string name;
+		textField* tField;
+		int id;
+		bool tFready;
+	};
+	std::vector<voltmeter> voltmeters_v;
+	struct serialPort {
+		int baud;
+		int id;
+		bool tFready;
+		textField* tField;
+		std::vector<unsigned char>dataOut;
+		std::vector<unsigned char>dataIn;
+	};
+	std::vector<serialPort>serialPorts_v;
+	struct midiPort {
+		int id;
+		bool tFready;
+		textField* textField;
+		std::vector<unsigned char>messageIn;
+		std::vector<unsigned char>messageOut;
+	};
+	std::vector<midiPort> midiPorts_v;
+};
+
+class MultiMeter {
+public:
+	MultiMeter();
+	~MultiMeter();
+	void update(char* data, int len);
 };

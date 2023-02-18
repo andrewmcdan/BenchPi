@@ -100,7 +100,7 @@ int SerialHandler::getPortConfig(int portDescriptor, termios* tty_) {
 
 void SerialHandler::update() {
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
-		if (this->ports.at(i).available && this->ports.at(i).open && this->ports.at(i).textField_->getEnabled()) {
+		if (this->ports.at(i).available && this->ports.at(i).open && (this->ports.at(i).textField_->getEnabled() || this->ports.at(i).printMode_ == ADDON_CONTROLLER || this->ports.at(i).printMode_ == MULTIMETER)) {
 			char read_buf[256];
 			int n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
 			switch (this->ports.at(i).printMode_) {
@@ -122,6 +122,12 @@ void SerialHandler::update() {
 					std::string s = "0b" + ss.str() + " ";
 					this->ports.at(i).textField_->setText(s);
 				}
+				break;
+			case ADDON_CONTROLLER:
+				addonCtrlr_->update(read_buf, n);
+				break;
+			case MULTIMETER:
+				multiMeter_->update(read_buf, n);
 				break;
 			}
 			
@@ -147,6 +153,28 @@ int SerialHandler::setTextFieldForPort(std::string portName, textField* tF) {
 		}
 	}
 	return -2;
+}
+
+void SerialHandler::setAddonControllerForData(std::string portName, AddonController* ctrl) {
+	for (int i = 0; i < this->ports.size(); i++) {
+		if (this->ports.at(i).name.compare(portName) == 0) {
+			this->ports.at(i).printMode_ = ADDON_CONTROLLER;
+			this->ports.at(i).alias = "Addon Controller";
+		}
+	}
+	this->addonCtrlr_ = ctrl;
+	/* @TODO: Need to open the port */
+}
+
+void SerialHandler::setMultiMeterForData(std::string portName, MultiMeter* mtr) {
+	for (int i = 0; i < this->ports.size(); i++) {
+		if (this->ports.at(i).name.compare(portName) == 0) {
+			this->ports.at(i).printMode_ = MULTIMETER;
+			this->ports.at(i).alias = "Multimeter";
+		}
+	}
+	this->multiMeter_ = mtr;
+	/* @TODO: Need to open the port */
 }
 
 int SerialHandler::openPort(std::string name) {
@@ -259,10 +287,27 @@ bool SerialHandler::writeDataToPort(int index, std::string s) {
 	this->dataToBeWritten.push_back(temp);
 }
 
-AddonController::AddonController() {
+AddonController::AddonController(SerialHandler* serial) {
+	this->serial_ = serial;
+}
+
+void AddonController::update(char* data, int len) {
 
 }
 
-void AddonController::update() {
+bool AddonController::setPort(std::string n) {
+	this->portName = n;
+	this->serial_->setAddonControllerForData(n, this);
+}
+
+MultiMeter::MultiMeter() {
+	
+}
+
+MultiMeter::~MultiMeter() {
+
+}
+
+void MultiMeter::update(char* data, int len) {
 
 }
