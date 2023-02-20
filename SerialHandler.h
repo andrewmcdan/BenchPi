@@ -103,37 +103,36 @@ public:
 	std::string portName;
 	struct termios tty;
 	SerialHandler* serial_;
+
 	struct ammeter {
 		std::string name;
 		textField* tField;
-		int id;
 		bool tFready;
+		long milliampsMax;
+		long milliampsAvg;
+		long milliampsInst;
 	};
 	std::vector<ammeter> ammeters_v;
+
 	struct voltmeter {
 		std::string name;
 		textField* tField;
-		int id;
 		bool tFready;
+		long millivoltsMax;
+		long millivoltsAvg;
+		long millivoltsInst;
 	};
 	std::vector<voltmeter> voltmeters_v;
+
 	struct serialPort {
 		int baud;
-		int id;
 		bool tFready;
 		textField* tField;
 		std::vector<unsigned char>dataOut;
 		std::vector<unsigned char>dataIn;
 	};
 	std::vector<serialPort>serialPorts_v;
-	struct midiPort {
-		int id;
-		bool tFready;
-		textField* tField;
-		std::vector<unsigned char>messageIn;
-		std::vector<unsigned char>messageOut;
-	};
-	std::vector<midiPort> midiPorts_v;
+
 };
 
 class MultiMeter {

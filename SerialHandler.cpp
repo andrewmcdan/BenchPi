@@ -165,10 +165,12 @@ void SerialHandler::setAddonControllerForData(std::string portName, AddonControl
 		if (this->ports.at(i).name.compare(portName) == 0) {
 			this->ports.at(i).printMode_ = ADDON_CONTROLLER;
 			this->ports.at(i).alias = "Addon Controller";
+			this->openPort(portName);
+		}
+		else if (this->ports.at(i).printMode_ == ADDON_CONTROLLER) {
+			this->ports.at(i).printMode_ = ASCII;
 		}
 	}
-	this->addonCtrlr_ = ctrl;
-	/* @TODO: Need to open the port */
 }
 
 void SerialHandler::setMultiMeterForData(std::string portName, MultiMeter* mtr) {
@@ -177,9 +179,10 @@ void SerialHandler::setMultiMeterForData(std::string portName, MultiMeter* mtr) 
 			this->ports.at(i).printMode_ = MULTIMETER;
 			this->ports.at(i).alias = "Multimeter";
 			this->multiMeters_v.push_back({ mtr, portName});
+			this->openPort(portName);
+			this->setPortConfig(portName, 4800);
 		}
 	}
-	/* @TODO: Need to open the port */
 }
 
 int SerialHandler::openPort(std::string name) {
@@ -297,7 +300,56 @@ AddonController::AddonController(SerialHandler* serial) {
 }
 
 void AddonController::update(char* data, int len) {
+	// first put the incoming data into the unprocessed vector
+	unsigned char t = 0;
+	for (int i = 0; i < len; i++) {
+		t = data[i];
+		this->unprocessedData.push_back(t);
+	}
 
+	// check to make sure we at least have a header's worth of data in the vector
+	if (this->unprocessedData.size() > 4) {
+		unsigned int numIncomingBytes = 0;
+		unsigned int startSequence = 0;
+		// get the header data out of the vector
+		startSequence = (unsigned int)this->unprocessedData.at(0) << 8 | (unsigned int)this->unprocessedData.at(1);
+		numIncomingBytes = (unsigned int)this->unprocessedData.at(2) << 8 | (unsigned int)this->unprocessedData.at(3);
+		do{
+			unsigned char classByte = this->unprocessedData.at(4);
+
+			switch (classByte) {
+			case 0xa0: // Ammeter
+			{
+				// get the id byte
+				unsigned char idByte = this->unprocessedData.at(5);
+				// if the id is larger than the sizeof the ammeter vector, add to the vector
+				if (idByte > this->ammeters_v.size()) {
+					for (unsigned char t_ = this->ammeters_v.size(); t_ <= idByte ; t_++) {
+						this->ammeters_v.push_back({
+							"Ammeter " + t_,
+							NULL,
+							false,
+							0,0,0
+							});
+					}
+				}
+
+				//////////////////////////////////////
+				break;
+			}
+			}
+
+
+			if (this->unprocessedData.size() > 4) {
+				startSequence = (unsigned int)this->unprocessedData.at(0) << 8 | (unsigned int)this->unprocessedData.at(1);
+				numIncomingBytes = (unsigned int)this->unprocessedData.at(2) << 8 | (unsigned int)this->unprocessedData.at(3);
+			}
+			else {
+				numIncomingBytes = 0;
+				startSequence = 0;
+			}
+		} while (this->unprocessedData.size() >= numIncomingBytes && startSequence == 0b1010101011001100);
+	}
 }
 
 bool AddonController::setPort(std::string n) {
