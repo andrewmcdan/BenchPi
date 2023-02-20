@@ -150,25 +150,6 @@ int main() {
 	Menu configMultiMeterMenu = Menu(&loop, &mainWindow, &userInput, "Configure Serial MultiMeter");
 
 	Menu addonControllerSubMenu_selectSerialPort = Menu(&loop, &mainWindow, &userInput, "Select Serial Port");
-	for (int i = 0, j = 0; i < serialPortManager.getNumberOfPorts(); i++) {
-		std::string name;
-		serialPortManager.getPortName(i, name);
-		std::string alias;
-		serialPortManager.getPortAlias(i, alias);
-		bool available = serialPortManager.getPortAvailable(i);
-		if (available) {
-			addonControllerSubMenu_selectSerialPort.addMenuItem((alias.length() > 0) ? alias : name, [&, j, name]() {
-				if (teensyController.setPort(name)) {
-					addonControllerSubMenu_selectSerialPort.menuItems.at(j).tField.setText("Successful");
-				}
-				else {
-					addonControllerSubMenu_selectSerialPort.menuItems.at(j).tField.setText("ERROR");
-				}
-				}, &mainWindow);
-			j++;
-		}
-	}
-
 	Menu serialMultiMeterSubMenu_SelectSerialPort = Menu(&loop, &mainWindow, &userInput, "Select Serial Port(s)");
 
 
@@ -272,6 +253,25 @@ int main() {
 			});
 		}, &mainWindow);
 	configAddonControllerMenu.addMenuItem("Select Serial Port", [&]() {
+		addonControllerSubMenu_selectSerialPort.resetMenuItemList();
+		for (int i = 0, j = 0; i < serialPortManager.getNumberOfPorts(); i++) {
+			std::string name;
+			serialPortManager.getPortName(i, name);
+			std::string alias;
+			serialPortManager.getPortAlias(i, alias);
+			bool available = serialPortManager.getPortAvailable(i);
+			if (available) {
+				addonControllerSubMenu_selectSerialPort.addMenuItem((alias.length() > 0) ? alias : name, [&, j, name]() {
+					if (teensyController.setPort(name)) {
+						addonControllerSubMenu_selectSerialPort.menuItems.at(j).tField.setText("Successful");
+					}
+					else {
+						addonControllerSubMenu_selectSerialPort.menuItems.at(j).tField.setText("ERROR");
+					}
+					}, &mainWindow);
+				j++;
+			}
+		}
 		addonControllerSubMenu_selectSerialPort.enableMenu();
 		addonControllerSubMenu_selectSerialPort.setEscKey([&]() {
 			addonControllerSubMenu_selectSerialPort.disableMenu();

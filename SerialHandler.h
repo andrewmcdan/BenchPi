@@ -15,6 +15,7 @@
 #include <errno.h> // Error integer and strerror() function
 #include <termios.h> // Contains POSIX terminal control definitions
 #include <unistd.h> // write(), read(), close()
+#include <sys/ioctl.h>
 
 
 #define NUMBER_OF_SERIAL_PREFIXES 4
@@ -37,9 +38,9 @@ public:
 	void setPortAlias(std::string s, std::string port);
 	int getPortConfig(int portDescriptor, termios* tty_);
 	int setTextFieldForPort(std::string portName, textField* tF);
-	int openPort(std::string name);
-	int closePort(std::string name);
-	int closePort(int portDescriptor);
+	bool openPort(std::string name);
+	bool closePort(std::string name);
+	bool closePort(int portDescriptor);
 	void closeAllPorts();
 	int getNumberOfPorts();
 	void getPortName(int index, std::string& name);
@@ -49,12 +50,13 @@ public:
 	void setPortAvaialble(int i, bool b);
 	bool writeDataToPort(int index, char* data, int len);
 	bool writeDataToPort(int index, std::string s);
-	void setAddonControllerForData(std::string portName, AddonController* ctrl);
-	void setMultiMeterForData(std::string portName, MultiMeter* mtr);
+	bool setAddonControllerForData(std::string portName, AddonController* ctrl);
+	bool setMultiMeterForData(std::string portName, MultiMeter* mtr);
+	bool setDTR(std::string portName, bool dtrOn);
 
-private:
 	enum printMode { ASCII, HEX, BIN, ADDON_CONTROLLER, MULTIMETER };
 
+private:
 	struct ports_struct {
 		std::string name;
 		std::string alias;
@@ -66,26 +68,19 @@ private:
 		textField* textField_;
 		printMode printMode_;
 	};
-
 	AddonController* addonCtrlr_;
-
 	struct m_meters {
 		MultiMeter* multiMeter_;
 		std::string portName;
 	};
 	std::vector<m_meters> multiMeters_v;
-
 	std::vector<ports_struct>ports;
-
 	struct termios tty;
-
 	struct dataOut {
 		int port_descriptor;
 		std::vector<char>byteVecArray;
 	};
-
 	std::vector<dataOut>dataToBeWritten;
-
 	const std::string portPrefixes[NUMBER_OF_SERIAL_PREFIXES] = {
 		"/dev/ttyUSB", 
 		"/dev/ttyACM", 
@@ -126,10 +121,11 @@ public:
 
 	struct serialPort {
 		int baud;
-		bool tFready;
 		textField* tField;
+		bool tFready;
 		std::vector<unsigned char>dataOut;
 		std::vector<unsigned char>dataIn;
+		SerialHandler::printMode printMode_;
 	};
 	std::vector<serialPort>serialPorts_v;
 

@@ -160,12 +160,15 @@ int SerialHandler::setTextFieldForPort(std::string portName, textField* tF) {
 	return -2;
 }
 
-void SerialHandler::setAddonControllerForData(std::string portName, AddonController* ctrl) {
+bool SerialHandler::setAddonControllerForData(std::string portName, AddonController* ctrl) {
+	this->addonCtrlr_ = ctrl;
 	for (int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).name.compare(portName) == 0) {
 			this->ports.at(i).printMode_ = ADDON_CONTROLLER;
 			this->ports.at(i).alias = "Addon Controller";
-			this->openPort(portName);
+			if (!this->openPort(portName))return false;
+			this->setPortConfig(portName, 115200);
+			return true;
 		}
 		else if (this->ports.at(i).printMode_ == ADDON_CONTROLLER) {
 			this->ports.at(i).printMode_ = ASCII;
@@ -173,19 +176,20 @@ void SerialHandler::setAddonControllerForData(std::string portName, AddonControl
 	}
 }
 
-void SerialHandler::setMultiMeterForData(std::string portName, MultiMeter* mtr) {
+bool SerialHandler::setMultiMeterForData(std::string portName, MultiMeter* mtr) {
 	for (int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).name.compare(portName) == 0) {
 			this->ports.at(i).printMode_ = MULTIMETER;
 			this->ports.at(i).alias = "Multimeter";
 			this->multiMeters_v.push_back({ mtr, portName});
-			this->openPort(portName);
+			if (!this->openPort(portName)) return false;
 			this->setPortConfig(portName, 4800);
+			this->setDTR(portName, true);
 		}
 	}
 }
 
-int SerialHandler::openPort(std::string name) {
+bool SerialHandler::openPort(std::string name) {
 	int ser_port_descriptor = open(name.c_str(), O_RDWR);
 	// if the descriptor is >= 0 then the port was succesffuly opened.
 	if (ser_port_descriptor >= 0) {
@@ -193,32 +197,33 @@ int SerialHandler::openPort(std::string name) {
 			if (this->ports.at(i).name.compare(name) == 0) {
 				this->ports.at(i).port_descriptor = ser_port_descriptor;
 				this->ports.at(i).open = true;
+				return true;
 			}
 		}
 	}
-	return 1;
+	else return false;
 }
 
-int SerialHandler::closePort(std::string name) {
+bool SerialHandler::closePort(std::string name) {
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).name.compare(name) == 0) {
 			close(this->ports.at(i).port_descriptor);
 			this->ports.at(i).open = false;
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
-int SerialHandler::closePort(int portDescriptor) {
+bool SerialHandler::closePort(int portDescriptor) {
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).port_descriptor == portDescriptor && this->ports.at(i).open) {
 			close(this->ports.at(i).port_descriptor);
 			this->ports.at(i).open = false;
-			return 1;
+			return true;
 		}
 	}
-	return 0;
+	return false;
 }
 
 void SerialHandler::closeAllPorts() {
@@ -295,6 +300,17 @@ bool SerialHandler::writeDataToPort(int index, std::string s) {
 	this->dataToBeWritten.push_back(temp);
 }
 
+bool SerialHandler::setDTR(std::string portName, bool dtrOn) {
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
+		if (this->ports.at(i).name.compare(portName) == 0) {
+			int DTR_flag = TIOCM_DTR;
+			ioctl(this->ports.at(i).port_descriptor,dtrOn?TIOCMBIS:TIOCMBIC,&DTR_flag);
+			return true;
+		}
+	}
+	return false;
+}
+
 AddonController::AddonController(SerialHandler* serial) {
 	this->serial_ = serial;
 }
@@ -307,39 +323,87 @@ void AddonController::update(char* data, int len) {
 		this->unprocessedData.push_back(t);
 	}
 
+	/*
+	* This section will process incoming data and stor it in the relavent object
+	*/
+
 	// check to make sure we at least have a header's worth of data in the vector
-	if (this->unprocessedData.size() > 4) {
+	//if (this->unprocessedData.size() > 4) {
+	if (0 > 4) {
 		unsigned int numIncomingBytes = 0;
 		unsigned int startSequence = 0;
 		// get the header data out of the vector
 		startSequence = (unsigned int)this->unprocessedData.at(0) << 8 | (unsigned int)this->unprocessedData.at(1);
 		numIncomingBytes = (unsigned int)this->unprocessedData.at(2) << 8 | (unsigned int)this->unprocessedData.at(3);
-		do{
+		do {
 			unsigned char classByte = this->unprocessedData.at(4);
-
+			unsigned char idByte = this->unprocessedData.at(5);
 			switch (classByte) {
 			case 0xa0: // Ammeter
 			{
-				// get the id byte
-				unsigned char idByte = this->unprocessedData.at(5);
 				// if the id is larger than the sizeof the ammeter vector, add to the vector
 				if (idByte > this->ammeters_v.size()) {
-					for (unsigned char t_ = this->ammeters_v.size(); t_ <= idByte ; t_++) {
+					for (unsigned char t_ = this->ammeters_v.size(); t_ <= idByte; t_++) {
 						this->ammeters_v.push_back({
 							"Ammeter " + t_,
-							NULL,
+							NULL, // Null becuase the tField needs to be created by the window manager
 							false,
 							0,0,0
 							});
 					}
 				}
 
-				//////////////////////////////////////
+				if (idByte > this->ammeters_v.size() || numIncomingBytes != 14) {
+					break;
+				}
+
+				this->ammeters_v.at(idByte - 1).milliampsInst = this->unprocessedData.at(6) << (8 * 3) | this->unprocessedData.at(7) << (8 * 2) | this->unprocessedData.at(8) << 8 | this->unprocessedData.at(9);
+				this->ammeters_v.at(idByte - 1).milliampsAvg = this->unprocessedData.at(10) << (8 * 3) | this->unprocessedData.at(11) << (8 * 2) | this->unprocessedData.at(12) << 8 | this->unprocessedData.at(13);
+				this->ammeters_v.at(idByte - 1).milliampsMax = this->unprocessedData.at(14) << (8 * 3) | this->unprocessedData.at(15) << (8 * 2) | this->unprocessedData.at(16) << 8 | this->unprocessedData.at(17);
+				break;
+			}
+			case 0xa1:
+			{
+				// if the id is larger than the sizeof the voltmeter vector, add to the vector
+				if (idByte > this->voltmeters_v.size()) {
+					for (unsigned char t_ = this->voltmeters_v.size(); t_ <= idByte; t_++) {
+						this->voltmeters_v.push_back({
+							"Voltmeter " + t_,
+							NULL, // Null becuase the tField needs to be created by the window manager
+							false,
+							0,0,0
+							});
+					}
+				}
+
+				if (idByte > this->voltmeters_v.size() || numIncomingBytes != 14) {
+					break;
+				}
+
+				this->voltmeters_v.at(idByte - 1).millivoltsInst = this->unprocessedData.at(6) << (8 * 3) | this->unprocessedData.at(7) << (8 * 2) | this->unprocessedData.at(8) << 8 | this->unprocessedData.at(9);
+				this->voltmeters_v.at(idByte - 1).millivoltsAvg = this->unprocessedData.at(10) << (8 * 3) | this->unprocessedData.at(11) << (8 * 2) | this->unprocessedData.at(12) << 8 | this->unprocessedData.at(13);
+				this->voltmeters_v.at(idByte - 1).millivoltsMax = this->unprocessedData.at(14) << (8 * 3) | this->unprocessedData.at(15) << (8 * 2) | this->unprocessedData.at(16) << 8 | this->unprocessedData.at(17);
+				break;
+			}
+			case 0xa2:
+			{
+				// if the id is larger than the sizeof the serialports vector, add to the vector
+				if (idByte > this->serialPorts_v.size()) {
+					for (unsigned char t_ = this->serialPorts_v.size(); t_ <= idByte; t_++) {
+						this->serialPorts_v.push_back({
+							9600,
+							NULL, // Null becuase the tField needs to be created by the window manager
+							false
+							});
+					}
+				}
+				// for all the incoming bytes, add to the datain vector
+				for (size_t i = 0; i < numIncomingBytes - 2; i++) {
+					this->serialPorts_v.at(idByte - 1).dataIn.push_back(this->unprocessedData.at(5 + i));
+				}
 				break;
 			}
 			}
-
-
 			if (this->unprocessedData.size() > 4) {
 				startSequence = (unsigned int)this->unprocessedData.at(0) << 8 | (unsigned int)this->unprocessedData.at(1);
 				numIncomingBytes = (unsigned int)this->unprocessedData.at(2) << 8 | (unsigned int)this->unprocessedData.at(3);
@@ -349,6 +413,76 @@ void AddonController::update(char* data, int len) {
 				startSequence = 0;
 			}
 		} while (this->unprocessedData.size() >= numIncomingBytes && startSequence == 0b1010101011001100);
+	}
+
+	/*
+	* This section updates each textfield using the relavent object's data
+	*/
+
+	// ammeters
+	for (size_t i = 0; i < this->ammeters_v.size(); i++){
+		if (this->ammeters_v.at(i).tFready) {
+			std::string temp1 = "Instant: ";
+			std::string temp2 = "Maximum: ";
+			std::string temp3 = "Average: ";
+			temp1 += std::to_string(this->ammeters_v.at(i).milliampsInst);
+			temp2 += std::to_string(this->ammeters_v.at(i).milliampsMax);
+			temp3 += std::to_string(this->ammeters_v.at(i).milliampsAvg);
+			this->ammeters_v.at(i).tField->setTitle(this->ammeters_v.at(i).name);
+			this->ammeters_v.at(i).tField->setText(temp1 + "mA\r" + temp2 + "mA\r" + temp3 + "mA");
+		}
+	}
+
+	// Voltmeters
+	for (size_t i = 0; i < this->voltmeters_v.size(); i++) {
+		if (this->voltmeters_v.at(i).tFready) {
+			std::string temp1 = "Instant: ";
+			std::string temp2 = "Maximum: ";
+			std::string temp3 = "Average: ";
+
+			if (this->voltmeters_v.at(i).millivoltsInst > 1000)temp1 += std::to_string(this->voltmeters_v.at(i).millivoltsInst / 1000.0) + "V";
+			else temp1 += std::to_string(this->voltmeters_v.at(i).millivoltsInst) + "mV";
+			if (this->voltmeters_v.at(i).millivoltsMax > 1000)temp2 += std::to_string(this->voltmeters_v.at(i).millivoltsMax / 1000.0) + "V";
+			else temp2 += std::to_string(this->voltmeters_v.at(i).millivoltsMax) + "mV";
+			if (this->voltmeters_v.at(i).millivoltsAvg > 1000) temp3 += std::to_string(this->voltmeters_v.at(i).millivoltsAvg / 1000.0) + "V";
+			else temp3 += std::to_string(this->voltmeters_v.at(i).millivoltsAvg) + "mV";
+
+			this->voltmeters_v.at(i).tField->setTitle(this->voltmeters_v.at(i).name);
+			this->voltmeters_v.at(i).tField->setText(temp1 + "\r" + temp2 + "\r" + temp3);
+		}
+	}
+
+	// Serial ports
+	for (size_t i = 0; i < this->serialPorts_v.size(); i++) {
+		if (this->serialPorts_v.at(i).tFready) {
+			char read_buf[this->serialPorts_v.at(i).dataIn.size() + 1];
+
+			for (int itr = 0; itr < this->serialPorts_v.at(i).dataIn.size(); itr++) {
+				read_buf[itr] = this->serialPorts_v.at(i).dataIn.at(itr);
+			}
+
+			switch (this->serialPorts_v.at(i).printMode_) {
+			case SerialHandler::printMode::ASCII:
+				this->serialPorts_v.at(i).tField->setText(read_buf, this->serialPorts_v.at(i).dataIn.size());
+				break;
+			case SerialHandler::printMode::HEX:
+				for (int itr = 0; itr < this->serialPorts_v.at(i).dataIn.size(); itr++) {
+					std::ostringstream ss;
+					ss << std::hex << (int)read_buf[itr];
+					std::string s = "0x" + ss.str() + " ";
+					this->serialPorts_v.at(i).tField->setText(s);
+				}
+				break;
+			case SerialHandler::printMode::BIN:
+				for (int itr = 0; itr < this->serialPorts_v.at(i).dataIn.size(); itr++) {
+					std::ostringstream ss;
+					ss << std::bitset<8>((int)read_buf[itr]);
+					std::string s = "0b" + ss.str() + " ";
+					this->serialPorts_v.at(i).tField->setText(s);
+				}
+				break;
+			}
+		}
 	}
 }
 
@@ -361,7 +495,7 @@ bool AddonController::setPort(std::string n) {
 	}
 	if (!found) return false;
 	this->portName = n;
-	this->serial_->setAddonControllerForData(n, this);
+	if(!this->serial_->setAddonControllerForData(n, this))return false;
 	return true;
 }
 
@@ -384,6 +518,6 @@ bool MultiMeter::setPort(std::string n) {
 	}
 	if (!found) return false;
 	this->portName = n;
-	this->serial_->setMultiMeterForData(n, this);
+	if(!this->serial_->setMultiMeterForData(n, this))return false;
 	return true;
 }
