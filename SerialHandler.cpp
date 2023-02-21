@@ -328,8 +328,7 @@ void AddonController::update(char* data, int len) {
 	*/
 
 	// check to make sure we at least have a header's worth of data in the vector
-	//if (this->unprocessedData.size() > 4) {
-	if (0 > 4) {
+	if (this->unprocessedData.size() > 4) {
 		unsigned int numIncomingBytes = 0;
 		unsigned int startSequence = 0;
 		// get the header data out of the vector
@@ -393,7 +392,8 @@ void AddonController::update(char* data, int len) {
 						this->serialPorts_v.push_back({
 							9600,
 							NULL, // Null becuase the tField needs to be created by the window manager
-							false
+							false,
+							"","Addon Serial #" + std::to_string(idByte)
 							});
 					}
 				}
@@ -497,6 +497,10 @@ bool AddonController::setPort(std::string n) {
 	this->portName = n;
 	if(!this->serial_->setAddonControllerForData(n, this))return false;
 	return true;
+}
+
+bool AddonController::setSerialBaud(int portNum, int baud) {
+
 }
 
 MultiMeter::MultiMeter(SerialHandler* serial, textField* tF) {

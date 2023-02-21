@@ -15,19 +15,14 @@ unsigned long loopUpdateHandler::addEvent(std::function<int()> f, int priority) 
 }
 
 int loopUpdateHandler::remove(unsigned long id) {
-	//std::string temp = "\rparam \"id\": " + std::to_string(id) + "\r";
-	//tf_global->setText(temp);
 	auto itr = events.begin();
 	bool found = false;
 	for (size_t i = 0; i < this->events.size() && itr != events.end(); i++, itr++) {
-		//temp = std::to_string(this->events.at(i).id) + " : ";
-		//tf_global->setText(temp);
 		if (this->events.at(i).id == id) {
 			this->events.erase(itr);
 			found = true;
 		}
 	}
-	//if (!found)tf_global->setText(std::to_string(id) + " not found\r");
 	return found ? this->events.size() : -1;
 }
 
@@ -45,9 +40,6 @@ void loopUpdateHandler::handleAll() {
 			}
 		}
 	}
-	/*for (size_t i = 0; i < this->events.size(); i++) {
-		this->events.at(i).func();
-	}*/
 }
 
 
@@ -96,7 +88,7 @@ int inputHandler::removeByKey(int key) {
 			this->remove(this->events.at(i).id);
 		}
 	}
-	return this->events.size();
+	return found ? this->events.size() : -1;
 }
 
 int inputHandler::call(unsigned long id, int a) {

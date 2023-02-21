@@ -94,6 +94,7 @@ public:
 	AddonController(SerialHandler* serial);
 	void update(char* data, int len);
 	bool setPort(std::string n);
+	bool setSerialBaud(int portNum, int baud);
 	std::vector<unsigned char>unprocessedData;
 	std::string portName;
 	struct termios tty;
@@ -123,6 +124,8 @@ public:
 		int baud;
 		textField* tField;
 		bool tFready;
+		std::string alias;
+		std::string name;
 		std::vector<unsigned char>dataOut;
 		std::vector<unsigned char>dataIn;
 		SerialHandler::printMode printMode_;
