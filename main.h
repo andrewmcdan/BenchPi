@@ -8,7 +8,7 @@
 #include <chrono>
 #include <thread>
 #include "Menu.h"
-//#include "RtMidi.h"
+#include "RtMidi.h"
 #include <vector>
 #include "consoleHandler.h"
 #include "loopHandler.h"
