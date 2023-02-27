@@ -478,6 +478,7 @@ bool WindowManager::createWindow(int x, int y, int width, int height, std::strin
 	window.tField.setTitle(title);
 	window.loopEventId = 0;
 	window.priority = priority;
+	window.titleEnabled = false;
 	this->windows.push_back(window);
 	size_t t = this->windows.size() - 1;
 	this->windows.at(t).loopEventId = this->loopHandler->addEvent([this,t]() {
@@ -535,6 +536,21 @@ void WindowManager::enableWindowTitle(std::string title, unsigned long id){
 	for (size_t i = 0; i < this->windows.size(); i++) {
 		if (this->windows.at(i).id == id) {
 			this->windows.at(i).tField.setTitle(title);
+			this->windows.at(i).title = title;
+			this->windows.at(i).titleEnabled = true;
+		}
+	}
+}
+
+void WindowManager::setWindowTitle(std::string title, unsigned long id) {
+	this->enableWindowTitle(title, id);
+}
+
+void WindowManager::disableWindowTitle(unsigned long id) {
+	for (size_t i = 0; i < this->windows.size(); i++) {
+		if (this->windows.at(i).id == id) {
+			this->windows.at(i).tField.setTitle("");
+			this->windows.at(i).titleEnabled = false;
 		}
 	}
 }
@@ -588,4 +604,16 @@ void WindowManager::decreaseWinodwPriority(unsigned long id) {
 			this->windows.at(i).priority--;
 		}
 	}
+}
+
+long WindowManager::getSelectedWindowIndex() {
+	if (this->selectedWindowID == -1)return -1;
+	for (unsigned int i = 0; i < this->windows.size(); i++) {
+		if (this->windows.at(i).id == this->selectedWindowID) return i;
+	}
+}
+
+WindowManager::window_s* WindowManager::getSelectedWindow() {
+	if (this->getSelectedWindowIndex() == -1)return nullptr;
+	return &this->windows.at(this->getSelectedWindowIndex());
 }

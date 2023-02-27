@@ -286,6 +286,167 @@ int main() {
 		}, &mainWindow);
 	std::vector<Menu> serialConfigMenuItems;
 	std::vector<std::vector<Menu>> serialConfigSubMenuItems;
+
+	Menu tAreaSubMenu_enDisTitle(&loop, &mainWindow, &userInput, "Area Title");
+	Menu tAreaSubMenu_mode(&loop, &mainWindow, &userInput, "Mode");
+	Menu tAreaSubMenu_Split(&loop, &mainWindow, &userInput, "Split");
+	Menu tAreaSubMenu_Move(&loop, &mainWindow, &userInput, "Move");
+	Menu tAreaSubMenu_zAdjust(&loop, &mainWindow, &userInput, "Z Adjustment");
+	Menu tAreaSubMenu_templates(&loop, &mainWindow, &userInput, "Templates");
+
+	Menu tAreaSubMenu_mode_changeMode(&loop, &mainWindow, &userInput, "Select Mode");
+	Menu tAreaSubMenu_mode_changeMode_selectSource(&loop, &mainWindow, &userInput, "Select Source");
+
+	tAreaSubMenu_mode_changeMode.addMenuItem("Serial Monitor", [&]() {
+		if (windowManager.getSelectedWindowIndex() != -1) {
+			windowManager.getSelectedWindow()->type = WindowManager::windowType::SERIAL_MON;
+			for (unsigned int i = 0; i < serialPortManager.getNumberOfPorts(); i++) {
+				std::string portName;
+				serialPortManager.getPortName(i, portName);
+				std::string alias;
+				serialPortManager.getPortAlias(i, alias);
+				bool available = serialPortManager.getPortAvailable(i);
+				if (available) {
+					tAreaSubMenu_mode_changeMode_selectSource.addMenuItem((alias.length() > 0) ? alias : portName, [&, i, alias, portName] {
+						serialPortManager.setTextFieldForPort(portName, &windowManager.getSelectedWindow()->tField);
+						windowManager.getSelectedWindow()->source = WindowManager::dataSource::SERIAL;
+						}, &mainWindow);
+				}
+				
+			}
+			tAreaSubMenu_mode_changeMode.disableMenu();
+			tAreaSubMenu_mode_changeMode_selectSource.enableMenu();
+			tAreaSubMenu_mode_changeMode_selectSource.setEscKey([&]() {
+				tAreaSubMenu_mode_changeMode_selectSource.disableMenu();
+				tAreaSubMenu_mode_changeMode_selectSource.resetMenuItemList();
+				tAreaSubMenu_mode.enableMenu();
+				});
+		}
+		else {
+			tAreaSubMenu_mode_changeMode.menuItems.at(0).tField.setText("Error. No window selected.");
+		}
+		}, & mainWindow);
+
+	tAreaMenu.addMenuItem("Area Title", [&]() {
+		if (windowManager.getSelectedWindowIndex() != -1) {
+			std::string t = windowManager.windows.at(windowManager.getSelectedWindowIndex()).titleEnabled ? "Disable" : "Enable";
+			t += " Title";
+			tAreaSubMenu_enDisTitle.addMenuItem(t, [&]() {
+				if (!windowManager.windows.at(windowManager.getSelectedWindowIndex()).titleEnabled) {
+					windowManager.enableWindowTitle("", windowManager.windows.at(windowManager.getSelectedWindowIndex()).id);
+					std::string t1 = windowManager.windows.at(windowManager.getSelectedWindowIndex()).titleEnabled ? "Disable" : "Enable";
+					t1 += " Title";
+					tAreaSubMenu_enDisTitle.menuItems.at(0).tField.setText(t1);
+				}
+				else {
+					windowManager.disableWindowTitle(windowManager.windows.at(windowManager.getSelectedWindowIndex()).id);
+					std::string t1 = windowManager.windows.at(windowManager.getSelectedWindowIndex()).titleEnabled ? "Disable" : "Enable";
+					t1 += " Title";
+					tAreaSubMenu_enDisTitle.menuItems.at(0).tField.setText(t1);
+				}
+				}, & mainWindow);
+		}
+		else {
+			tAreaSubMenu_enDisTitle.addMenuItem("No window selected.", [&]() {}, &mainWindow);
+		}
+		tAreaSubMenu_enDisTitle.enableMenu();
+		tAreaSubMenu_enDisTitle.setEscKey([&]() {
+			tAreaSubMenu_enDisTitle.disableMenu();
+			tAreaSubMenu_enDisTitle.resetMenuItemList();
+			tAreaMenu.enableMenu();
+			});
+		}, & mainWindow);
+	tAreaMenu.addMenuItem("Mode", [&]() {
+		if (windowManager.getSelectedWindowIndex() != -1) {
+			//@TODO:
+			switch (windowManager.getSelectedWindow()->type) {
+			case WindowManager::windowType::NOT_SET:
+			{
+				tAreaSubMenu_mode.addMenuItem("Mode not set.", []() {}, & mainWindow);
+				break;
+			}
+			case WindowManager::windowType::SERIAL_MON:
+			{
+				tAreaSubMenu_mode.addMenuItem("Current Mode: Serial Monitor", []() {}, & mainWindow);
+				break;
+			}
+			case WindowManager::windowType::MIDI_MON:
+			{
+				tAreaSubMenu_mode.addMenuItem("Current Mode: MIDI Monitor", []() {}, &mainWindow);
+				break;
+			}
+			case WindowManager::windowType::KEYBOARD_INPUT:
+			{
+				tAreaSubMenu_mode.addMenuItem("Current Mode: Keyboard input", []() {}, &mainWindow);
+				break;
+			}
+			case WindowManager::windowType::AMMETER:
+			{
+				tAreaSubMenu_mode.addMenuItem("Current Mode: Ammeter", []() {}, &mainWindow);
+				break;
+			}
+			case WindowManager::windowType::VOLTMETER:
+			{
+				tAreaSubMenu_mode.addMenuItem("Current Mode: Voltmeter", []() {}, &mainWindow);
+				break;
+			}
+			case WindowManager::windowType::MULTIMETER:
+			{
+				tAreaSubMenu_mode.addMenuItem("Current Mode: Serial Multimter", []() {}, &mainWindow);
+				break;
+			}
+			}
+			
+			tAreaSubMenu_mode.addMenuItem("Set Mode", [&]() {
+				tAreaSubMenu_mode_changeMode.enableMenu();
+				tAreaSubMenu_mode_changeMode.setEscKey([&]() {
+					tAreaSubMenu_mode_changeMode.disableMenu();
+					tAreaSubMenu_mode_changeMode.resetMenuItemList();
+					tAreaSubMenu_mode.enableMenu();
+					});
+				}, & mainWindow);
+		}
+		else {
+			tAreaSubMenu_mode.addMenuItem("No window selected.", []() {}, & mainWindow);
+		}
+		tAreaSubMenu_mode.enableMenu();
+		tAreaSubMenu_mode.setEscKey([&]() {
+			tAreaSubMenu_mode.disableMenu();
+			tAreaSubMenu_mode.resetMenuItemList();
+			tAreaMenu.enableMenu();
+			});
+		}, & mainWindow);
+	tAreaMenu.addMenuItem("Split", [&]() {
+		tAreaSubMenu_Split.enableMenu();
+		tAreaSubMenu_Split.setEscKey([&]() {
+			tAreaSubMenu_Split.disableMenu();
+			tAreaMenu.enableMenu();
+			});
+		}, & mainWindow);
+	tAreaMenu.addMenuItem("Move", [&]() {
+		tAreaSubMenu_Move.enableMenu();
+		tAreaSubMenu_Move.setEscKey([&]() {
+			tAreaSubMenu_Move.disableMenu();
+			tAreaMenu.enableMenu();
+			});
+		}, & mainWindow);
+	tAreaMenu.addMenuItem("Z Adjustment", [&]() {
+		tAreaSubMenu_zAdjust.enableMenu();
+		tAreaSubMenu_zAdjust.setEscKey([&]() {
+			tAreaSubMenu_zAdjust.disableMenu();
+			tAreaMenu.enableMenu();
+			});
+		}, & mainWindow);
+	tAreaMenu.addMenuItem("Templates", [&]() {
+		tAreaSubMenu_templates.enableMenu();
+		tAreaSubMenu_templates.setEscKey([&]() {
+			tAreaSubMenu_templates.disableMenu();
+			tAreaMenu.enableMenu();
+			});
+		}, & mainWindow);
+	
+	
+
 	shortcutF1.setInputListenerIdAndKey(
 		userInput.addListener([&](int c, TIMEPOINT_T time) {
 			userInput.setKeyDisabled(KEY_F(1), true);
@@ -763,6 +924,8 @@ int main() {
 			userInput.setKeyDisabled(KEY_F(2), true);
 			userInput.setKeyDisabled(KEY_F(3), true);
 			userInput.setKeyDisabled(KEY_F(4), true);
+			userInput.setKeyDisabled(KEY_F(11), true);
+			userInput.setKeyDisabled(KEY_F(12), true);
 			tAreaMenu.setEscKey([&]() {
 				tAreaMenu.disableMenu();
 				mainWindow.clearScreen();
@@ -772,6 +935,8 @@ int main() {
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);
 				userInput.setKeyDisabled(KEY_F(4), false);
+				userInput.setKeyDisabled(KEY_F(11), false);
+				userInput.setKeyDisabled(KEY_F(12), false);
 				});
 			tAreaMenu.enableMenu();
 			return 1;

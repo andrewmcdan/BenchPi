@@ -85,13 +85,10 @@ private:
 };
 
 class WindowManager {
+public:
+	enum windowType : unsigned int;
+	enum dataSource : unsigned int;
 private:
-	enum windowType {
-		NOT_SET, SERIAL_MON, MIDI_MON, KEYBOARD_INPUT, AMMETER, VOLTMETER, MULTIMETER,
-	};
-	enum dataSource {
-		SOURCE_NOT_SET, SERIAL, MIDI, KEYBOARD_ASCII, KEYBOARD_MIDI, KEYBOARD_MIDI_BYTES
-	};
 	struct window_s {
 		textField tField;
 		int x, y, width, height, priority;
@@ -100,6 +97,7 @@ private:
 		windowType type;
 		unsigned long id;
 		unsigned long loopEventId;
+		bool titleEnabled;
 	};
 	unsigned long id_;
 	consoleHandler* mainConsole;
@@ -115,12 +113,21 @@ public:
 	void selectNextWindow();
 	void selectPrevWindow();
 	void enableWindowTitle(std::string title, unsigned long id);
+	void disableWindowTitle(unsigned long id);
+	void setWindowTitle(std::string title, unsigned long id);
 	void splitWindowVert(unsigned long id);
 	void splitWindowHoriz(unsigned long id);
 	void setWindowType(unsigned long id);
 	void update();
 	void increaseWinodwPriority(unsigned long id);
 	void decreaseWinodwPriority(unsigned long id);
+	long getSelectedWindowIndex();
+	window_s* getSelectedWindow();
 	std::vector<window_s> windows;
-	
+	enum windowType : unsigned int {
+		NOT_SET, SERIAL_MON, MIDI_MON, KEYBOARD_INPUT, AMMETER, VOLTMETER, MULTIMETER,
+	};
+	enum dataSource : unsigned int {
+		SOURCE_NOT_SET, SERIAL, MIDI, KEYBOARD_ASCII, KEYBOARD_MIDI, KEYBOARD_MIDI_BYTES
+	};
 };
