@@ -287,6 +287,8 @@ int main() {
 	std::vector<Menu> serialConfigMenuItems;
 	std::vector<std::vector<Menu>> serialConfigSubMenuItems;
 
+	Menu serialPortConfig_openClosePort(&loop, &mainWindow, &userInput, "Open / Close Port");
+
 	Menu tAreaSubMenu_enDisTitle(&loop, &mainWindow, &userInput, "Area Title");
 	Menu tAreaSubMenu_mode(&loop, &mainWindow, &userInput, "Mode");
 	Menu tAreaSubMenu_Split(&loop, &mainWindow, &userInput, "Split");
@@ -310,9 +312,48 @@ int main() {
 					tAreaSubMenu_mode_changeMode_selectSource.addMenuItem((alias.length() > 0) ? alias : portName, [&, i, alias, portName] {
 						serialPortManager.setTextFieldForPort(portName, &windowManager.getSelectedWindow()->tField);
 						windowManager.getSelectedWindow()->source = WindowManager::dataSource::SERIAL;
+						tAreaSubMenu_mode_changeMode_selectSource.disableMenu();
+						tAreaSubMenu_mode_changeMode_selectSource.resetMenuItemList();
+						switch (windowManager.getSelectedWindow()->type) {
+						case WindowManager::windowType::NOT_SET:
+						{
+							tAreaSubMenu_mode.menuItems.at(0).tField.setText("Mode not set.");
+							break;
+						}
+						case WindowManager::windowType::SERIAL_MON:
+						{
+							tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Serial Monitor");
+							break;
+						}
+						case WindowManager::windowType::MIDI_MON:
+						{
+							tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: MIDI Monitor");
+							break;
+						}
+						case WindowManager::windowType::KEYBOARD_INPUT:
+						{
+							tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Keyboard input");
+							break;
+						}
+						case WindowManager::windowType::AMMETER:
+						{
+							tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Ammeter");
+							break;
+						}
+						case WindowManager::windowType::VOLTMETER:
+						{
+							tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Voltmeter");
+							break;
+						}
+						case WindowManager::windowType::MULTIMETER:
+						{
+							tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Serial Multimter");
+							break;
+						}
+						}
+						tAreaSubMenu_mode.enableMenu();
 						}, &mainWindow);
 				}
-				
 			}
 			tAreaSubMenu_mode_changeMode.disableMenu();
 			tAreaSubMenu_mode_changeMode_selectSource.enableMenu();
@@ -489,7 +530,44 @@ int main() {
 						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Stop bits"));
 						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Hardware flow control"));
 
-						serialConfigMenuItems.at(i).addMenuItem("Open / Close Port", [&, i]() {/* @TODO: */return; }, & mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Open / Close Port", [&, i, portName]() {
+							if (serialPortManager.isPortOpen(portName)) {
+								serialPortConfig_openClosePort.addMenuItem("Port is open", [&]() {}, & mainWindow);
+								serialPortConfig_openClosePort.addMenuItem("Close port", [&, portName]() {
+									if (!serialPortManager.closePort(portName)) {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
+									}
+									if (!serialPortManager.isPortOpen(portName)) {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Port closed");
+									}
+									else {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
+									}
+									}, & mainWindow);
+							}
+							else {
+								serialPortConfig_openClosePort.addMenuItem("Port is closed (or unavailable)", [&]() {}, & mainWindow);
+								serialPortConfig_openClosePort.addMenuItem("Attempt to open port", [&, portName]() {
+									if (!serialPortManager.openPort(portName)) {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
+									}
+									if (serialPortManager.isPortOpen(portName)) {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Port opened");
+									}
+									else {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
+									}
+
+									
+									}, & mainWindow);
+							}
+							serialPortConfig_openClosePort.enableMenu();
+							serialPortConfig_openClosePort.setEscKey([&]() {
+								serialPortConfig_openClosePort.disableMenu();
+								serialPortConfig_openClosePort.resetMenuItemList();
+								serialConfigMenu.enableMenu();
+								});
+							}, & mainWindow);
 						serialConfigMenuItems.at(i).addMenuItem("Set / Change Alias", [&, i]() {/* @TODO: */return; }, & mainWindow);
 						serialConfigMenuItems.at(i).addMenuItem("Baud", [&, i]() {
 							serialConfigSubMenuItems.at(i).at(2).addMenuItem("600", [&, i, portName]() {

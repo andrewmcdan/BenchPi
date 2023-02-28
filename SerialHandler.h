@@ -38,6 +38,7 @@ public:
 	void setPortAlias(std::string s, std::string port);
 	int getPortConfig(int portDescriptor, termios* tty_);
 	int setTextFieldForPort(std::string portName, textField* tF);
+	bool isPortOpen(std::string name);
 	bool openPort(std::string name);
 	bool closePort(std::string name);
 	bool closePort(int portDescriptor);
@@ -67,6 +68,7 @@ private:
 		struct termios tty;
 		textField* textField_;
 		printMode printMode_;
+		bool tFieldReady = false;
 	};
 	AddonController* addonCtrlr_;
 	struct m_meters {

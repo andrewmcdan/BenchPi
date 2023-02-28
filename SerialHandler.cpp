@@ -100,7 +100,7 @@ int SerialHandler::getPortConfig(int portDescriptor, termios* tty_) {
 
 void SerialHandler::update() {
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
-		if (this->ports.at(i).available && this->ports.at(i).open && (this->ports.at(i).textField_->getEnabled() || this->ports.at(i).printMode_ == ADDON_CONTROLLER || this->ports.at(i).printMode_ == MULTIMETER)) {
+		if (this->ports.at(i).available && this->ports.at(i).open && this->ports.at(i).tFieldReady) {
 			char read_buf[256];
 			int n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
 			switch (this->ports.at(i).printMode_) {
@@ -197,11 +197,21 @@ bool SerialHandler::openPort(std::string name) {
 			if (this->ports.at(i).name.compare(name) == 0) {
 				this->ports.at(i).port_descriptor = ser_port_descriptor;
 				this->ports.at(i).open = true;
+				this->setPortConfig(name, 9600);
 				return true;
 			}
 		}
 	}
 	else return false;
+}
+
+bool SerialHandler::isPortOpen(std::string name) {
+	for (unsigned int i = 0; i < this->ports.size(); i++) {
+		if (this->ports.at(i).name.compare(name) == 0) {
+			return this->ports.at(i).open;
+		}
+	}
+	return false;
 }
 
 bool SerialHandler::closePort(std::string name) {
