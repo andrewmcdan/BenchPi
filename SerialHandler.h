@@ -1,3 +1,12 @@
+// Linux headers
+#include <fcntl.h> // Contains file controls like O_RDWR
+#include <errno.h> // Error integer and strerror() function
+#include <asm/termbits.h> // Contains POSIX terminal control definitions
+#include <unistd.h> // write(), read(), close()
+#include <sys/ioctl.h>
+//#include <termios.h>
+#include <linux/serial.h>
+
 #pragma once
 // C library headers
 #include <stdio.h>
@@ -9,13 +18,8 @@
 #include <iostream>
 #include <sstream>
 #include <bitset>
+#include <chrono>
 
-// Linux headers
-#include <fcntl.h> // Contains file controls like O_RDWR
-#include <errno.h> // Error integer and strerror() function
-#include <termios.h> // Contains POSIX terminal control definitions
-#include <unistd.h> // write(), read(), close()
-#include <sys/ioctl.h>
 
 
 #define NUMBER_OF_SERIAL_PREFIXES 4
@@ -36,7 +40,7 @@ public:
 	int setPortConfig(std::string name, int baud, int bitPerByte, bool parity, bool stopBits, bool hardwareFlow);
 	int setPortConfig(std::string name, int baud);
 	void setPortAlias(std::string s, std::string port);
-	int getPortConfig(int portDescriptor, termios* tty_);
+	int getPortConfig(int portDescriptor, termios2* tty_);
 	int setTextFieldForPort(std::string portName, textField* tF);
 	bool isPortOpen(std::string name);
 	bool openPort(std::string name);
@@ -65,10 +69,10 @@ private:
 		bool open;
 		bool available;
 		int port_descriptor;
-		struct termios tty;
+		struct termios2 tty;
 		textField* textField_;
 		printMode printMode_;
-		bool tFieldReady = false;
+		bool tFieldReady;
 	};
 	AddonController* addonCtrlr_;
 	struct m_meters {
@@ -77,7 +81,7 @@ private:
 	};
 	std::vector<m_meters> multiMeters_v;
 	std::vector<ports_struct>ports;
-	struct termios tty;
+	//struct termios2 tty;
 	struct dataOut {
 		int port_descriptor;
 		std::vector<char>byteVecArray;
@@ -99,7 +103,7 @@ public:
 	bool setSerialBaud(int portNum, int baud);
 	std::vector<unsigned char>unprocessedData;
 	std::string portName;
-	struct termios tty;
+	struct termios2 tty;
 	SerialHandler* serial_;
 
 	struct ammeter {

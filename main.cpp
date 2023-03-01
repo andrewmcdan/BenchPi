@@ -565,7 +565,7 @@ int main() {
 							serialPortConfig_openClosePort.setEscKey([&]() {
 								serialPortConfig_openClosePort.disableMenu();
 								serialPortConfig_openClosePort.resetMenuItemList();
-								serialConfigMenu.enableMenu();
+								serialConfigMenuItems.at(i).enableMenu();
 								});
 							}, & mainWindow);
 						serialConfigMenuItems.at(i).addMenuItem("Set / Change Alias", [&, i]() {/* @TODO: */return; }, & mainWindow);
@@ -661,11 +661,14 @@ int main() {
 								return;
 								}, &mainWindow);
 							serialConfigSubMenuItems.at(i).at(2).addMenuItem("115200", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 115200) == 1) {
+								int retVal = serialPortManager.setPortConfig(portName, 115200);
+								if ( retVal == 1) {
 									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText("Successfully set to 115200 baud");
 								}
 								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText("Error setting baud. Is the port open?");
+									std::string t42 = "Error setting baud. Is the port open?";
+									t42 += std::to_string(retVal);
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText(t42);
 								}
 								return;
 								}, &mainWindow);

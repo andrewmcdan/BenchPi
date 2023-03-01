@@ -1,7 +1,6 @@
 #include "SerialHandler.h"
 
 SerialHandler::SerialHandler() {
-
 	std::string portName = "";
 	int ser_port_descriptor = 0;
 	textField* temp_tF;
@@ -15,13 +14,22 @@ SerialHandler::SerialHandler() {
 			// if the descriptor is >= 0 then the por was succesffuly opened.
 			if (ser_port_descriptor >= 0) {
 				// create a temporary termios struct to hold the config of the port as it was when opened
-				struct termios tty_temp;
+				struct termios2 tty_temp;
 				// get the config of the serial port and print error if there was one
-				if (tcgetattr(ser_port_descriptor, &tty_temp) != 0) {
-					printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
-				}
+				//if (tcgetattr(ser_port_descriptor, &tty_temp) != 0) {
+					//printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+				//}
+				this->getPortConfig(ser_port_descriptor, &tty_temp);
+				// set the port to have the default config. This prevents the program from 
+				// hanging if the port has unread data. probably.
+				//this->setPortConfig(portName.c_str(), 115200);
+				printw(std::to_string(tty_temp.c_ospeed).c_str());
+				serial_struct serial;
+				ioctl(ser_port_descriptor, TIOCGSERIAL, &serial);
+				serial.flags |= ASYNC_LOW_LATENCY;
+				ioctl(ser_port_descriptor, TIOCSSERIAL, &serial);
 				// add port info to the "ports" vector
-				ports.push_back({portName,"",-1,false,false,ser_port_descriptor,tty_temp,temp_tF,BIN});
+				ports.push_back({portName,"",-1,false,false,ser_port_descriptor,tty_temp,temp_tF,ASCII,false});
 			}
 			// close the port at this point since we don't know which ports the ser wants to use
 			close(ser_port_descriptor);
@@ -72,37 +80,83 @@ int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, boo
 			this->ports.at(i).tty.c_iflag &= ~(IXON | IXOFF | IXANY);
 			this->ports.at(i).tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL);
 
+			this->ports.at(i).tty.c_oflag = 0;
 			this->ports.at(i).tty.c_oflag &= ~OPOST;
 			this->ports.at(i).tty.c_oflag &= ~ONLCR;
 
 			this->ports.at(i).tty.c_cc[VTIME] = 0;
 			this->ports.at(i).tty.c_cc[VMIN] = 0;
 
-			/*this->ports.at(i).tty.c_cflag &= ~CBAUD;
-			this->ports.at(i).tty.c_cflag |= CBAUDEX;*/
+			this->ports.at(i).tty.c_cflag &= ~CBAUD;
+			//this->ports.at(i).tty.c_cflag |= BOTHER;
+			this->ports.at(i).tty.c_cflag |= CBAUDEX;
+			
+			this->ports.at(i).tty.c_ispeed = baud;
+			this->ports.at(i).tty.c_ospeed = baud;
 
-			cfsetspeed(&this->ports.at(i).tty, baud);
-			if (tcsetattr(this->ports.at(i).port_descriptor, TCSANOW, &tty) != 0) {
-				return -1;
-			}
+			//cfsetspeed(&this->ports.at(i).tty, baud);
+
+			//if (tcsetattr(this->ports.at(i).port_descriptor, TCSANOW, &tty) != 0) {
+			//	return -1;
+			//}
+
+			ioctl(this->ports.at(i).port_descriptor, TCSETS2, &this->ports.at(i).tty);
+
+			struct termios2 tty_temp;
+			ioctl(this->ports.at(i).port_descriptor, TCGETS2, &tty_temp);
+
+			if (tty_temp.c_ispeed != this->ports.at(i).tty.c_ispeed || tty_temp.c_ospeed != this->ports.at(i).tty.c_ospeed )return -1;
+
 			this->ports.at(i).baud = baud;
 			return 1;
 		}
 	}
 	return -2;
 }
-int SerialHandler::getPortConfig(int portDescriptor, termios* tty_) {
-	if (tcgetattr(portDescriptor, tty_) != 0) {
-		return -1;
-	}
+int SerialHandler::getPortConfig(int portDescriptor, termios2* tty_) {
+	//if (tcgetattr(portDescriptor, tty_) != 0) {
+	//	return -1;
+	//}
+	ioctl(portDescriptor, TCGETS2, tty_);
 	return 1; 
 }
 
 void SerialHandler::update() {
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
+		/////////////////////////////////////////
+		move(1, 0);							////
+		printw(std::to_string(i).c_str());//////
+		////////////////////////////////////////
 		if (this->ports.at(i).available && this->ports.at(i).open && this->ports.at(i).tFieldReady) {
+			//////////////////////////////////////
+			move(2, 0);                       ////
+			printw(std::to_string(i).c_str());////
+			///////////////////////////////////////
 			char read_buf[256];
-			int n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
+			int numBytes = 1, n = 0;;
+			//ioctl(this->ports.at(i).port_descriptor, FIONREAD, &numBytes);
+			//////////////////////////////////////////////
+			move(3, 0);								////
+			printw(std::to_string(numBytes).c_str());///
+			///////////////////////////////////////////
+			if (numBytes == 0) continue;
+			else if (numBytes == -1) printw("serial error");
+			n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
+			//////////////////////////////////////////////
+			move(4, 0);								/////
+			printw(std::to_string(n).c_str());		////	
+			//////////////////////////////////////////////
+
+
+			struct termios2 tty_temp;
+			ioctl(this->ports.at(i).port_descriptor, TCGETS2, &tty_temp);
+			move(6, 0);
+			printw(std::to_string(tty_temp.c_ispeed).c_str());
+			move(7, 0);
+			printw(std::to_string(tty_temp.c_ospeed).c_str());
+
+
 			switch (this->ports.at(i).printMode_) {
 			case ASCII:
 				this->ports.at(i).textField_->setText(read_buf, n);
@@ -147,6 +201,10 @@ void SerialHandler::update() {
 			write(this->dataToBeWritten.at(i).port_descriptor, charArray, this->dataToBeWritten.at(i).byteVecArray.size());
 		}
 	}
+
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+	move(0, 0);
+	printw(std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()).c_str());
 }
 
 int SerialHandler::setTextFieldForPort(std::string portName, textField* tF) {
@@ -154,6 +212,7 @@ int SerialHandler::setTextFieldForPort(std::string portName, textField* tF) {
 		if (this->ports.at(i).name.compare(portName) == 0) {
 			this->ports.at(i).textField_ = tF;
 			this->ports.at(i).textField_->setClearOnPrint(false);
+			this->ports.at(i).tFieldReady = true;
 			return 1;
 		}
 	}
@@ -197,10 +256,12 @@ bool SerialHandler::openPort(std::string name) {
 			if (this->ports.at(i).name.compare(name) == 0) {
 				this->ports.at(i).port_descriptor = ser_port_descriptor;
 				this->ports.at(i).open = true;
-				this->setPortConfig(name, 9600);
+				this->getPortConfig(this->ports.at(i).port_descriptor, &this->ports.at(i).tty);
+				this->setPortConfig(name, 115200);
 				return true;
 			}
 		}
+		return false;
 	}
 	else return false;
 }
