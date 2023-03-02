@@ -85,6 +85,8 @@ public:
 
 	void setKeyDisabled(int key, bool en);
 
+	int emitEvent(int key);
+
 private:
 	//std::vector<std::function<int(int, int)>> funcs;
 	int loopEventId;
@@ -98,4 +100,5 @@ private:
 	std::vector<events_struct> events;
 	textField* printToScreen;
 	bool printToScreenEn;
+	std::vector<int>eventsEmitted;
 };

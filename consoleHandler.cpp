@@ -117,6 +117,8 @@ void textField::shortenTheString(int l) {
 }
 
 int textField::draw() {
+	// @TODO: This method needs a bit of reworking to make sure that text always prints pretty.
+
 	// printPos keeeps track of where in theString we are printing from
 	int printPos = 0;
 	if (!this->enabled)return -1;
@@ -133,16 +135,12 @@ int textField::draw() {
 		attron(COLOR_PAIR(this->mainConsole->colornum(this->borderColor, this->bgColor)));
 		// print top left corner
 		printw("\u2554");
-
 		// print top crossbar
 		for (int i = 0; i < this->width; i++) {
 			printw("\u2550");
 		}
-
 		// print top right corner
 		printw("\u2557");
-
-
 		// print left side bar
 		for (int i = 0; i < this->height; i++) {
 			this->mainConsole->setCursorPos(this->x, this->y + i + 1);
@@ -162,7 +160,6 @@ int textField::draw() {
 		}
 		//print bottom right vorner
 		printw("\u255D");
-
 		if (this->title.length() > 0) {
 			// print title crossbar
 			this->mainConsole->setCursorPos(this->x, this->y + 2);
@@ -174,11 +171,9 @@ int textField::draw() {
 				printw("\u2550");
 			}
 		}
-
 		// switch back to the text color
 		attroff(COLOR_PAIR(this->mainConsole->colornum(this->borderColor, this->bgColor)));
 		attron(COLOR_PAIR(this->mainConsole->colornum(this->fgColor, this->bgColor)));
-		
 		int titleOffset = 0;
 		if (this->title.length() > 0) {
 			// the position of the first letter of the titel if found by...
@@ -196,9 +191,6 @@ int textField::draw() {
 				printw(" ");
 			}
 		}
-
-		
-
 		// print text
 		// @TODO:
 		// need to rework this so that when the text is too long for the window, it can show the most recent text.

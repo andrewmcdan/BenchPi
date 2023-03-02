@@ -81,7 +81,6 @@ private:
 	};
 	std::vector<m_meters> multiMeters_v;
 	std::vector<ports_struct>ports;
-	//struct termios2 tty;
 	struct dataOut {
 		int port_descriptor;
 		std::vector<char>byteVecArray;

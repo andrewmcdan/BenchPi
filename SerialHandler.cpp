@@ -94,17 +94,13 @@ int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, boo
 			this->ports.at(i).tty.c_ispeed = baud;
 			this->ports.at(i).tty.c_ospeed = baud;
 
-			//cfsetspeed(&this->ports.at(i).tty, baud);
+			// set the configuration
+			int result = ioctl(this->ports.at(i).port_descriptor, TCSETS2, &this->ports.at(i).tty);
+			if (result != 0) return -1;
 
-			//if (tcsetattr(this->ports.at(i).port_descriptor, TCSANOW, &tty) != 0) {
-			//	return -1;
-			//}
-
-			ioctl(this->ports.at(i).port_descriptor, TCSETS2, &this->ports.at(i).tty);
-
+			// read the actual config into temp and compare to see if it worked.
 			struct termios2 tty_temp;
 			ioctl(this->ports.at(i).port_descriptor, TCGETS2, &tty_temp);
-
 			if (tty_temp.c_ispeed != this->ports.at(i).tty.c_ispeed || tty_temp.c_ospeed != this->ports.at(i).tty.c_ospeed )return -1;
 
 			this->ports.at(i).baud = baud;
@@ -113,10 +109,9 @@ int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, boo
 	}
 	return -2;
 }
+
+// Get the current config of the port
 int SerialHandler::getPortConfig(int portDescriptor, termios2* tty_) {
-	//if (tcgetattr(portDescriptor, tty_) != 0) {
-	//	return -1;
-	//}
 	ioctl(portDescriptor, TCGETS2, tty_);
 	return 1; 
 }
@@ -124,39 +119,13 @@ int SerialHandler::getPortConfig(int portDescriptor, termios2* tty_) {
 void SerialHandler::update() {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
-		/////////////////////////////////////////
-		move(1, 0);							////
-		printw(std::to_string(i).c_str());//////
-		////////////////////////////////////////
 		if (this->ports.at(i).available && this->ports.at(i).open && this->ports.at(i).tFieldReady) {
-			//////////////////////////////////////
-			move(2, 0);                       ////
-			printw(std::to_string(i).c_str());////
-			///////////////////////////////////////
 			char read_buf[256];
-			int numBytes = 1, n = 0;;
-			//ioctl(this->ports.at(i).port_descriptor, FIONREAD, &numBytes);
-			//////////////////////////////////////////////
-			move(3, 0);								////
-			printw(std::to_string(numBytes).c_str());///
-			///////////////////////////////////////////
+			int numBytes = 0, n = 0;
+			ioctl(this->ports.at(i).port_descriptor, FIONREAD, &numBytes);
 			if (numBytes == 0) continue;
 			else if (numBytes == -1) printw("serial error");
 			n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
-			//////////////////////////////////////////////
-			move(4, 0);								/////
-			printw(std::to_string(n).c_str());		////	
-			//////////////////////////////////////////////
-
-
-			struct termios2 tty_temp;
-			ioctl(this->ports.at(i).port_descriptor, TCGETS2, &tty_temp);
-			move(6, 0);
-			printw(std::to_string(tty_temp.c_ispeed).c_str());
-			move(7, 0);
-			printw(std::to_string(tty_temp.c_ospeed).c_str());
-
-
 			switch (this->ports.at(i).printMode_) {
 			case ASCII:
 				this->ports.at(i).textField_->setText(read_buf, n);
@@ -189,7 +158,6 @@ void SerialHandler::update() {
 				}
 				break;
 			}
-			
 		}
 	}
 	for (unsigned int i = 0; i < this->dataToBeWritten.size(); i++) {
@@ -201,10 +169,6 @@ void SerialHandler::update() {
 			write(this->dataToBeWritten.at(i).port_descriptor, charArray, this->dataToBeWritten.at(i).byteVecArray.size());
 		}
 	}
-
-	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-	move(0, 0);
-	printw(std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()).c_str());
 }
 
 int SerialHandler::setTextFieldForPort(std::string portName, textField* tF) {
@@ -393,6 +357,8 @@ void AddonController::update(char* data, int len) {
 		t = data[i];
 		this->unprocessedData.push_back(t);
 	}
+	move(2, 0);
+	printw("A");
 
 	/*
 	* This section will process incoming data and stor it in the relavent object
@@ -403,9 +369,12 @@ void AddonController::update(char* data, int len) {
 		unsigned int numIncomingBytes = 0;
 		unsigned int startSequence = 0;
 		// get the header data out of the vector
-		startSequence = (unsigned int)this->unprocessedData.at(0) << 8 | (unsigned int)this->unprocessedData.at(1);
-		numIncomingBytes = (unsigned int)this->unprocessedData.at(2) << 8 | (unsigned int)this->unprocessedData.at(3);
+		startSequence = ((unsigned int)this->unprocessedData.at(0) << 8) | (unsigned int)this->unprocessedData.at(1);
+		numIncomingBytes = ((unsigned int)this->unprocessedData.at(2) << 8) | (unsigned int)this->unprocessedData.at(3);
+
+		if (this->unprocessedData.size() <= numIncomingBytes + 4) return; // not enough data in buffer
 		do {
+			if (startSequence != 0b1010101011001100)continue;
 			unsigned char classByte = this->unprocessedData.at(4);
 			unsigned char idByte = this->unprocessedData.at(5);
 			switch (classByte) {
@@ -475,15 +444,20 @@ void AddonController::update(char* data, int len) {
 				break;
 			}
 			}
+
+			for (int i = 0; i < numIncomingBytes + 4; i++) {
+				this->unprocessedData.erase(this->unprocessedData.begin());
+			}
+
 			if (this->unprocessedData.size() > 4) {
-				startSequence = (unsigned int)this->unprocessedData.at(0) << 8 | (unsigned int)this->unprocessedData.at(1);
-				numIncomingBytes = (unsigned int)this->unprocessedData.at(2) << 8 | (unsigned int)this->unprocessedData.at(3);
+				startSequence = ((unsigned int)this->unprocessedData.at(0) << 8) | (unsigned int)this->unprocessedData.at(1);
+				numIncomingBytes = ((unsigned int)this->unprocessedData.at(2) << 8) | (unsigned int)this->unprocessedData.at(3);
 			}
 			else {
 				numIncomingBytes = 0;
 				startSequence = 0;
 			}
-		} while (this->unprocessedData.size() >= numIncomingBytes && startSequence == 0b1010101011001100);
+		} while (this->unprocessedData.size() >= (numIncomingBytes + 4) && startSequence == 0b1010101011001100);
 	}
 
 	/*

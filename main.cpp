@@ -1,6 +1,8 @@
 #include "main.h"
 
 int main() {
+	std::chrono::steady_clock::time_point programStartTime = std::chrono::steady_clock::now();
+	bool emitOnce = false;
 	// Set up all the stuff for ncurses
 	setlocale(LC_ALL, "en_US.utf8");
 	initscr();
@@ -77,7 +79,6 @@ int main() {
 	loop.addEvent([&shortcutF5]() {
 		return shortcutF5.tField.draw();
 		});
-
 	
 
 	// Build the quit confirm screen.
@@ -661,14 +662,11 @@ int main() {
 								return;
 								}, &mainWindow);
 							serialConfigSubMenuItems.at(i).at(2).addMenuItem("115200", [&, i, portName]() {
-								int retVal = serialPortManager.setPortConfig(portName, 115200);
-								if ( retVal == 1) {
+								if (serialPortManager.setPortConfig(portName, 115200) == 1) {
 									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText("Successfully set to 115200 baud");
 								}
 								else {
-									std::string t42 = "Error setting baud. Is the port open?";
-									t42 += std::to_string(retVal);
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText(t42);
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText("Error setting baud. Is the port open?");
 								}
 								return;
 								}, &mainWindow);
@@ -743,10 +741,10 @@ int main() {
 							serialConfigSubMenuItems.at(i).at(2).enableMenu();
 							return; 
 						}, &mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Bits Per Byte", [&, i]() {/* @TODO: */return; }, &mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Parity", [&, i]() {/* @TODO: */return; }, &mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Stop Bits", [&, i]() {/* @TODO: */return; }, &mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Hardware Flow Control", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Bits Per Byte !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Parity !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Stop Bits !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Hardware Flow Control !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
 						serialConfigMenuItems.at(i).setEscKey([&,i]() {
 							serialConfigMenuItems.at(i).disableMenu();
 							while (serialConfigSubMenuItems.at(i).size() > 0) {
@@ -1073,8 +1071,16 @@ int main() {
 	*/
 
 	while (run) {
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		loop.handleAll(); // handles all the loop events that hanve been registered
 		// last thing to do in the loop is push the buffer to the dispaly.
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		move(0, 0);
+		printw(std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()).c_str());
+		if (std::chrono::duration_cast<std::chrono::seconds>(end - programStartTime).count() > 5 && !emitOnce) {
+			userInput.emitEvent(KEY_F(1));
+			emitOnce = true;
+		}
 		refresh();
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));

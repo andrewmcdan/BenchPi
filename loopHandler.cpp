@@ -65,8 +65,8 @@ int inputHandler::addListener(std::function<int(int, TIMEPOINT_T)> f, int key) {
 			this->removeByKey(KEY_ALL_ASCII);
 		}
 	}
-	this->events.push_back({ key,this->id_index++,f,false });
-	return this->events.size();
+	this->events.push_back({ key,this->id_index,f,false });
+	return this->id_index++;
 }
 
 int inputHandler::remove(unsigned long id) {
@@ -101,6 +101,11 @@ int inputHandler::call(unsigned long id, int a) {
 	return -1;
 }
 
+int inputHandler::emitEvent(int key) {
+	this->eventsEmitted.push_back(key);
+	return this->events.size();
+}
+
 void inputHandler::printToTextField(textField* tF) {
 
 	return;
@@ -111,13 +116,17 @@ void inputHandler::handleInput() {
 	auto t = std::chrono::steady_clock::now();
 	int c = getch();
 	for (unsigned int i = 0; i < this->events.size(); i++) {
-		if (this->events[i].key == c && !this->events[i].disabled) {
-			this->events[i].func(c, t);
+		for (unsigned int i2 = 0; i2 < this->eventsEmitted.size(); i2++) {
+			if(this->eventsEmitted.at(i2) == this->events.at(i).key) this->events.at(i).func(this->eventsEmitted.at(i2), t);
 		}
-		if (this->events[i].key == KEY_ALL_ASCII && c > 31 && c < 127 && !this->events[i].disabled) {
-			this->events[i].func(c, t);
+		if (this->events.at(i).key == c && !this->events.at(i).disabled) {
+			this->events.at(i).func(c, t);
+		}
+		if (this->events.at(i).key == KEY_ALL_ASCII && c > 31 && c < 127 && !this->events.at(i).disabled) {
+			this->events.at(i).func(c, t);
 		}
 	}
+	this->eventsEmitted.clear();
 	return;
 }
 
