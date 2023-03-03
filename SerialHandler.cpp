@@ -5,6 +5,56 @@ SerialHandler::SerialHandler() {
 	int ser_port_descriptor = 0;
 	textField* temp_tF;
 
+	const uint16_t teensyVID = 0x16c0;
+	const uint16_t teensyPID = 0x0489;
+
+	libusb_context* context;
+	libusb_device** usb_devs;
+	ssize_t usbDevicecount;
+
+	libusb_init(&context);
+	usbDevicecount = libusb_get_device_list(context, &usb_devs);
+
+	std::string teensyPortNumbers_s = "";
+
+	libusb_device* usb_dev;
+	int i = 0, j = 0;
+	uint8_t path[8];
+
+	while ((usb_dev = usb_devs[i++]) != NULL) {
+		struct libusb_device_descriptor desc;
+		int r = libusb_get_device_descriptor(usb_dev, &desc);
+		if (r < 0) {
+			fprintf(stderr, "failed to get device descriptor");
+			return;
+		}
+
+		if (desc.idVendor == teensyVID && desc.idProduct == teensyPID) {
+			r = libusb_get_port_numbers(usb_dev, path, sizeof(path));
+			if (r > 0) {
+				teensyPortNumbers_s += std::to_string(path[0]);
+				for (j = 1; j < r; j++) {
+					teensyPortNumbers_s += ".";
+					teensyPortNumbers_s += std::to_string(path[j]);
+				}
+			}
+		}
+	}
+	std::string teensySerialDev_s = "/dev/";
+	std::string sysPath = "/sys/class/tty";
+	int isTeensyDev = 0;
+	for (const auto& entry : fs::directory_iterator(sysPath)) {
+		//printf(entry.path().c_str());
+		auto symPath = fs::read_symlink(entry.path());
+		isTeensyDev = symPath.string().find(teensyPortNumbers_s);
+		if (isTeensyDev > -1) {
+			teensySerialDev_s += symPath.string().substr(symPath.string().find_last_of("/")+1);
+			//printf("\n\r\t");
+			//printf(teensySerialDev_s.c_str());
+			//printf("\n\r");
+		}
+	}
+
 	for (int p = 0; p < NUMBER_OF_SERIAL_PREFIXES; p++) {
 		for (int i = 0; i < 100; i++) {
 			// Create a serial port name from a prefix and a number
@@ -19,6 +69,7 @@ SerialHandler::SerialHandler() {
 				//if (tcgetattr(ser_port_descriptor, &tty_temp) != 0) {
 					//printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
 				//}
+
 				this->getPortConfig(ser_port_descriptor, &tty_temp);
 				// set the port to have the default config. This prevents the program from 
 				// hanging if the port has unread data. probably.
@@ -28,8 +79,10 @@ SerialHandler::SerialHandler() {
 				ioctl(ser_port_descriptor, TIOCGSERIAL, &serial);
 				serial.flags |= ASYNC_LOW_LATENCY;
 				ioctl(ser_port_descriptor, TIOCSSERIAL, &serial);
+				std::string alias = "";
+				if (teensySerialDev_s.compare(portName) == 0) alias = "Teensy";
 				// add port info to the "ports" vector
-				ports.push_back({portName,"",-1,false,false,ser_port_descriptor,tty_temp,temp_tF,ASCII,false});
+				ports.push_back({portName,alias,-1,false,false,ser_port_descriptor,tty_temp,temp_tF,ASCII,false});
 			}
 			// close the port at this point since we don't know which ports the ser wants to use
 			close(ser_port_descriptor);

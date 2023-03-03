@@ -6,6 +6,9 @@
 #include <sys/ioctl.h>
 //#include <termios.h>
 #include <linux/serial.h>
+#include "libusb-1.0/libusb.h"
+#include "filesystem"
+
 
 #pragma once
 // C library headers
@@ -20,9 +23,9 @@
 #include <bitset>
 #include <chrono>
 
-
-
 #define NUMBER_OF_SERIAL_PREFIXES 4
+
+namespace fs = std::filesystem;
 
 class AddonController;
 class MultiMeter;

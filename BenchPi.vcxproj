@@ -63,6 +63,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <RemoteCopySourceMethod>sftp</RemoteCopySourceMethod>
+    <RemoteCCompileToolExe>g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>g++</RemoteCppCompileToolExe>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
@@ -77,7 +79,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
-      <LibraryDependencies>ncursesw;asound;pthread;wiringPi</LibraryDependencies>
+      <LibraryDependencies>ncursesw;asound;pthread;wiringPi;usb-1.0</LibraryDependencies>
     </Link>
     <RemotePostBuildEvent>
       <Command>exit</Command>
@@ -110,15 +112,15 @@
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
-      <AdditionalOptions>
-      </AdditionalOptions>
-      <ShowProgress>false</ShowProgress>
+      <AdditionalOptions>-L/usr/local/lib -lusbp-1</AdditionalOptions>
+      <ShowProgress>true</ShowProgress>
       <VerboseOutput>false</VerboseOutput>
     </Link>
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <UndefinePreprocessorDefinitions>__LINUX_ALSA__;%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
       <AdditionalOptions>-D__LINUX_ALSA__ %(AdditionalOptions)</AdditionalOptions>
+      <CppLanguageStandard>c++17</CppLanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -2,7 +2,17 @@
 
 int main() {
 	std::chrono::steady_clock::time_point programStartTime = std::chrono::steady_clock::now();
-	bool emitOnce = false;
+	bool emitOnce1 = false;
+	bool emitOnce2 = false;
+	bool emitOnce3 = false;
+	bool emitOnce4 = false;
+	bool emitOnce5 = false;
+	bool emitOnce6 = false;
+	bool emitOnce7 = false;
+	bool emitOnce8 = false;
+	bool emitOnce9 = false;
+
+
 	// Set up all the stuff for ncurses
 	setlocale(LC_ALL, "en_US.utf8");
 	initscr();
@@ -1077,10 +1087,22 @@ int main() {
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		move(0, 0);
 		printw(std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()).c_str());
-		if (std::chrono::duration_cast<std::chrono::seconds>(end - programStartTime).count() > 5 && !emitOnce) {
+		/*if (std::chrono::duration_cast<std::chrono::seconds>(end - programStartTime).count() > 5 && !emitOnce1) {
 			userInput.emitEvent(KEY_F(1));
-			emitOnce = true;
+			emitOnce1 = true;
 		}
+		if (std::chrono::duration_cast<std::chrono::seconds>(end - programStartTime).count() > 6 && !emitOnce2) {
+			userInput.emitEvent(KEY_DOWN);
+			emitOnce2 = true;
+		}
+		if (std::chrono::duration_cast<std::chrono::seconds>(end - programStartTime).count() > 7 && !emitOnce3) {
+			userInput.emitEvent(KEY_DOWN);
+			emitOnce3 = true;
+		}
+		if (std::chrono::duration_cast<std::chrono::seconds>(end - programStartTime).count() > 8 && !emitOnce4) {
+			userInput.emitEvent(KEY_ENTER);
+			emitOnce4 = true;
+		}*/
 		refresh();
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));

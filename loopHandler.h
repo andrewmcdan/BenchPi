@@ -10,7 +10,7 @@
 
 
 #define TIMEPOINT_T std::chrono::time_point<std::chrono::steady_clock>
-#define KEY_ALL_ASCII 999999
+#define KEY_ALL_ASCII 999999 
 #define KEY_ESC 27
 #define KEY_ENTER 10
 #define DEBUGKEY

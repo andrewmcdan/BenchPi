@@ -115,17 +115,17 @@ void inputHandler::handleInput() {
 	// 
 	auto t = std::chrono::steady_clock::now();
 	int c = getch();
-	for (unsigned int i = 0; i < this->events.size(); i++) {
-		for (unsigned int i2 = 0; i2 < this->eventsEmitted.size(); i2++) {
-			if(this->eventsEmitted.at(i2) == this->events.at(i).key) this->events.at(i).func(this->eventsEmitted.at(i2), t);
-		}
-		if (this->events.at(i).key == c && !this->events.at(i).disabled) {
-			this->events.at(i).func(c, t);
-		}
-		if (this->events.at(i).key == KEY_ALL_ASCII && c > 31 && c < 127 && !this->events.at(i).disabled) {
-			this->events.at(i).func(c, t);
-		}
+	for (size_t i = 0; i < this->events.size(); i++) {
+		// iterate though the emitted events and check against all the registered events. If there's a match, call the function.
+		for (size_t i2 = 0; i2 < this->eventsEmitted.size(); i2++) if(this->eventsEmitted.at(i2) == this->events.at(i).key) this->events.at(i).func(this->eventsEmitted.at(i2), t);
+		// check for a match with the key that was pressed
+		if (this->events.at(i).key == c && !this->events.at(i).disabled) this->events.at(i).func(c, t);
+		// This next line is neccesary becuase the function call above may change the number of events in the vector.
+		if (i >= this->events.size()) break;
+		// Check for "all ascii" registered eventss
+		if (this->events.at(i).key == KEY_ALL_ASCII && c > 31 && c < 127 && !this->events.at(i).disabled) this->events.at(i).func(c, t);
 	}
+	// clear the eventsEmitted vector since they will all have been handled. 
 	this->eventsEmitted.clear();
 	return;
 }
