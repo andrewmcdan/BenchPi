@@ -118,10 +118,10 @@ int main() {
 					// listeners for Y, y, N, and n, remove the loop event for drawing the text field, 
 					// and clear screen to go back to what was being done before. 
 					quitConfirm.setEnabled(false); 
-					userInput.removeByKey('Y'); 
-					userInput.removeByKey('y');
-					userInput.removeByKey('n'); 
-					userInput.removeByKey('N');
+					userInput.removeListenerByKey('Y'); 
+					userInput.removeListenerByKey('y');
+					userInput.removeListenerByKey('n'); 
+					userInput.removeListenerByKey('N');
 					userInput.setKeyDisabled(KEY_F(1), false);
 					userInput.setKeyDisabled(KEY_F(2), false);
 					userInput.setKeyDisabled(KEY_F(3), false);
@@ -131,10 +131,10 @@ int main() {
 					return 1; }, 'n');
 				userInput.addListener([&, loopEvent](int c2, TIMEPOINT_T t2) { 
 					quitConfirm.setEnabled(false); 
-					userInput.removeByKey('Y'); 
-					userInput.removeByKey('y'); 
-					userInput.removeByKey('n'); 
-					userInput.removeByKey('N');
+					userInput.removeListenerByKey('Y'); 
+					userInput.removeListenerByKey('y'); 
+					userInput.removeListenerByKey('n'); 
+					userInput.removeListenerByKey('N');
 					userInput.setKeyDisabled(KEY_F(1), false);
 					userInput.setKeyDisabled(KEY_F(2), false);
 					userInput.setKeyDisabled(KEY_F(3), false);
@@ -508,8 +508,8 @@ int main() {
 			mainMenu.setEscKey([&]() {
 				mainMenu.disableMenu();
 				mainWindow.clearScreen();
-				userInput.removeByKey(KEY_UP);
-				userInput.removeByKey(KEY_DOWN);
+				userInput.removeListenerByKey(KEY_UP);
+				userInput.removeListenerByKey(KEY_DOWN);
 				userInput.setKeyDisabled(KEY_F(1), false);
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);
@@ -965,8 +965,8 @@ int main() {
 			userInput.setKeyDisabled(KEY_F(3), true);
 			userInput.setKeyDisabled(KEY_F(4), true);
 			serialConfigMenu.setEscKey([&]() {
-				userInput.removeByKey(KEY_UP);
-				userInput.removeByKey(KEY_DOWN);
+				userInput.removeListenerByKey(KEY_UP);
+				userInput.removeListenerByKey(KEY_DOWN);
 				serialConfigMenu.disableMenu();
 				serialConfigMenu.resetMenuItemList();
 				while (serialConfigMenuItems.size() > 0) {
@@ -995,8 +995,8 @@ int main() {
 			midiConfigMenu.setEscKey([&]() {
 				midiConfigMenu.disableMenu();
 				mainWindow.clearScreen();
-				userInput.removeByKey(KEY_UP);
-				userInput.removeByKey(KEY_DOWN);
+				userInput.removeListenerByKey(KEY_UP);
+				userInput.removeListenerByKey(KEY_DOWN);
 				userInput.setKeyDisabled(KEY_F(1), false);
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);
@@ -1018,8 +1018,8 @@ int main() {
 			tAreaMenu.setEscKey([&]() {
 				tAreaMenu.disableMenu();
 				mainWindow.clearScreen();
-				userInput.removeByKey(KEY_UP);
-				userInput.removeByKey(KEY_DOWN);
+				userInput.removeListenerByKey(KEY_UP);
+				userInput.removeListenerByKey(KEY_DOWN);
 				userInput.setKeyDisabled(KEY_F(1), false);
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);

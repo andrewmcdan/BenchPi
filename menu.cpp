@@ -87,7 +87,7 @@ void Menu::disableMenu() {
 		this->loop->remove(this->menuItems.at(itr).tFieldDraw_loopID);
 		this->menuItems.at(itr).tFieldDraw_loopID = 0;
 	}
-	this->userInputHandler->removeByKey(KEY_ESC);
+	this->userInputHandler->removeListenerByKey(KEY_ESC);
 	
 }
 

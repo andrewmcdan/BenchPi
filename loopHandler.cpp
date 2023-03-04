@@ -56,36 +56,55 @@ inputHandler::inputHandler(loopUpdateHandler* loop) {
 	this->printToScreenEn = false;
 }
 
-int inputHandler::addListener(std::function<int(int, TIMEPOINT_T)> f, int key) {
+unsigned long inputHandler::addListener(std::function<int(int, TIMEPOINT_T)> f, int key) {
 	for (unsigned int i = 0; i < this->events.size(); i++) {
 		if (this->events[i].key == key) {
-			this->removeByKey(key);
+			this->removeListenerByKey(key);
 		}
 		if (this->events[i].key == KEY_ALL_ASCII && key > 31 && key < 127) {
-			this->removeByKey(KEY_ALL_ASCII);
+			this->removeListenerByKey(KEY_ALL_ASCII);
 		}
 	}
 	this->events.push_back({ key,this->id_index,f,false });
-	return this->id_index++;
+	unsigned long temp = this->id_index;
+	this->id_index++;
+	return temp;
 }
 
-int inputHandler::remove(unsigned long id) {
-	auto it = this->events.begin();
+int inputHandler::removeListener(unsigned long id) {
+	/*auto it = this->events.begin();
 	unsigned int i = 0;
 	for (; i < this->events.size() && it != this->events.end(); i++, it++) {
 		if (this->events.at(i).id == id) {
 			this->events.erase(it);
 		}
-	}
-	return this->events.size();
+	}*/
+	this->idsToRemove.push_back(id);
+	return this->events.size() - this->idsToRemove.size();
 }
 
-int inputHandler::removeByKey(int key) {
+void inputHandler::removeQueuedIds() {
+	for (unsigned int k = 0; k < this->idsToRemove.size(); k++) {
+		auto it = this->events.begin();
+		unsigned int i = 0;
+		for (; i < this->events.size() && it != this->events.end(); i++, it++) {
+			if (this->events.at(i).id == this->idsToRemove.at(k)) {
+				this->events.erase(it);
+				i = 0; 
+				it = this->events.begin();
+			}
+		}
+	}
+	this->idsToRemove.clear();
+	return;
+}
+
+int inputHandler::removeListenerByKey(int key) {
 	bool found = false;
 	for (unsigned int i = 0; i < this->events.size(); i++) {
 		if (this->events.at(i).key == key) {
 			found = true;
-			this->remove(this->events.at(i).id);
+			this->removeListener(this->events.at(i).id);
 		}
 	}
 	return found ? this->events.size() : -1;
@@ -112,18 +131,35 @@ void inputHandler::printToTextField(textField* tF) {
 }
 
 void inputHandler::handleInput() {
-	// 
+	// first, call removeQueuedIds() to get rid of listeners that are queued for removal
+	this->removeQueuedIds();
 	auto t = std::chrono::steady_clock::now();
 	int c = getch();
+	size_t eventsSize = this->events.size();
 	for (size_t i = 0; i < this->events.size(); i++) {
 		// iterate though the emitted events and check against all the registered events. If there's a match, call the function.
-		for (size_t i2 = 0; i2 < this->eventsEmitted.size(); i2++) if(this->eventsEmitted.at(i2) == this->events.at(i).key) this->events.at(i).func(this->eventsEmitted.at(i2), t);
+		for (size_t i2 = 0; i2 < this->eventsEmitted.size(); i2++) if (this->eventsEmitted.at(i2) == this->events.at(i).key) {
+			this->events.at(i).func(this->eventsEmitted.at(i2), t);
+			if (eventsSize != this->events.size()) break; // number of event listeners changed during above function call.
+		}
+	}
+	eventsSize = this->events.size();
+	this->removeQueuedIds();
+	for (size_t i = 0; i < this->events.size(); i++) {
 		// check for a match with the key that was pressed
-		if (this->events.at(i).key == c && !this->events.at(i).disabled) this->events.at(i).func(c, t);
-		// This next line is neccesary becuase the function call above may change the number of events in the vector.
-		if (i >= this->events.size()) break;
+		if (this->events.at(i).key == c && !this->events.at(i).disabled) {
+			this->events.at(i).func(c, t);
+			if (eventsSize != this->events.size()) break; // number of event listeners changed during above function call.
+		}
+	}
+	eventsSize = this->events.size();
+	this->removeQueuedIds();
+	for (size_t i = 0; i < this->events.size(); i++) {
 		// Check for "all ascii" registered eventss
-		if (this->events.at(i).key == KEY_ALL_ASCII && c > 31 && c < 127 && !this->events.at(i).disabled) this->events.at(i).func(c, t);
+		if (this->events.at(i).key == KEY_ALL_ASCII && c > 31 && c < 127 && !this->events.at(i).disabled) {
+			this->events.at(i).func(c, t);
+			if (eventsSize != this->events.size()) break; // number of event listeners changed during above function call.
+		}
 	}
 	// clear the eventsEmitted vector since they will all have been handled. 
 	this->eventsEmitted.clear();

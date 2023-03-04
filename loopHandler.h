@@ -63,13 +63,13 @@ public:
 
 	// Add listener for "key" and register a function to be called when that key
 	// is pressed. Reuturns an int id.
-	int addListener(std::function<int(int, std::chrono::_V2::steady_clock::time_point)> f, int key);
+	unsigned long addListener(std::function<int(int, std::chrono::_V2::steady_clock::time_point)> f, int key);
 
 	// Remove a listener. Returns number of registered listneres. 
-	int remove(unsigned long id);
+	int removeListener(unsigned long id);
 
 	// Remove any / all listeners for a given key
-	int removeByKey(int key);
+	int removeListenerByKey(int key);
 
 	// Remove all listeners.
 	void resetEvents();
@@ -88,6 +88,7 @@ public:
 	int emitEvent(int key);
 
 private:
+	void removeQueuedIds();
 	//std::vector<std::function<int(int, int)>> funcs;
 	int loopEventId;
 	unsigned long id_index;
@@ -101,4 +102,5 @@ private:
 	textField* printToScreen;
 	bool printToScreenEn;
 	std::vector<int>eventsEmitted;
+	std::vector<unsigned long>idsToRemove;
 };
