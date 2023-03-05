@@ -21,7 +21,6 @@ bool consoleHandler::setCursorPos(int x, int y) {
 }
 
 
-
 textField::textField(){
 	// init all the variable within the object
 	this->alignment = left;

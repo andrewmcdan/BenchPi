@@ -1,5 +1,7 @@
 #include "main.h"
 
+namespace fs = std::filesystem;
+
 int main() {
 	std::chrono::steady_clock::time_point programStartTime = std::chrono::steady_clock::now();
 	bool emitOnce1 = false;
@@ -29,6 +31,9 @@ int main() {
 	}
 	start_color();
 	refresh();
+
+
+	
 
 	/*int mouseFD = open("/dev/input/mice", O_RDONLY);
 	printf(std::to_string(mouseFD).c_str()); 
@@ -531,8 +536,8 @@ int main() {
 					serialPortManager.getPortAlias(i, tempString2);
 					if(tempString2.length() > 0)tempString += " - " + tempString2;
 					serialConfigMenuItems.push_back(Menu(&loop, &mainWindow, &userInput, tempString));
+					serialConfigSubMenuItems.push_back(std::vector<Menu>());
 					serialConfigMenu.addMenuItem(tempString, [&, i, portName]() {
-						serialConfigSubMenuItems.push_back(std::vector<Menu>());
 						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Open / Close Port"));
 						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Set / Change Alias"));
 						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Baud"));
@@ -1079,7 +1084,6 @@ int main() {
 	
 
 	*/
-
 	while (run) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		loop.handleAll(); // handles all the loop events that hanve been registered
@@ -1103,14 +1107,13 @@ int main() {
 			userInput.emitEvent(KEY_ENTER);
 			emitOnce4 = true;
 		}*/
+
 		refresh();
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 	mainWindow.clearScreen();
 	serialPortManager.closeAllPorts();
 	endwin();
 	return 0;
 }
-
-

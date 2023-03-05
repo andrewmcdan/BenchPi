@@ -16,6 +16,3 @@
 #include <ctime>
 #include "SerialHandler.h"
 #include "MidiHandler.h"
-
-
-

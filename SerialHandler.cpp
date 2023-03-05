@@ -83,6 +83,7 @@ SerialHandler::SerialHandler() {
 				if (teensySerialDev_s.compare(portName) == 0) alias = "Teensy";
 				// add port info to the "ports" vector
 				ports.push_back({portName,alias,-1,false,false,ser_port_descriptor,tty_temp,temp_tF,ASCII,false});
+				ioctl(ser_port_descriptor, TCFLSH, TCIFLUSH);
 			}
 			// close the port at this point since we don't know which ports the ser wants to use
 			close(ser_port_descriptor);
@@ -124,11 +125,12 @@ int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, boo
 			else this->ports.at(i).tty.c_cflag &= ~CRTSCTS;
 
 			this->ports.at(i).tty.c_cflag |= CREAD | CLOCAL;
-			this->ports.at(i).tty.c_cflag &= ~ICANON;
-			this->ports.at(i).tty.c_cflag &= ~ECHO;
-			this->ports.at(i).tty.c_cflag &= ~ECHOE;
-			this->ports.at(i).tty.c_cflag &= ~ECHONL;
-			this->ports.at(i).tty.c_cflag &= ~ISIG;
+			
+			this->ports.at(i).tty.c_lflag &= ~ICANON;
+			this->ports.at(i).tty.c_lflag &= ~ECHO;
+			this->ports.at(i).tty.c_lflag &= ~ECHOE;
+			this->ports.at(i).tty.c_lflag &= ~ECHONL;
+			this->ports.at(i).tty.c_lflag &= ~ISIG;
 
 			this->ports.at(i).tty.c_iflag &= ~(IXON | IXOFF | IXANY);
 			this->ports.at(i).tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL);
@@ -153,9 +155,22 @@ int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, boo
 
 			// read the actual config into temp and compare to see if it worked.
 			struct termios2 tty_temp;
-			ioctl(this->ports.at(i).port_descriptor, TCGETS2, &tty_temp);
-			if (tty_temp.c_ispeed != this->ports.at(i).tty.c_ispeed || tty_temp.c_ospeed != this->ports.at(i).tty.c_ospeed )return -1;
+			int r = ioctl(this->ports.at(i).port_descriptor, TCGETS2, &tty_temp);
 
+			if (this->ports.at(i).tty.c_cc[VTIME] != tty_temp.c_cc[VTIME] ||
+				this->ports.at(i).tty.c_cc[VMIN] != tty_temp.c_cc[VMIN] ||
+				this->ports.at(i).tty.c_cflag != tty_temp.c_cflag ||
+				this->ports.at(i).tty.c_iflag != tty_temp.c_iflag ||
+				this->ports.at(i).tty.c_ispeed != tty_temp.c_ispeed ||
+				this->ports.at(i).tty.c_lflag != tty_temp.c_lflag ||
+				this->ports.at(i).tty.c_line != tty_temp.c_line ||
+				this->ports.at(i).tty.c_oflag != tty_temp.c_oflag ||
+				this->ports.at(i).tty.c_ospeed != tty_temp.c_ospeed) {
+				std::cout << "serial init error1" << std::endl;
+			}
+
+			if (r != 0)std::cout << "serial init error2";
+			if (tty_temp.c_ispeed != this->ports.at(i).tty.c_ispeed || tty_temp.c_ospeed != this->ports.at(i).tty.c_ospeed )return -1;
 			this->ports.at(i).baud = baud;
 			return 1;
 		}
@@ -172,12 +187,24 @@ int SerialHandler::getPortConfig(int portDescriptor, termios2* tty_) {
 void SerialHandler::update() {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
-		if (this->ports.at(i).available && this->ports.at(i).open && this->ports.at(i).tFieldReady) {
-			char read_buf[256];
+		if (this->ports.at(i).available && this->ports.at(i).open && (this->ports.at(i).tFieldReady || this->ports.at(i).printMode_ == ADDON_CONTROLLER || this->ports.at(i).printMode_ == MULTIMETER)) {
+			std::string t = "echo ";
+			t += "A: ";
+			t += this->ports.at(i).alias;
+			t += " > /dev/pts/1";
+			std::system(t.c_str());
+			char read_buf[2048];
 			int numBytes = 0, n = 0;
-			ioctl(this->ports.at(i).port_descriptor, FIONREAD, &numBytes);
+			int r = ioctl(this->ports.at(i).port_descriptor, FIONREAD, &numBytes);
+			if (r != 0) {
+				std::string t = "echo ";
+				t += "r: ";
+				t += std::to_string(r);
+				t += " > /dev/pts/1";
+				std::system(t.c_str());
+			}
 			if (numBytes == 0) continue;
-			else if (numBytes == -1) printw("serial error");
+			else if (numBytes == -1) std::cout << "serial error";
 			n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
 			switch (this->ports.at(i).printMode_) {
 			case ASCII:
@@ -200,6 +227,10 @@ void SerialHandler::update() {
 				}
 				break;
 			case ADDON_CONTROLLER:
+				t = "echo ";
+				t += "B";
+				t += " > /dev/pts/1";
+				std::system(t.c_str());
 				addonCtrlr_->update(read_buf, n);
 				break;
 			case MULTIMETER:
@@ -240,9 +271,9 @@ bool SerialHandler::setAddonControllerForData(std::string portName, AddonControl
 	this->addonCtrlr_ = ctrl;
 	for (int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).name.compare(portName) == 0) {
+			if (!this->openPort(portName))return false;
 			this->ports.at(i).printMode_ = ADDON_CONTROLLER;
 			this->ports.at(i).alias = "Addon Controller";
-			if (!this->openPort(portName))return false;
 			this->setPortConfig(portName, 115200);
 			return true;
 		}
@@ -410,9 +441,6 @@ void AddonController::update(char* data, int len) {
 		t = data[i];
 		this->unprocessedData.push_back(t);
 	}
-	move(2, 0);
-	printw("A");
-
 	/*
 	* This section will process incoming data and stor it in the relavent object
 	*/
