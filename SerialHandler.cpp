@@ -157,18 +157,6 @@ int SerialHandler::setPortConfig(std::string name, int baud, int bitPerByte, boo
 			struct termios2 tty_temp;
 			int r = ioctl(this->ports.at(i).port_descriptor, TCGETS2, &tty_temp);
 
-			if (this->ports.at(i).tty.c_cc[VTIME] != tty_temp.c_cc[VTIME] ||
-				this->ports.at(i).tty.c_cc[VMIN] != tty_temp.c_cc[VMIN] ||
-				this->ports.at(i).tty.c_cflag != tty_temp.c_cflag ||
-				this->ports.at(i).tty.c_iflag != tty_temp.c_iflag ||
-				this->ports.at(i).tty.c_ispeed != tty_temp.c_ispeed ||
-				this->ports.at(i).tty.c_lflag != tty_temp.c_lflag ||
-				this->ports.at(i).tty.c_line != tty_temp.c_line ||
-				this->ports.at(i).tty.c_oflag != tty_temp.c_oflag ||
-				this->ports.at(i).tty.c_ospeed != tty_temp.c_ospeed) {
-				std::cout << "serial init error1" << std::endl;
-			}
-
 			if (r != 0)std::cout << "serial init error2";
 			if (tty_temp.c_ispeed != this->ports.at(i).tty.c_ispeed || tty_temp.c_ospeed != this->ports.at(i).tty.c_ospeed )return -1;
 			this->ports.at(i).baud = baud;
@@ -188,21 +176,9 @@ void SerialHandler::update() {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	for (unsigned int i = 0; i < this->ports.size(); i++) {
 		if (this->ports.at(i).available && this->ports.at(i).open && (this->ports.at(i).tFieldReady || this->ports.at(i).printMode_ == ADDON_CONTROLLER || this->ports.at(i).printMode_ == MULTIMETER)) {
-			std::string t = "echo ";
-			t += "A: ";
-			t += this->ports.at(i).alias;
-			t += " > /dev/pts/1";
-			std::system(t.c_str());
 			char read_buf[2048];
 			int numBytes = 0, n = 0;
-			int r = ioctl(this->ports.at(i).port_descriptor, FIONREAD, &numBytes);
-			if (r != 0) {
-				std::string t = "echo ";
-				t += "r: ";
-				t += std::to_string(r);
-				t += " > /dev/pts/1";
-				std::system(t.c_str());
-			}
+			if (ioctl(this->ports.at(i).port_descriptor, FIONREAD, &numBytes) != 0) std::cout << "Serial error";
 			if (numBytes == 0) continue;
 			else if (numBytes == -1) std::cout << "serial error";
 			n = read(this->ports.at(i).port_descriptor, &read_buf, sizeof(read_buf));
@@ -227,10 +203,6 @@ void SerialHandler::update() {
 				}
 				break;
 			case ADDON_CONTROLLER:
-				t = "echo ";
-				t += "B";
-				t += " > /dev/pts/1";
-				std::system(t.c_str());
 				addonCtrlr_->update(read_buf, n);
 				break;
 			case MULTIMETER:
@@ -435,110 +407,117 @@ AddonController::AddonController(SerialHandler* serial) {
 }
 
 void AddonController::update(char* data, int len) {
+	std::string debugString = "echo \"";;
 	// first put the incoming data into the unprocessed vector
 	unsigned char t = 0;
 	for (int i = 0; i < len; i++) {
 		t = data[i];
 		this->unprocessedData.push_back(t);
 	}
-	/*
-	* This section will process incoming data and stor it in the relavent object
-	*/
 
-	// check to make sure we at least have a header's worth of data in the vector
 	if (this->unprocessedData.size() > 4) {
-		unsigned int numIncomingBytes = 0;
-		unsigned int startSequence = 0;
-		// get the header data out of the vector
-		startSequence = ((unsigned int)this->unprocessedData.at(0) << 8) | (unsigned int)this->unprocessedData.at(1);
-		numIncomingBytes = ((unsigned int)this->unprocessedData.at(2) << 8) | (unsigned int)this->unprocessedData.at(3);
+		debugString += "1 ";
+		// read through the unprocessed data until we get to a byte that could be the start of a header
+		while (this->unprocessedData.at(0) != 0b10101010 && this->unprocessedData.size() > 0) {
+			this->unprocessedData.erase(this->unprocessedData.begin());
+			debugString += "2 ";
+		}
+		debugString += "3 ";
+		// only continue if there's at least a header's amount of data in the stream
+		if (this->unprocessedData.size() > 4) {
+			debugString += "4 ";
+			// ony continue if the second byte is the second byte of a header
+			if (this->unprocessedData.at(1) == 0b11001100) {
+				debugString += "5 ";
+				uint32_t byteCount = ((uint32_t)this->unprocessedData.at(2) << 8) | (uint32_t)this->unprocessedData.at(3);
+				//only continue if there's at least as much data as specified by the header
+				if (this->unprocessedData.size() > byteCount + 4) {
+					debugString += "6 ";
+					uint8_t classByte = this->unprocessedData.at(4);
+					uint8_t idByte = this->unprocessedData.at(5);
+					debugString += "classByte: " + std::to_string(classByte);
+					debugString += "\tidByte: " + std::to_string(idByte);
+					debugString += "\t";
+					switch (classByte) {
+					case 0xa0: // Ammeter
+					{
+						debugString += "7 ";
+						// if the id is larger than the sizeof the ammeter vector, add to the vector
+						if (idByte > this->ammeters_v.size()) {
+							debugString += "A: ";
+							debugString += std::to_string(idByte);
+							for (unsigned char t_ = this->ammeters_v.size(); t_ <= idByte; t_++) {
+								this->ammeters_v.push_back({
+									"Ammeter " + t_,
+									NULL, // Null becuase the tField needs to be created by the window manager
+									false,
+									0,0,0
+									});
+							}
+						}
 
-		if (this->unprocessedData.size() <= numIncomingBytes + 4) return; // not enough data in buffer
-		do {
-			if (startSequence != 0b1010101011001100)continue;
-			unsigned char classByte = this->unprocessedData.at(4);
-			unsigned char idByte = this->unprocessedData.at(5);
-			switch (classByte) {
-			case 0xa0: // Ammeter
-			{
-				// if the id is larger than the sizeof the ammeter vector, add to the vector
-				if (idByte > this->ammeters_v.size()) {
-					for (unsigned char t_ = this->ammeters_v.size(); t_ <= idByte; t_++) {
-						this->ammeters_v.push_back({
-							"Ammeter " + t_,
-							NULL, // Null becuase the tField needs to be created by the window manager
-							false,
-							0,0,0
-							});
+						if (idByte > this->ammeters_v.size() || byteCount != 14) {
+							break;
+						}
+
+						this->ammeters_v.at(idByte - 1).milliampsInst = this->unprocessedData.at(6) << (8 * 3) | this->unprocessedData.at(7) << (8 * 2) | this->unprocessedData.at(8) << 8 | this->unprocessedData.at(9);
+						this->ammeters_v.at(idByte - 1).milliampsAvg = this->unprocessedData.at(10) << (8 * 3) | this->unprocessedData.at(11) << (8 * 2) | this->unprocessedData.at(12) << 8 | this->unprocessedData.at(13);
+						this->ammeters_v.at(idByte - 1).milliampsMax = this->unprocessedData.at(14) << (8 * 3) | this->unprocessedData.at(15) << (8 * 2) | this->unprocessedData.at(16) << 8 | this->unprocessedData.at(17);
+						break;
+					}
+					case 0xa1:
+					{
+						debugString += "8 ";
+						// if the id is larger than the sizeof the voltmeter vector, add to the vector
+						if (idByte > this->voltmeters_v.size()) {
+							for (unsigned char t_ = this->voltmeters_v.size(); t_ <= idByte; t_++) {
+								this->voltmeters_v.push_back({
+									"Voltmeter " + t_,
+									NULL, // Null becuase the tField needs to be created by the window manager
+									false,
+									0,0,0
+									});
+							}
+						}
+
+						if (idByte > this->voltmeters_v.size() || byteCount != 14) {
+							break;
+						}
+
+						this->voltmeters_v.at(idByte - 1).millivoltsInst = this->unprocessedData.at(6) << (8 * 3) | this->unprocessedData.at(7) << (8 * 2) | this->unprocessedData.at(8) << 8 | this->unprocessedData.at(9);
+						this->voltmeters_v.at(idByte - 1).millivoltsAvg = this->unprocessedData.at(10) << (8 * 3) | this->unprocessedData.at(11) << (8 * 2) | this->unprocessedData.at(12) << 8 | this->unprocessedData.at(13);
+						this->voltmeters_v.at(idByte - 1).millivoltsMax = this->unprocessedData.at(14) << (8 * 3) | this->unprocessedData.at(15) << (8 * 2) | this->unprocessedData.at(16) << 8 | this->unprocessedData.at(17);
+						break;
+					}
+					case 0xa2:
+					{
+						debugString += "9 ";
+						// if the id is larger than the sizeof the serialports vector, add to the vector
+						if (idByte > this->serialPorts_v.size()) {
+							for (unsigned char t_ = this->serialPorts_v.size(); t_ <= idByte; t_++) {
+								this->serialPorts_v.push_back({
+									9600,
+									NULL, // Null becuase the tField needs to be created by the window manager
+									false,
+									"","Addon Serial #" + std::to_string(idByte)
+									});
+							}
+						}
+						// for all the incoming bytes, add to the datain vector
+						for (size_t i = 0; i < byteCount - 2; i++) {
+							this->serialPorts_v.at(idByte - 1).dataIn.push_back(this->unprocessedData.at(5 + i));
+						}
+						break;
+					}
+					}
+
+					// erase the processed bytes from the vector
+					for (int i = 0; i < byteCount + 4; i++) {
+						this->unprocessedData.erase(this->unprocessedData.begin());
 					}
 				}
-
-				if (idByte > this->ammeters_v.size() || numIncomingBytes != 14) {
-					break;
-				}
-
-				this->ammeters_v.at(idByte - 1).milliampsInst = this->unprocessedData.at(6) << (8 * 3) | this->unprocessedData.at(7) << (8 * 2) | this->unprocessedData.at(8) << 8 | this->unprocessedData.at(9);
-				this->ammeters_v.at(idByte - 1).milliampsAvg = this->unprocessedData.at(10) << (8 * 3) | this->unprocessedData.at(11) << (8 * 2) | this->unprocessedData.at(12) << 8 | this->unprocessedData.at(13);
-				this->ammeters_v.at(idByte - 1).milliampsMax = this->unprocessedData.at(14) << (8 * 3) | this->unprocessedData.at(15) << (8 * 2) | this->unprocessedData.at(16) << 8 | this->unprocessedData.at(17);
-				break;
 			}
-			case 0xa1:
-			{
-				// if the id is larger than the sizeof the voltmeter vector, add to the vector
-				if (idByte > this->voltmeters_v.size()) {
-					for (unsigned char t_ = this->voltmeters_v.size(); t_ <= idByte; t_++) {
-						this->voltmeters_v.push_back({
-							"Voltmeter " + t_,
-							NULL, // Null becuase the tField needs to be created by the window manager
-							false,
-							0,0,0
-							});
-					}
-				}
-
-				if (idByte > this->voltmeters_v.size() || numIncomingBytes != 14) {
-					break;
-				}
-
-				this->voltmeters_v.at(idByte - 1).millivoltsInst = this->unprocessedData.at(6) << (8 * 3) | this->unprocessedData.at(7) << (8 * 2) | this->unprocessedData.at(8) << 8 | this->unprocessedData.at(9);
-				this->voltmeters_v.at(idByte - 1).millivoltsAvg = this->unprocessedData.at(10) << (8 * 3) | this->unprocessedData.at(11) << (8 * 2) | this->unprocessedData.at(12) << 8 | this->unprocessedData.at(13);
-				this->voltmeters_v.at(idByte - 1).millivoltsMax = this->unprocessedData.at(14) << (8 * 3) | this->unprocessedData.at(15) << (8 * 2) | this->unprocessedData.at(16) << 8 | this->unprocessedData.at(17);
-				break;
-			}
-			case 0xa2:
-			{
-				// if the id is larger than the sizeof the serialports vector, add to the vector
-				if (idByte > this->serialPorts_v.size()) {
-					for (unsigned char t_ = this->serialPorts_v.size(); t_ <= idByte; t_++) {
-						this->serialPorts_v.push_back({
-							9600,
-							NULL, // Null becuase the tField needs to be created by the window manager
-							false,
-							"","Addon Serial #" + std::to_string(idByte)
-							});
-					}
-				}
-				// for all the incoming bytes, add to the datain vector
-				for (size_t i = 0; i < numIncomingBytes - 2; i++) {
-					this->serialPorts_v.at(idByte - 1).dataIn.push_back(this->unprocessedData.at(5 + i));
-				}
-				break;
-			}
-			}
-
-			for (int i = 0; i < numIncomingBytes + 4; i++) {
-				this->unprocessedData.erase(this->unprocessedData.begin());
-			}
-
-			if (this->unprocessedData.size() > 4) {
-				startSequence = ((unsigned int)this->unprocessedData.at(0) << 8) | (unsigned int)this->unprocessedData.at(1);
-				numIncomingBytes = ((unsigned int)this->unprocessedData.at(2) << 8) | (unsigned int)this->unprocessedData.at(3);
-			}
-			else {
-				numIncomingBytes = 0;
-				startSequence = 0;
-			}
-		} while (this->unprocessedData.size() >= (numIncomingBytes + 4) && startSequence == 0b1010101011001100);
+		}
 	}
 
 	/*
@@ -610,6 +589,9 @@ void AddonController::update(char* data, int len) {
 			}
 		}
 	}
+	debugString += " \" > /dev/pts/1";
+
+	std::system(debugString.c_str());
 }
 
 bool AddonController::setPort(std::string n) {
