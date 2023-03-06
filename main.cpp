@@ -2,7 +2,16 @@
 
 namespace fs = std::filesystem;
 
+#define AVG_LOOP_TIME_NUM 250
+int64_t maxLoopTime_1s;
+int64_t maxLoopTime;
+int64_t avgLoopTime;
+int64_t avgLoopTimeAvergerArr[AVG_LOOP_TIME_NUM];
+uint16_t avgIndex;
+
+
 int main() {
+	avgIndex = 0;
 	std::chrono::steady_clock::time_point programStartTime = std::chrono::steady_clock::now();
 	bool emitOnce1 = false;
 	bool emitOnce2 = false;
@@ -1088,9 +1097,22 @@ int main() {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		loop.handleAll(); // handles all the loop events that hanve been registered
 		// last thing to do in the loop is push the buffer to the dispaly.
+		
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		int64_t loopTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+		if (loopTime > maxLoopTime)maxLoopTime = loopTime;
+		avgLoopTimeAvergerArr[avgIndex++] = loopTime;
+		if (avgIndex >= AVG_LOOP_TIME_NUM)avgIndex = 0;
+		uint64_t avgLoopTimeTotal = 0;
+		for (int i = 0; i < AVG_LOOP_TIME_NUM; i++) {
+			avgLoopTimeTotal += avgLoopTimeAvergerArr[i];
+		}
+		avgLoopTime = avgLoopTimeTotal / AVG_LOOP_TIME_NUM;
+		std::string outputString = "loopTime: " + std::to_string(loopTime);
+		outputString += "\tavgLoopTime: " + std::to_string(avgLoopTime);
+		outputString += "\tmaxLoopTime: " + std::to_string(maxLoopTime);
 		move(0, 0);
-		printw(std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()).c_str());
+		printw(outputString.c_str());
 		/*if (std::chrono::duration_cast<std::chrono::seconds>(end - programStartTime).count() > 5 && !emitOnce1) {
 			userInput.emitEvent(KEY_F(1));
 			emitOnce1 = true;
@@ -1107,10 +1129,11 @@ int main() {
 			userInput.emitEvent(KEY_ENTER);
 			emitOnce4 = true;
 		}*/
-
 		refresh();
+		
 		// sleep for ~1ms so that the CPU isn't being hammered all the time.
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
 	}
 	mainWindow.clearScreen();
 	serialPortManager.closeAllPorts();

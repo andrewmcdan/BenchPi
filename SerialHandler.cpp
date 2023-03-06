@@ -415,28 +415,36 @@ void AddonController::update(char* data, int len) {
 		this->unprocessedData.push_back(t);
 	}
 
-	if (this->unprocessedData.size() > 4) {
-		debugString += "1 ";
+	bool inProcess = true;
+
+	debugString += "\r\n" + std::to_string(this->debugUint8t++) + " unprocessed.size(): " + std::to_string(this->unprocessedData.size());
+
+	while(inProcess) {
+		debugString += "\r\n1 ";
 		// read through the unprocessed data until we get to a byte that could be the start of a header
-		while (this->unprocessedData.at(0) != 0b10101010 && this->unprocessedData.size() > 0) {
-			this->unprocessedData.erase(this->unprocessedData.begin());
-			debugString += "2 ";
+		if (this->unprocessedData.size() > 0) {
+			while (this->unprocessedData.at(0) != 0b10101010) {
+				this->unprocessedData.erase(this->unprocessedData.begin());
+				if (this->unprocessedData.size() == 0) break;
+				debugString += "2 ";
+			}
 		}
 		debugString += "3 ";
 		// only continue if there's at least a header's amount of data in the stream
-		if (this->unprocessedData.size() > 4) {
+		if(this->unprocessedData.size() > 4) { 
 			debugString += "4 ";
 			// ony continue if the second byte is the second byte of a header
 			if (this->unprocessedData.at(1) == 0b11001100) {
 				debugString += "5 ";
 				uint32_t byteCount = ((uint32_t)this->unprocessedData.at(2) << 8) | (uint32_t)this->unprocessedData.at(3);
 				//only continue if there's at least as much data as specified by the header
-				if (this->unprocessedData.size() > byteCount + 4) {
+				if (this->unprocessedData.size() > (byteCount + 4)) {
 					debugString += "6 ";
 					uint8_t classByte = this->unprocessedData.at(4);
 					uint8_t idByte = this->unprocessedData.at(5);
 					debugString += "\tclassByte: " + std::to_string(classByte);
 					debugString += "\tidByte: " + std::to_string(idByte);
+					debugString += "\tbyteCount: " + std::to_string(byteCount);
 					debugString += "\t";
 					switch (classByte) {
 					case 0xa0: // Ammeter
@@ -507,20 +515,22 @@ void AddonController::update(char* data, int len) {
 							}
 						}
 						// for all the incoming bytes, add to the datain vector
-						for (size_t i = 0; i < byteCount - 2; i++) {
-							this->serialPorts_v.at(idByte - 1).dataIn.push_back(this->unprocessedData.at(5 + i));
+						for (size_t i = 0; i < byteCount; i++) {
+							this->serialPorts_v.at(idByte - 1).dataIn.push_back(this->unprocessedData.at(6 + i));
 						}
 						break;
 					}
 					}
-
 					// erase the processed bytes from the vector
-					for (int i = 0; i < byteCount + 4; i++) {
-						this->unprocessedData.erase(this->unprocessedData.begin());
+					for (uint32_t i = 0; i < byteCount + 4; i++) {
+						if (this->unprocessedData.end() == this->unprocessedData.erase(this->unprocessedData.begin()))break;
 					}
 				}
+				else inProcess = false;
 			}
+			else this->unprocessedData.erase(this->unprocessedData.begin());
 		}
+		else inProcess = false;
 	}
 
 	/*
@@ -593,7 +603,6 @@ void AddonController::update(char* data, int len) {
 		}
 	}
 	debugString += " \" > /dev/pts/1";
-
 	std::system(debugString.c_str());
 }
 

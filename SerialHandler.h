@@ -139,7 +139,7 @@ public:
 		SerialHandler::printMode printMode_;
 	};
 	std::vector<serialPort>serialPorts_v;
-
+	uint8_t debugUint8t = 0;
 };
 
 class MultiMeter {
