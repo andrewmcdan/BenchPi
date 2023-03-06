@@ -435,7 +435,7 @@ void AddonController::update(char* data, int len) {
 					debugString += "6 ";
 					uint8_t classByte = this->unprocessedData.at(4);
 					uint8_t idByte = this->unprocessedData.at(5);
-					debugString += "classByte: " + std::to_string(classByte);
+					debugString += "\tclassByte: " + std::to_string(classByte);
 					debugString += "\tidByte: " + std::to_string(idByte);
 					debugString += "\t";
 					switch (classByte) {
@@ -446,7 +446,7 @@ void AddonController::update(char* data, int len) {
 						if (idByte > this->ammeters_v.size()) {
 							debugString += "A: ";
 							debugString += std::to_string(idByte);
-							for (unsigned char t_ = this->ammeters_v.size(); t_ <= idByte; t_++) {
+							for (unsigned char t_ = this->ammeters_v.size(); t_ < idByte; t_++) {
 								this->ammeters_v.push_back({
 									"Ammeter " + t_,
 									NULL, // Null becuase the tField needs to be created by the window manager
@@ -463,6 +463,9 @@ void AddonController::update(char* data, int len) {
 						this->ammeters_v.at(idByte - 1).milliampsInst = this->unprocessedData.at(6) << (8 * 3) | this->unprocessedData.at(7) << (8 * 2) | this->unprocessedData.at(8) << 8 | this->unprocessedData.at(9);
 						this->ammeters_v.at(idByte - 1).milliampsAvg = this->unprocessedData.at(10) << (8 * 3) | this->unprocessedData.at(11) << (8 * 2) | this->unprocessedData.at(12) << 8 | this->unprocessedData.at(13);
 						this->ammeters_v.at(idByte - 1).milliampsMax = this->unprocessedData.at(14) << (8 * 3) | this->unprocessedData.at(15) << (8 * 2) | this->unprocessedData.at(16) << 8 | this->unprocessedData.at(17);
+
+						debugString += "\tmA: " + std::to_string(this->ammeters_v.at(idByte - 1).milliampsAvg);
+						debugString += "\t";
 						break;
 					}
 					case 0xa1:
