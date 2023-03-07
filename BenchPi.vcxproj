@@ -65,6 +65,7 @@
     <RemoteCopySourceMethod>sftp</RemoteCopySourceMethod>
     <RemoteCCompileToolExe>g++</RemoteCCompileToolExe>
     <RemoteCppCompileToolExe>g++</RemoteCppCompileToolExe>
+    <MultiProcNumber>1</MultiProcNumber>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
@@ -118,7 +119,7 @@
     </Link>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <UndefinePreprocessorDefinitions>__LINUX_ALSA__;%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
       <AdditionalOptions>-D__LINUX_ALSA__ %(AdditionalOptions)</AdditionalOptions>
       <CppLanguageStandard>c++17</CppLanguageStandard>
     </ClCompile>

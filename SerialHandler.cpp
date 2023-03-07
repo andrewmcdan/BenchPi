@@ -481,7 +481,7 @@ void AddonController::update(char* data, int len) {
 						debugString += "8 ";
 						// if the id is larger than the sizeof the voltmeter vector, add to the vector
 						if (idByte > this->voltmeters_v.size()) {
-							for (unsigned char t_ = this->voltmeters_v.size(); t_ <= idByte; t_++) {
+							for (unsigned char t_ = this->voltmeters_v.size(); t_ < idByte; t_++) {
 								this->voltmeters_v.push_back({
 									"Voltmeter " + t_,
 									NULL, // Null becuase the tField needs to be created by the window manager
@@ -505,7 +505,7 @@ void AddonController::update(char* data, int len) {
 						debugString += "9 ";
 						// if the id is larger than the sizeof the serialports vector, add to the vector
 						if (idByte > this->serialPorts_v.size()) {
-							for (unsigned char t_ = this->serialPorts_v.size(); t_ <= idByte; t_++) {
+							for (unsigned char t_ = this->serialPorts_v.size(); t_ < idByte; t_++) {
 								this->serialPorts_v.push_back({
 									9600,
 									NULL, // Null becuase the tField needs to be created by the window manager

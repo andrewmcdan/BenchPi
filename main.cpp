@@ -9,6 +9,8 @@ int64_t avgLoopTime;
 int64_t avgLoopTimeAvergerArr[AVG_LOOP_TIME_NUM];
 uint16_t avgIndex;
 
+bool displayLoopTime = true;
+bool debugToRemoteDisplay = true;
 
 int main() {
 	avgIndex = 0;
@@ -165,6 +167,21 @@ int main() {
 	// 
 	//
 	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	Menu loadConfigMenu = Menu(&loop, &mainWindow, &userInput, "Load Configuration From Disk");
 	Menu saveConfigMenu = Menu(&loop, &mainWindow, &userInput, "Save Configuration To Disk");
@@ -379,6 +396,55 @@ int main() {
 						tAreaSubMenu_mode.enableMenu();
 						}, &mainWindow);
 				}
+			}
+			for (unsigned int i = 0; i < teensyController.serialPorts_v.size(); i++) {
+				std::string portName = teensyController.serialPorts_v.at(i).name;
+				std::string alias = teensyController.serialPorts_v.at(i).alias;
+				if (alias.length() > 0) portName += " - " + alias;
+				tAreaSubMenu_mode_changeMode_selectSource.addMenuItem(portName, [&, i, portName] {
+					teensyController.serialPorts_v.at(i).tField = &windowManager.getSelectedWindow()->tField;
+					teensyController.serialPorts_v.at(i).tFready = true;
+					tAreaSubMenu_mode_changeMode_selectSource.disableMenu();
+					tAreaSubMenu_mode_changeMode_selectSource.resetMenuItemList();
+					switch (windowManager.getSelectedWindow()->type) {
+					case WindowManager::windowType::NOT_SET:
+					{
+						tAreaSubMenu_mode.menuItems.at(0).tField.setText("Mode not set.");
+						break;
+					}
+					case WindowManager::windowType::SERIAL_MON:
+					{
+						tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Serial Monitor");
+						break;
+					}
+					case WindowManager::windowType::MIDI_MON:
+					{
+						tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: MIDI Monitor");
+						break;
+					}
+					case WindowManager::windowType::KEYBOARD_INPUT:
+					{
+						tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Keyboard input");
+						break;
+					}
+					case WindowManager::windowType::AMMETER:
+					{
+						tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Ammeter");
+						break;
+					}
+					case WindowManager::windowType::VOLTMETER:
+					{
+						tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Voltmeter");
+						break;
+					}
+					case WindowManager::windowType::MULTIMETER:
+					{
+						tAreaSubMenu_mode.menuItems.at(0).tField.setText("Current Mode: Serial Multimter");
+						break;
+					}
+					}
+					tAreaSubMenu_mode.enableMenu();
+					},&mainWindow);
 			}
 			tAreaSubMenu_mode_changeMode.disableMenu();
 			tAreaSubMenu_mode_changeMode_selectSource.enableMenu();
@@ -793,7 +859,7 @@ int main() {
 					serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Baud"));
 					serialConfigMenuItems.at(i).addMenuItem("Set / Change Alias", [&, i]() {/* @TODO: */return; }, & mainWindow);
 					serialConfigMenuItems.at(i).addMenuItem("Baud", [&, i]() {
-						serialConfigSubMenuItems.at(i).at(2).addMenuItem("600", [&, i, portName]() {
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("600", [&, i, portName]() {
 							if (teensyController.setSerialBaud(i, 600) == 1) {
 								serialConfigSubMenuItems.at(i).at(1).menuItems.at(0).tField.setText("Successfully set to 600 baud");
 							}
@@ -1099,20 +1165,22 @@ int main() {
 		// last thing to do in the loop is push the buffer to the dispaly.
 		
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		int64_t loopTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-		if (loopTime > maxLoopTime)maxLoopTime = loopTime;
-		avgLoopTimeAvergerArr[avgIndex++] = loopTime;
-		if (avgIndex >= AVG_LOOP_TIME_NUM)avgIndex = 0;
-		uint64_t avgLoopTimeTotal = 0;
-		for (int i = 0; i < AVG_LOOP_TIME_NUM; i++) {
-			avgLoopTimeTotal += avgLoopTimeAvergerArr[i];
+		if (displayLoopTime) {
+			int64_t loopTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+			if (loopTime > maxLoopTime)maxLoopTime = loopTime;
+			avgLoopTimeAvergerArr[avgIndex++] = loopTime;
+			if (avgIndex >= AVG_LOOP_TIME_NUM)avgIndex = 0;
+			uint64_t avgLoopTimeTotal = 0;
+			for (int i = 0; i < AVG_LOOP_TIME_NUM; i++) {
+				avgLoopTimeTotal += avgLoopTimeAvergerArr[i];
+			}
+			avgLoopTime = avgLoopTimeTotal / AVG_LOOP_TIME_NUM;
+			std::string outputString = "loopTime: " + std::to_string(loopTime);
+			outputString += "\tavgLoopTime: " + std::to_string(avgLoopTime);
+			outputString += "\tmaxLoopTime: " + std::to_string(maxLoopTime);
+			move(0, 0);
+			printw(outputString.c_str());
 		}
-		avgLoopTime = avgLoopTimeTotal / AVG_LOOP_TIME_NUM;
-		std::string outputString = "loopTime: " + std::to_string(loopTime);
-		outputString += "\tavgLoopTime: " + std::to_string(avgLoopTime);
-		outputString += "\tmaxLoopTime: " + std::to_string(maxLoopTime);
-		move(0, 0);
-		printw(outputString.c_str());
 		/*if (std::chrono::duration_cast<std::chrono::seconds>(end - programStartTime).count() > 5 && !emitOnce1) {
 			userInput.emitEvent(KEY_F(1));
 			emitOnce1 = true;
