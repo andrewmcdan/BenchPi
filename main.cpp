@@ -162,27 +162,17 @@ int main() {
 				KEY_F(5)),
 			KEY_F(5));
 
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Build the menus
 	// 
-	//
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// MAIN Menu
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	Menu mainMenu = Menu(&loop, &mainWindow, &userInput, "Main Menu");
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	Menu loadConfigMenu = Menu(&loop, &mainWindow, &userInput, "Load Configuration From Disk");
 	Menu saveConfigMenu = Menu(&loop, &mainWindow, &userInput, "Save Configuration To Disk");
 	Menu enDisSerialDevsMenu = Menu(&loop, &mainWindow, &userInput, "Enable / Disable Serial Devices");
@@ -190,15 +180,10 @@ int main() {
 	Menu enDisMidiOutDevsMenu = Menu(&loop, &mainWindow, &userInput, "Enable / Disable MIDI Output Devices");
 	Menu configAddonControllerMenu = Menu(&loop, &mainWindow, &userInput, "Configure Addon Controller (Teensy)");
 	Menu configMultiMeterMenu = Menu(&loop, &mainWindow, &userInput, "Configure Serial MultiMeter");
-
+	
 	Menu addonControllerSubMenu_selectSerialPort = Menu(&loop, &mainWindow, &userInput, "Select Serial Port");
 	Menu serialMultiMeterSubMenu_SelectSerialPort = Menu(&loop, &mainWindow, &userInput, "Select Serial Port(s)");
 
-	// build the main menu, F1
-	Menu mainMenu = Menu(&loop, &mainWindow, &userInput, "Main Menu");
-	Menu serialConfigMenu = Menu(&loop, &mainWindow, &userInput, "Serial Config");
-	Menu midiConfigMenu = Menu(&loop, &mainWindow, &userInput, "MIDI Config");
-	Menu tAreaMenu = Menu(&loop, &mainWindow, &userInput, "Text Area Options");
 	for (int i = 0; i < serialPortManager.getNumberOfPorts(); i++) {
 		std::string temp1;
 		serialPortManager.getPortName(i, temp1);
@@ -208,7 +193,7 @@ int main() {
 		std::string temp4 = "";
 		if (temp2.length() > 0) temp4 = temp1 + " : " + temp2 + " - " + temp3;
 		else temp4 = temp1 + " - " + temp3;
-		enDisSerialDevsMenu.addMenuItem(temp4, [&,i]() {
+		enDisSerialDevsMenu.addMenuItem(temp4, [&, i]() {
 			serialPortManager.setPortAvaialble(i, !serialPortManager.getPortAvailable(i));
 			std::string temp5;
 			serialPortManager.getPortName(i, temp5);
@@ -256,43 +241,8 @@ int main() {
 			return;
 			}, &mainWindow);
 	}
-	mainMenu.addMenuItem("Load Config", []() { /* @TODO: */ }, &mainWindow);
-	mainMenu.addMenuItem("Save Config", []() { /* @TODO: */ }, &mainWindow);
-	mainMenu.addMenuItem("En/Disable Serial Devices", [&]() {
-		enDisSerialDevsMenu.enableMenu();
-		enDisSerialDevsMenu.setEscKey([&]() {
-			enDisSerialDevsMenu.disableMenu();
-			mainMenu.enableMenu();
-			});
-		}, &mainWindow);
-	mainMenu.addMenuItem("En/Disable MIDI Input Devices", [&]() {
-		enDisMidiInDevsMenu.enableMenu();
-		enDisMidiInDevsMenu.setEscKey([&]() {
-			enDisMidiInDevsMenu.disableMenu();
-			mainMenu.enableMenu();
-			});
-		}, &mainWindow);
-	mainMenu.addMenuItem("En/Disable MIDI Output Devices", [&]() {
-		enDisMidiOutDevsMenu.enableMenu();
-		enDisMidiOutDevsMenu.setEscKey([&]() {
-			enDisMidiOutDevsMenu.disableMenu();
-			mainMenu.enableMenu();
-			});
-		}, &mainWindow);
-	mainMenu.addMenuItem("Configure Addon Controller (Teensy)", [&]() {
-		configAddonControllerMenu.enableMenu();
-		configAddonControllerMenu.setEscKey([&]() {
-			configAddonControllerMenu.disableMenu();
-			mainMenu.enableMenu();
-			});
-		}, & mainWindow);
-	mainMenu.addMenuItem("Configure Serial MultiMeter", [&]() {
-		configMultiMeterMenu.enableMenu();
-		configMultiMeterMenu.setEscKey([&]() {
-			configMultiMeterMenu.disableMenu();
-			mainMenu.enableMenu();
-			});
-		}, &mainWindow);
+
+
 	configAddonControllerMenu.addMenuItem("Select Serial Port", [&]() {
 		addonControllerSubMenu_selectSerialPort.resetMenuItemList();
 		for (int i = 0, j = 0; i < serialPortManager.getNumberOfPorts(); i++) {
@@ -318,18 +268,593 @@ int main() {
 			addonControllerSubMenu_selectSerialPort.disableMenu();
 			configAddonControllerMenu.enableMenu();
 			});
-		}, &mainWindow);
+		}, & mainWindow);
 	configMultiMeterMenu.addMenuItem("Select Serial Port(s)", [&]() {
 		serialMultiMeterSubMenu_SelectSerialPort.enableMenu();
 		serialMultiMeterSubMenu_SelectSerialPort.setEscKey([&]() {
 			serialMultiMeterSubMenu_SelectSerialPort.disableMenu();
 			configMultiMeterMenu.enableMenu();
 			});
-		}, &mainWindow);
+		}, & mainWindow);
+
+	mainMenu.addMenuItem("Load Config", []() { /* @TODO: */ }, & mainWindow);
+	mainMenu.addMenuItem("Save Config", []() { /* @TODO: */ }, & mainWindow);
+	mainMenu.addMenuItem("En/Disable Serial Devices", [&]() {
+		enDisSerialDevsMenu.enableMenu();
+		enDisSerialDevsMenu.setEscKey([&]() {
+			enDisSerialDevsMenu.disableMenu();
+			mainMenu.enableMenu();
+			});
+		}, & mainWindow);
+	mainMenu.addMenuItem("En/Disable MIDI Input Devices", [&]() {
+		enDisMidiInDevsMenu.enableMenu();
+		enDisMidiInDevsMenu.setEscKey([&]() {
+			enDisMidiInDevsMenu.disableMenu();
+			mainMenu.enableMenu();
+			});
+		}, & mainWindow);
+	mainMenu.addMenuItem("En/Disable MIDI Output Devices", [&]() {
+		enDisMidiOutDevsMenu.enableMenu();
+		enDisMidiOutDevsMenu.setEscKey([&]() {
+			enDisMidiOutDevsMenu.disableMenu();
+			mainMenu.enableMenu();
+			});
+		}, & mainWindow);
+	mainMenu.addMenuItem("Configure Addon Controller (Teensy)", [&]() {
+		configAddonControllerMenu.enableMenu();
+		configAddonControllerMenu.setEscKey([&]() {
+			configAddonControllerMenu.disableMenu();
+			mainMenu.enableMenu();
+			});
+		}, & mainWindow);
+	mainMenu.addMenuItem("Configure Serial MultiMeter", [&]() {
+		configMultiMeterMenu.enableMenu();
+		configMultiMeterMenu.setEscKey([&]() {
+			configMultiMeterMenu.disableMenu();
+			mainMenu.enableMenu();
+			});
+		}, & mainWindow);
+
+	shortcutF1.setInputListenerIdAndKey(
+		userInput.addListener([&](int c, TIMEPOINT_T time) {
+			userInput.setKeyDisabled(KEY_F(1), true);
+			userInput.setKeyDisabled(KEY_F(2), true);
+			userInput.setKeyDisabled(KEY_F(3), true);
+			userInput.setKeyDisabled(KEY_F(4), true);
+			mainMenu.setEscKey([&]() {
+				mainMenu.disableMenu();
+				mainWindow.clearScreen();
+				userInput.removeListenerByKey(KEY_UP);
+				userInput.removeListenerByKey(KEY_DOWN);
+				userInput.setKeyDisabled(KEY_F(1), false);
+				userInput.setKeyDisabled(KEY_F(2), false);
+				userInput.setKeyDisabled(KEY_F(3), false);
+				userInput.setKeyDisabled(KEY_F(4), false);
+				});
+			mainMenu.enableMenu();
+			return 1;
+			},
+			KEY_F(1)),
+		KEY_F(1));
+
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// Serial Config Menu
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	Menu serialConfigMenu = Menu(&loop, &mainWindow, &userInput, "Serial Config");
 	std::vector<Menu> serialConfigMenuItems;
 	std::vector<std::vector<Menu>> serialConfigSubMenuItems;
-
 	Menu serialPortConfig_openClosePort(&loop, &mainWindow, &userInput, "Open / Close Port");
+
+	shortcutF2.setInputListenerIdAndKey(
+		userInput.addListener([&](int c, TIMEPOINT_T time) {
+			for (int i = 0; i < serialPortManager.getNumberOfPorts(); i++) {
+				if (serialPortManager.getPortAvailable(i)) {
+					std::string tempString;
+					serialPortManager.getPortName(i, tempString);
+					std::string portName = tempString;
+					std::string tempString2;
+					serialPortManager.getPortAlias(i, tempString2);
+					if (tempString2.length() > 0)tempString += " - " + tempString2;
+					serialConfigMenuItems.push_back(Menu(&loop, &mainWindow, &userInput, tempString));
+					serialConfigSubMenuItems.push_back(std::vector<Menu>());
+					serialConfigMenu.addMenuItem(tempString, [&, i, portName]() {
+						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Open / Close Port"));
+						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Set / Change Alias"));
+						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Baud"));
+						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Bits Per Byte"));
+						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Parity"));
+						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Stop bits"));
+						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Hardware flow control"));
+
+						serialConfigMenuItems.at(i).addMenuItem("Open / Close Port", [&, i, portName]() {
+							if (serialPortManager.isPortOpen(portName)) {
+								serialPortConfig_openClosePort.addMenuItem("Port is open", [&]() {}, &mainWindow);
+								serialPortConfig_openClosePort.addMenuItem("Close port", [&, portName]() {
+									if (!serialPortManager.closePort(portName)) {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
+									}
+									if (!serialPortManager.isPortOpen(portName)) {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Port closed");
+									}
+									else {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
+									}
+									}, &mainWindow);
+							}
+							else {
+								serialPortConfig_openClosePort.addMenuItem("Port is closed (or unavailable)", [&]() {}, &mainWindow);
+								serialPortConfig_openClosePort.addMenuItem("Attempt to open port", [&, portName]() {
+									if (!serialPortManager.openPort(portName)) {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
+									}
+									if (serialPortManager.isPortOpen(portName)) {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Port opened");
+									}
+									else {
+										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
+									}
+
+
+									}, &mainWindow);
+							}
+							serialPortConfig_openClosePort.enableMenu();
+							serialPortConfig_openClosePort.setEscKey([&]() {
+								serialPortConfig_openClosePort.disableMenu();
+								serialPortConfig_openClosePort.resetMenuItemList();
+								serialConfigMenuItems.at(i).enableMenu();
+								});
+							}, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Set / Change Alias", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Baud", [&, i]() {
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("600", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 600) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(0).tField.setText("Successfully set to 600 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(0).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1200", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 1200) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(1).tField.setText("Successfully set to 1200 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(1).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1800", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 1800) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(2).tField.setText("Successfully set to 1800 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(2).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("2400", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 2400) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(3).tField.setText("Successfully set to 2400 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(3).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("4800", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 4800) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(4).tField.setText("Successfully set to 4800 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(4).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("9600", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 9600) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(5).tField.setText("Successfully set to 9600 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(5).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("19200", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 19200) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(6).tField.setText("Successfully set to 19200 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(6).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("31250 - MIDI", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 31250) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(7).tField.setText("Successfully set to 31250 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(7).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("38400", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 38400) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(8).tField.setText("Successfully set to 38400 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(8).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("57600", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 57600) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(9).tField.setText("Successfully set to 57600 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(9).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("115200", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 115200) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText("Successfully set to 115200 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("230400", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 230400) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(11).tField.setText("Successfully set to 230400 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(11).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("460800", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 460800) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(12).tField.setText("Successfully set to 460800 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(12).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("500000", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 500000) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(13).tField.setText("Successfully set to 500000 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(13).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("750000", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 750000) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(14).tField.setText("Successfully set to 750000 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(14).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1000000", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 1000000) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(15).tField.setText("Successfully set to 1000000 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(15).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1250000", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 1250000) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(16).tField.setText("Successfully set to 1250000 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(16).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1500000", [&, i, portName]() {
+								if (serialPortManager.setPortConfig(portName, 1500000) == 1) {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(17).tField.setText("Successfully set to 1500000 baud");
+								}
+								else {
+									serialConfigSubMenuItems.at(i).at(2).menuItems.at(17).tField.setText("Error setting baud. Is the port open?");
+								}
+								return;
+								}, &mainWindow);
+							serialConfigSubMenuItems.at(i).at(2).setEscKey([&, i]() {
+								serialConfigSubMenuItems.at(i).at(2).disableMenu();
+								serialConfigMenuItems.at(i).enableMenu();
+								serialConfigSubMenuItems.at(i).at(2).resetMenuItemList();
+								});
+							serialConfigSubMenuItems.at(i).at(2).enableMenu();
+							return;
+							}, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Bits Per Byte !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Parity !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Stop Bits !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).addMenuItem("Hardware Flow Control !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
+						serialConfigMenuItems.at(i).setEscKey([&, i]() {
+							serialConfigMenuItems.at(i).disableMenu();
+							while (serialConfigSubMenuItems.at(i).size() > 0) {
+								serialConfigSubMenuItems.at(i).pop_back();
+							}
+							serialConfigMenu.enableMenu();
+							serialConfigMenuItems.at(i).resetMenuItemList();
+							});
+						serialConfigMenuItems.at(i).enableMenu();
+						return;
+						}, &mainWindow);
+				}
+			}
+			for (int i = 0; i < teensyController.serialPorts_v.size(); i++) {
+				std::string portName = teensyController.serialPorts_v.at(i).name;
+				std::string alias = teensyController.serialPorts_v.at(i).alias;
+				if (alias.length() > 0) portName += " - " + alias;
+				serialConfigMenuItems.push_back(Menu(&loop, &mainWindow, &userInput, portName));
+				serialConfigMenu.addMenuItem(portName, [&, i, portName]() {
+					serialConfigSubMenuItems.push_back(std::vector<Menu>());
+					serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Set / Change Alias"));
+					serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Baud"));
+					serialConfigMenuItems.at(i).addMenuItem("Set / Change Alias", [&, i]() {/* @TODO: */return; }, &mainWindow);
+					serialConfigMenuItems.at(i).addMenuItem("Baud", [&, i]() {
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("600", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 600) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(0).tField.setText("Successfully set to 600 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(0).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1200", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 1200) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(1).tField.setText("Successfully set to 1200 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(1).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1800", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 1800) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(2).tField.setText("Successfully set to 1800 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(2).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("2400", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 2400) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(3).tField.setText("Successfully set to 2400 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(3).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("4800", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 4800) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(4).tField.setText("Successfully set to 4800 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(4).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("9600", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 9600) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(5).tField.setText("Successfully set to 9600 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(5).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("19200", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 19200) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(6).tField.setText("Successfully set to 19200 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(6).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("31250 - MIDI", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 31250) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(7).tField.setText("Successfully set to 31250 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(7).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("38400", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 38400) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(8).tField.setText("Successfully set to 38400 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(8).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("57600", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 57600) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(9).tField.setText("Successfully set to 57600 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(9).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("115200", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 115200) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(10).tField.setText("Successfully set to 115200 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(10).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("230400", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 230400) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(11).tField.setText("Successfully set to 230400 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(11).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("460800", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 460800) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(12).tField.setText("Successfully set to 460800 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(12).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("500000", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 500000) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(13).tField.setText("Successfully set to 500000 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(13).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("750000", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 750000) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(14).tField.setText("Successfully set to 750000 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(14).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1000000", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 1000000) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(15).tField.setText("Successfully set to 1000000 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(15).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1250000", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 1250000) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(16).tField.setText("Successfully set to 1250000 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(16).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1500000", [&, i, portName]() {
+							if (teensyController.setSerialBaud(i, 1500000) == 1) {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(17).tField.setText("Successfully set to 1500000 baud");
+							}
+							else {
+								serialConfigSubMenuItems.at(i).at(1).menuItems.at(17).tField.setText("Error setting baud. Is the port open?");
+							}
+							return;
+							}, &mainWindow);
+						serialConfigSubMenuItems.at(i).at(1).setEscKey([&, i]() {
+							serialConfigSubMenuItems.at(i).at(1).disableMenu();
+							serialConfigMenuItems.at(i).enableMenu();
+							serialConfigSubMenuItems.at(i).at(1).resetMenuItemList();
+							});
+						serialConfigSubMenuItems.at(i).at(1).enableMenu();
+						return;
+						}, &mainWindow);
+					serialConfigMenuItems.at(i).setEscKey([&, i]() {
+						serialConfigMenuItems.at(i).disableMenu();
+						while (serialConfigSubMenuItems.at(i).size() > 0) {
+							serialConfigSubMenuItems.at(i).pop_back();
+						}
+						serialConfigMenu.enableMenu();
+						serialConfigMenuItems.at(i).resetMenuItemList();
+						});
+					serialConfigMenuItems.at(i).enableMenu();
+					}, &mainWindow);
+			}
+			userInput.setKeyDisabled(KEY_F(1), true);
+			userInput.setKeyDisabled(KEY_F(2), true);
+			userInput.setKeyDisabled(KEY_F(3), true);
+			userInput.setKeyDisabled(KEY_F(4), true);
+			serialConfigMenu.setEscKey([&]() {
+				userInput.removeListenerByKey(KEY_UP);
+				userInput.removeListenerByKey(KEY_DOWN);
+				serialConfigMenu.disableMenu();
+				serialConfigMenu.resetMenuItemList();
+				while (serialConfigMenuItems.size() > 0) {
+					serialConfigMenuItems.pop_back();
+				}
+				while (serialConfigSubMenuItems.size() > 0) {
+					serialConfigSubMenuItems.pop_back();
+				}
+				mainWindow.clearScreen();
+				userInput.setKeyDisabled(KEY_F(1), false);
+				userInput.setKeyDisabled(KEY_F(2), false);
+				userInput.setKeyDisabled(KEY_F(3), false);
+				userInput.setKeyDisabled(KEY_F(4), false);
+				});
+			serialConfigMenu.enableMenu();
+			return 1;
+			}, KEY_F(2)
+		), KEY_F(2)
+	);
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// Midi Config Menu
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+
+	Menu midiConfigMenu = Menu(&loop, &mainWindow, &userInput, "MIDI Config");
+
+	shortcutF3.setInputListenerIdAndKey(
+		userInput.addListener([&](int c, TIMEPOINT_T time) {
+			userInput.setKeyDisabled(KEY_F(1), true);
+			userInput.setKeyDisabled(KEY_F(2), true);
+			userInput.setKeyDisabled(KEY_F(3), true);
+			userInput.setKeyDisabled(KEY_F(4), true);
+			midiConfigMenu.setEscKey([&]() {
+				midiConfigMenu.disableMenu();
+				mainWindow.clearScreen();
+				userInput.removeListenerByKey(KEY_UP);
+				userInput.removeListenerByKey(KEY_DOWN);
+				userInput.setKeyDisabled(KEY_F(1), false);
+				userInput.setKeyDisabled(KEY_F(2), false);
+				userInput.setKeyDisabled(KEY_F(3), false);
+				userInput.setKeyDisabled(KEY_F(4), false);
+				});
+			midiConfigMenu.enableMenu();
+			return 1;
+			},
+			KEY_F(3)),
+		KEY_F(3));
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// Text Area Options Menu
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+		
+	Menu tAreaMenu = Menu(&loop, &mainWindow, &userInput, "Text Area Options");
 
 	Menu tAreaSubMenu_enDisTitle(&loop, &mainWindow, &userInput, "Area Title");
 	Menu tAreaSubMenu_mode(&loop, &mainWindow, &userInput, "Mode");
@@ -337,7 +862,6 @@ int main() {
 	Menu tAreaSubMenu_Move(&loop, &mainWindow, &userInput, "Move");
 	Menu tAreaSubMenu_zAdjust(&loop, &mainWindow, &userInput, "Z Adjustment");
 	Menu tAreaSubMenu_templates(&loop, &mainWindow, &userInput, "Templates");
-
 	Menu tAreaSubMenu_mode_changeMode(&loop, &mainWindow, &userInput, "Select Mode");
 	Menu tAreaSubMenu_mode_changeMode_selectSource(&loop, &mainWindow, &userInput, "Select Source");
 
@@ -458,7 +982,6 @@ int main() {
 			tAreaSubMenu_mode_changeMode.menuItems.at(0).tField.setText("Error. No window selected.");
 		}
 		}, & mainWindow);
-
 	tAreaMenu.addMenuItem("Area Title", [&]() {
 		if (windowManager.getSelectedWindowIndex() != -1) {
 			std::string t = windowManager.windows.at(windowManager.getSelectedWindowIndex()).titleEnabled ? "Disable" : "Enable";
@@ -577,516 +1100,6 @@ int main() {
 			});
 		}, & mainWindow);
 	
-	
-
-	shortcutF1.setInputListenerIdAndKey(
-		userInput.addListener([&](int c, TIMEPOINT_T time) {
-			userInput.setKeyDisabled(KEY_F(1), true);
-			userInput.setKeyDisabled(KEY_F(2), true);
-			userInput.setKeyDisabled(KEY_F(3), true);
-			userInput.setKeyDisabled(KEY_F(4), true);
-			mainMenu.setEscKey([&]() {
-				mainMenu.disableMenu();
-				mainWindow.clearScreen();
-				userInput.removeListenerByKey(KEY_UP);
-				userInput.removeListenerByKey(KEY_DOWN);
-				userInput.setKeyDisabled(KEY_F(1), false);
-				userInput.setKeyDisabled(KEY_F(2), false);
-				userInput.setKeyDisabled(KEY_F(3), false);
-				userInput.setKeyDisabled(KEY_F(4), false);
-				});
-			mainMenu.enableMenu();
-			return 1;
-		},
-		KEY_F(1)),
-	KEY_F(1));
-	shortcutF2.setInputListenerIdAndKey(
-		userInput.addListener([&](int c, TIMEPOINT_T time) {
-			for (int i = 0; i < serialPortManager.getNumberOfPorts(); i++) {
-				if (serialPortManager.getPortAvailable(i)) {
-					std::string tempString;
-					serialPortManager.getPortName(i, tempString);
-					std::string portName = tempString;
-					std::string tempString2;
-					serialPortManager.getPortAlias(i, tempString2);
-					if(tempString2.length() > 0)tempString += " - " + tempString2;
-					serialConfigMenuItems.push_back(Menu(&loop, &mainWindow, &userInput, tempString));
-					serialConfigSubMenuItems.push_back(std::vector<Menu>());
-					serialConfigMenu.addMenuItem(tempString, [&, i, portName]() {
-						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Open / Close Port"));
-						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Set / Change Alias"));
-						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Baud"));
-						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Bits Per Byte"));
-						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Parity"));
-						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Stop bits"));
-						serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Hardware flow control"));
-
-						serialConfigMenuItems.at(i).addMenuItem("Open / Close Port", [&, i, portName]() {
-							if (serialPortManager.isPortOpen(portName)) {
-								serialPortConfig_openClosePort.addMenuItem("Port is open", [&]() {}, & mainWindow);
-								serialPortConfig_openClosePort.addMenuItem("Close port", [&, portName]() {
-									if (!serialPortManager.closePort(portName)) {
-										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
-									}
-									if (!serialPortManager.isPortOpen(portName)) {
-										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Port closed");
-									}
-									else {
-										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
-									}
-									}, & mainWindow);
-							}
-							else {
-								serialPortConfig_openClosePort.addMenuItem("Port is closed (or unavailable)", [&]() {}, & mainWindow);
-								serialPortConfig_openClosePort.addMenuItem("Attempt to open port", [&, portName]() {
-									if (!serialPortManager.openPort(portName)) {
-										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
-									}
-									if (serialPortManager.isPortOpen(portName)) {
-										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Port opened");
-									}
-									else {
-										serialPortConfig_openClosePort.menuItems.at(1).tField.setText("Error.");
-									}
-
-									
-									}, & mainWindow);
-							}
-							serialPortConfig_openClosePort.enableMenu();
-							serialPortConfig_openClosePort.setEscKey([&]() {
-								serialPortConfig_openClosePort.disableMenu();
-								serialPortConfig_openClosePort.resetMenuItemList();
-								serialConfigMenuItems.at(i).enableMenu();
-								});
-							}, & mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Set / Change Alias", [&, i]() {/* @TODO: */return; }, & mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Baud", [&, i]() {
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("600", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 600) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(0).tField.setText("Successfully set to 600 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(0).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1200", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 1200) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(1).tField.setText("Successfully set to 1200 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(1).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1800", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 1800) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(2).tField.setText("Successfully set to 1800 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(2).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("2400", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 2400) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(3).tField.setText("Successfully set to 2400 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(3).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("4800", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 4800) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(4).tField.setText("Successfully set to 4800 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(4).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("9600", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 9600) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(5).tField.setText("Successfully set to 9600 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(5).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("19200", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 19200) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(6).tField.setText("Successfully set to 19200 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(6).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("31250 - MIDI", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 31250) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(7).tField.setText("Successfully set to 31250 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(7).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, & mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("38400", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 38400) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(8).tField.setText("Successfully set to 38400 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(8).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("57600", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 57600) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(9).tField.setText("Successfully set to 57600 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(9).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("115200", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 115200) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText("Successfully set to 115200 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(10).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("230400", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 230400) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(11).tField.setText("Successfully set to 230400 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(11).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("460800", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 460800) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(12).tField.setText("Successfully set to 460800 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(12).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("500000", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 500000) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(13).tField.setText("Successfully set to 500000 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(13).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("750000", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 750000) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(14).tField.setText("Successfully set to 750000 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(14).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1000000", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 1000000) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(15).tField.setText("Successfully set to 1000000 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(15).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1250000", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 1250000) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(16).tField.setText("Successfully set to 1250000 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(16).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).addMenuItem("1500000", [&, i, portName]() {
-								if (serialPortManager.setPortConfig(portName, 1500000) == 1) {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(17).tField.setText("Successfully set to 1500000 baud");
-								}
-								else {
-									serialConfigSubMenuItems.at(i).at(2).menuItems.at(17).tField.setText("Error setting baud. Is the port open?");
-								}
-								return;
-								}, &mainWindow);
-							serialConfigSubMenuItems.at(i).at(2).setEscKey([&, i]() {
-								serialConfigSubMenuItems.at(i).at(2).disableMenu();
-								serialConfigMenuItems.at(i).enableMenu();
-								serialConfigSubMenuItems.at(i).at(2).resetMenuItemList();
-							});
-							serialConfigSubMenuItems.at(i).at(2).enableMenu();
-							return; 
-						}, &mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Bits Per Byte !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Parity !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Stop Bits !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
-						serialConfigMenuItems.at(i).addMenuItem("Hardware Flow Control !TODO!", [&, i]() {/* @TODO: */return; }, &mainWindow);
-						serialConfigMenuItems.at(i).setEscKey([&,i]() {
-							serialConfigMenuItems.at(i).disableMenu();
-							while (serialConfigSubMenuItems.at(i).size() > 0) {
-								serialConfigSubMenuItems.at(i).pop_back();
-							}
-							serialConfigMenu.enableMenu();
-							serialConfigMenuItems.at(i).resetMenuItemList();
-						});
-						serialConfigMenuItems.at(i).enableMenu();
-						return; 
-					}, &mainWindow);
-				}
-			}
-			for (int i = 0; i < teensyController.serialPorts_v.size(); i++) {
-				std::string portName = teensyController.serialPorts_v.at(i).name;
-				std::string alias = teensyController.serialPorts_v.at(i).alias;
-				if (alias.length() > 0) portName += " - " + alias;
-				serialConfigMenuItems.push_back(Menu(&loop, &mainWindow, &userInput, portName));
-				serialConfigMenu.addMenuItem(portName, [&, i, portName]() {
-					serialConfigSubMenuItems.push_back(std::vector<Menu>());
-					serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Set / Change Alias"));
-					serialConfigSubMenuItems.at(i).push_back(Menu(&loop, &mainWindow, &userInput, "Baud"));
-					serialConfigMenuItems.at(i).addMenuItem("Set / Change Alias", [&, i]() {/* @TODO: */return; }, & mainWindow);
-					serialConfigMenuItems.at(i).addMenuItem("Baud", [&, i]() {
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("600", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 600) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(0).tField.setText("Successfully set to 600 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(0).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1200", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 1200) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(1).tField.setText("Successfully set to 1200 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(1).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1800", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 1800) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(2).tField.setText("Successfully set to 1800 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(2).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("2400", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 2400) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(3).tField.setText("Successfully set to 2400 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(3).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("4800", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 4800) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(4).tField.setText("Successfully set to 4800 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(4).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("9600", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 9600) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(5).tField.setText("Successfully set to 9600 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(5).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("19200", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 19200) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(6).tField.setText("Successfully set to 19200 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(6).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("31250 - MIDI", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 31250) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(7).tField.setText("Successfully set to 31250 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(7).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("38400", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 38400) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(8).tField.setText("Successfully set to 38400 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(8).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("57600", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 57600) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(9).tField.setText("Successfully set to 57600 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(9).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("115200", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 115200) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(10).tField.setText("Successfully set to 115200 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(10).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("230400", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 230400) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(11).tField.setText("Successfully set to 230400 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(11).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("460800", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 460800) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(12).tField.setText("Successfully set to 460800 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(12).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("500000", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 500000) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(13).tField.setText("Successfully set to 500000 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(13).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("750000", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 750000) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(14).tField.setText("Successfully set to 750000 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(14).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1000000", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 1000000) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(15).tField.setText("Successfully set to 1000000 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(15).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1250000", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 1250000) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(16).tField.setText("Successfully set to 1250000 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(16).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).addMenuItem("1500000", [&, i, portName]() {
-							if (teensyController.setSerialBaud(i, 1500000) == 1) {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(17).tField.setText("Successfully set to 1500000 baud");
-							}
-							else {
-								serialConfigSubMenuItems.at(i).at(1).menuItems.at(17).tField.setText("Error setting baud. Is the port open?");
-							}
-						return;
-							}, &mainWindow);
-						serialConfigSubMenuItems.at(i).at(1).setEscKey([&, i]() {
-							serialConfigSubMenuItems.at(i).at(1).disableMenu();
-						serialConfigMenuItems.at(i).enableMenu();
-						serialConfigSubMenuItems.at(i).at(1).resetMenuItemList();
-							});
-						serialConfigSubMenuItems.at(i).at(1).enableMenu();
-						return;
-						}, & mainWindow);
-					serialConfigMenuItems.at(i).setEscKey([&, i]() {
-						serialConfigMenuItems.at(i).disableMenu();
-						while (serialConfigSubMenuItems.at(i).size() > 0) {
-							serialConfigSubMenuItems.at(i).pop_back();
-						}
-						serialConfigMenu.enableMenu();
-						serialConfigMenuItems.at(i).resetMenuItemList();
-						});
-					serialConfigMenuItems.at(i).enableMenu();
-					},&mainWindow);
-			}
-			userInput.setKeyDisabled(KEY_F(1), true);
-			userInput.setKeyDisabled(KEY_F(2), true);
-			userInput.setKeyDisabled(KEY_F(3), true);
-			userInput.setKeyDisabled(KEY_F(4), true);
-			serialConfigMenu.setEscKey([&]() {
-				userInput.removeListenerByKey(KEY_UP);
-				userInput.removeListenerByKey(KEY_DOWN);
-				serialConfigMenu.disableMenu();
-				serialConfigMenu.resetMenuItemList();
-				while (serialConfigMenuItems.size() > 0) {
-					serialConfigMenuItems.pop_back();
-				}
-				while (serialConfigSubMenuItems.size() > 0){
-					serialConfigSubMenuItems.pop_back();
-				}
-				mainWindow.clearScreen();
-				userInput.setKeyDisabled(KEY_F(1), false);
-				userInput.setKeyDisabled(KEY_F(2), false);
-				userInput.setKeyDisabled(KEY_F(3), false);
-				userInput.setKeyDisabled(KEY_F(4), false);
-				});
-			serialConfigMenu.enableMenu();
-			return 1;
-			},KEY_F(2)
-		),KEY_F(2)
-	);
-	shortcutF3.setInputListenerIdAndKey(
-		userInput.addListener([&](int c, TIMEPOINT_T time) {
-			userInput.setKeyDisabled(KEY_F(1), true);
-			userInput.setKeyDisabled(KEY_F(2), true);
-			userInput.setKeyDisabled(KEY_F(3), true);
-			userInput.setKeyDisabled(KEY_F(4), true);
-			midiConfigMenu.setEscKey([&]() {
-				midiConfigMenu.disableMenu();
-				mainWindow.clearScreen();
-				userInput.removeListenerByKey(KEY_UP);
-				userInput.removeListenerByKey(KEY_DOWN);
-				userInput.setKeyDisabled(KEY_F(1), false);
-				userInput.setKeyDisabled(KEY_F(2), false);
-				userInput.setKeyDisabled(KEY_F(3), false);
-				userInput.setKeyDisabled(KEY_F(4), false);
-				});
-			midiConfigMenu.enableMenu();
-			return 1;
-			},
-			KEY_F(3)),
-		KEY_F(3));
 	shortcutF4.setInputListenerIdAndKey(
 		userInput.addListener([&](int c, TIMEPOINT_T time) {
 			userInput.setKeyDisabled(KEY_F(1), true);
@@ -1112,6 +1125,18 @@ int main() {
 			},
 			KEY_F(4)),
 		KEY_F(4));
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// End Menu Building Section
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
 
 	//textField testTextField(0, 0, mainWindow.width / 2, 5, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
 	//testTextField.setClearOnPrint(false);
@@ -1151,14 +1176,13 @@ int main() {
 		return anotherTF.draw();
 		});
 	
-
 	std::string portName = "/dev/ttyUSB0";
 	serialPortManager.openPort(portName);
 	serialPortManager.setPortConfig(portName, 9600);
 	serialPortManager.setTextFieldForPort("/dev/ttyUSB0", &anotherTF);
-	
-
 	*/
+
+
 	while (run) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		loop.handleAll(); // handles all the loop events that hanve been registered

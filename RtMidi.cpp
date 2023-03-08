@@ -39,7 +39,10 @@
 
 #include "RtMidi.h"
 #include <sstream>
+#ifndef  __LINUX_ALSA__
 #define __LINUX_ALSA__
+#endif // ! __LINUX_ALSA__
+
 
 
 // Default for Windows is to add an identifier to the port names; this
