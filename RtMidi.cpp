@@ -44,11 +44,6 @@
 #endif // ! __LINUX_ALSA__
 
 
-
-// Default for Windows is to add an identifier to the port names; this
-// flag can be defined (e.g. in your project file) to disable this behaviour.
-//#define RTMIDI_DO_NOT_ENSURE_UNIQUE_PORTNAMES
-
 // **************************************************************** //
 //
 // MidiInApi and MidiOutApi subclass prototypes.

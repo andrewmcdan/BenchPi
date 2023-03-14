@@ -407,7 +407,7 @@ AddonController::AddonController(SerialHandler* serial) {
 }
 
 void AddonController::update(char* data, int len) {
-	std::string debugString = "echo \"";;
+	std::string debugString = "echo \"";
 	// first put the incoming data into the unprocessed vector
 	unsigned char t = 0;
 	for (int i = 0; i < len; i++) {
@@ -520,7 +520,11 @@ void AddonController::update(char* data, int len) {
 						}
 						break;
 					}
+					case 0xff: // Heartbeat @TODO:
+
+						break;
 					}
+					
 					// erase the processed bytes from the vector
 					for (uint32_t i = 0; i < byteCount + 4; i++) {
 						if (this->unprocessedData.end() == this->unprocessedData.erase(this->unprocessedData.begin()))break;

@@ -496,11 +496,12 @@ void WindowManager::selectNextWindow(){
 		this->selectedWindowID = this->windows.at(0).id;
 	}
 	else {
-		for (size_t i = 0; i < this->windows.size(); i++) {
-			if (this->selectedWindowID == this->windows.at(i).id && i < this->windows.size() - 1) {
+		for (std::size_t i = 0; i < this->windows.size(); i++) {
+			if ((this->selectedWindowID == this->windows.at(i).id) && (i < (this->windows.size() - 1))) {
 				this->selectedWindowID = this->windows.at(i + 1).id;
+				break;
 			}
-			else if (this->selectedWindowID == this->windows.at(i).id && i == this->windows.size() - 1) {
+			else if ((this->selectedWindowID == this->windows.at(i).id) && (i == (this->windows.size() - 1))) {
 				this->selectedWindowID = -1;
 			}
 		}
@@ -513,10 +514,10 @@ void WindowManager::selectPrevWindow(){
 	}
 	else {
 		for (size_t i = 0; i < this->windows.size(); i++) {
-			if (this->selectedWindowID == this->windows.at(i).id && i > 0) {
+			if ((this->selectedWindowID == this->windows.at(i).id) && (i > 0)) {
 				this->selectedWindowID = this->windows.at(i - 1).id;
 			}
-			else if (this->selectedWindowID == this->windows.at(i).id && i == 0) {
+			else if ((this->selectedWindowID == this->windows.at(i).id) && (i == 0)) {
 				this->selectedWindowID = -1;
 			}
 		}
@@ -546,9 +547,39 @@ void WindowManager::disableWindowTitle(unsigned long id) {
 	}
 }
 
-void WindowManager::splitWindowVert(unsigned long id){}
+void WindowManager::splitWindowVert(unsigned int numDivs){
+	int currentH = this->getSelectedWindow()->height;
+	int currentW = this->getSelectedWindow()->width;
+	int newH = currentH;
+	int newW = (currentW / numDivs) - 2;
+	if (newW < 5) return;
+	this->getSelectedWindow()->tField.changeHW(newW, newH);
+	this->getSelectedWindow()->height = newH;
+	this->getSelectedWindow()->width = newW;
+	int startX = this->getSelectedWindow()->x + newW + 2;
+	int startY = this->getSelectedWindow()->y;
 
-void WindowManager::splitWindowHoriz(unsigned long id){}
+	for (int i = 0; i < (numDivs - 1); i++) {
+		this->createWindow(startX + ((newW + 2)* i), startY, newW, newH, "", this->getSelectedWindow()->priority);
+	}
+}
+
+void WindowManager::splitWindowHoriz(unsigned int numDivs){
+	int currentH = this->getSelectedWindow()->height;
+	int currentW = this->getSelectedWindow()->width;
+	int newH = (currentH / numDivs) - 2;
+	int newW = currentW;
+	if (newH < 1)return;
+	this->getSelectedWindow()->tField.changeHW(newW, newH);
+	this->getSelectedWindow()->height = newH;
+	this->getSelectedWindow()->width = newW;
+	int startX = this->getSelectedWindow()->x;
+	int startY = this->getSelectedWindow()->y + newH + 2;
+
+	for (int i = 0; i < (numDivs - 1); i++) {
+		this->createWindow(startX, startY + ((newH + 2) * i), newW, newH, "", this->getSelectedWindow()->priority);
+	}
+}
 
 void WindowManager::setWindowType(unsigned long id){}
 

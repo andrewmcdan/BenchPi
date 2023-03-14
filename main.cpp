@@ -45,7 +45,9 @@ int main() {
 
 
 	
-
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Testing out some stuff with mouse input. Maybe use ncurses for mouse stuff?
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/*int mouseFD = open("/dev/input/mice", O_RDONLY);
 	printf(std::to_string(mouseFD).c_str()); 
 	char read_buf[8];
@@ -63,7 +65,7 @@ int main() {
 	}*/
 	// This should be implemented using events instead of reading raw data from the device.
 	// see https://jiafei427.wordpress.com/2017/03/13/linux-reading-the-mouse-events-datas-from-devinputmouse0/ 
-
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// this variable is used in the loop below to exit the program
 	bool run = true;
@@ -88,8 +90,9 @@ int main() {
 	shortcutItem shortcutF1 = shortcutItem(1, []() {return 1; }, &mainWindow, "F1 - Main Menu", textField::textAlignment::center);
 	shortcutItem shortcutF2 = shortcutItem(2, []() {return 1; }, &mainWindow, "F2 - Serial Config", textField::textAlignment::center);
 	shortcutItem shortcutF3 = shortcutItem(3, []() {return 1; }, &mainWindow, "F3 - MIDI Config", textField::textAlignment::center);
-	shortcutItem shortcutF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Text Area Options ", textField::textAlignment::center);
-	shortcutItem shortcutF5 = shortcutItem(5, []() {return 1; }, &mainWindow, "F5 - Quit", textField::textAlignment::center);
+	shortcutItem shortcutF4 = shortcutItem(4, []() {return 1; }, &mainWindow, "F4 - Meter Config", textField::textAlignment::center);
+	shortcutItem shortcutF5 = shortcutItem(5, []() {return 1; }, &mainWindow, "F5 - Text Area Options ", textField::textAlignment::center);
+	shortcutItem shortcutF6 = shortcutItem(6, []() {return 1; }, &mainWindow, "F6 - Quit", textField::textAlignment::center);
 	loop.addEvent([&shortcutF1]() {
 		return shortcutF1.tField.draw();
 		});
@@ -105,13 +108,16 @@ int main() {
 	loop.addEvent([&shortcutF5]() {
 		return shortcutF5.tField.draw();
 		});
+	loop.addEvent([&shortcutF6]() {
+		return shortcutF6.tField.draw();
+		});
 	
 
 	// Build the quit confirm screen.
 	// Init a textfield for confirming quit. 
 	textField quitConfirm(0, 0, mainWindow.width - 2, mainWindow.height - 1, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::center);
 	// Connect the F4 shortcut with its key listener and instantiate all the events to happen when user responds to confirm
-	shortcutF5.setInputListenerIdAndKey(
+	shortcutF6.setInputListenerIdAndKey(
 		userInput.addListener(
 			[&userInput,&mainWindow,&loop,&quitConfirm,&run](int a, TIMEPOINT_T t) {
 				// when the user pressed F4, clear the screen...
@@ -120,6 +126,9 @@ int main() {
 				userInput.setKeyDisabled(KEY_F(2), true);
 				userInput.setKeyDisabled(KEY_F(3), true);
 				userInput.setKeyDisabled(KEY_F(4), true);
+				userInput.setKeyDisabled(KEY_F(5), true);
+				userInput.setKeyDisabled(KEY_F(11), true);
+				userInput.setKeyDisabled(KEY_F(12), true);
 				// draw the quitConfirm textField
 				int loopEvent = loop.addEvent([&quitConfirm]() {quitConfirm.draw(); return 1; });
 				quitConfirm.setClearOnPrint(true);
@@ -142,6 +151,9 @@ int main() {
 					userInput.setKeyDisabled(KEY_F(2), false);
 					userInput.setKeyDisabled(KEY_F(3), false);
 					userInput.setKeyDisabled(KEY_F(4), false);
+					userInput.setKeyDisabled(KEY_F(5), false);
+					userInput.setKeyDisabled(KEY_F(11), false);
+					userInput.setKeyDisabled(KEY_F(12), false);
 					loop.remove(loopEvent); 
 					mainWindow.clearScreen(); 
 					return 1; }, 'n');
@@ -155,12 +167,15 @@ int main() {
 					userInput.setKeyDisabled(KEY_F(2), false);
 					userInput.setKeyDisabled(KEY_F(3), false);
 					userInput.setKeyDisabled(KEY_F(4), false);
+					userInput.setKeyDisabled(KEY_F(5), false);
+					userInput.setKeyDisabled(KEY_F(11), false);
+					userInput.setKeyDisabled(KEY_F(12), false);
 					loop.remove(loopEvent); 
 					mainWindow.clearScreen(); 
 					return 1; }, 'N');
 				return 1; },
-				KEY_F(5)),
-			KEY_F(5));
+				KEY_F(6)),
+			KEY_F(6));
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -321,6 +336,9 @@ int main() {
 			userInput.setKeyDisabled(KEY_F(2), true);
 			userInput.setKeyDisabled(KEY_F(3), true);
 			userInput.setKeyDisabled(KEY_F(4), true);
+			userInput.setKeyDisabled(KEY_F(5), true);
+			userInput.setKeyDisabled(KEY_F(11), true);
+			userInput.setKeyDisabled(KEY_F(12), true);
 			mainMenu.setEscKey([&]() {
 				mainMenu.disableMenu();
 				mainWindow.clearScreen();
@@ -330,6 +348,9 @@ int main() {
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);
 				userInput.setKeyDisabled(KEY_F(4), false);
+				userInput.setKeyDisabled(KEY_F(5), false);
+				userInput.setKeyDisabled(KEY_F(11), false);
+				userInput.setKeyDisabled(KEY_F(12), false);
 				});
 			mainMenu.enableMenu();
 			return 1;
@@ -794,6 +815,9 @@ int main() {
 			userInput.setKeyDisabled(KEY_F(2), true);
 			userInput.setKeyDisabled(KEY_F(3), true);
 			userInput.setKeyDisabled(KEY_F(4), true);
+			userInput.setKeyDisabled(KEY_F(5), true);
+			userInput.setKeyDisabled(KEY_F(11), true);
+			userInput.setKeyDisabled(KEY_F(12), true);
 			serialConfigMenu.setEscKey([&]() {
 				userInput.removeListenerByKey(KEY_UP);
 				userInput.removeListenerByKey(KEY_DOWN);
@@ -810,6 +834,9 @@ int main() {
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);
 				userInput.setKeyDisabled(KEY_F(4), false);
+				userInput.setKeyDisabled(KEY_F(5), false);
+				userInput.setKeyDisabled(KEY_F(11), false);
+				userInput.setKeyDisabled(KEY_F(12), false);
 				});
 			serialConfigMenu.enableMenu();
 			return 1;
@@ -832,6 +859,7 @@ int main() {
 			userInput.setKeyDisabled(KEY_F(2), true);
 			userInput.setKeyDisabled(KEY_F(3), true);
 			userInput.setKeyDisabled(KEY_F(4), true);
+			userInput.setKeyDisabled(KEY_F(5), true);
 			midiConfigMenu.setEscKey([&]() {
 				midiConfigMenu.disableMenu();
 				mainWindow.clearScreen();
@@ -841,12 +869,51 @@ int main() {
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);
 				userInput.setKeyDisabled(KEY_F(4), false);
+				userInput.setKeyDisabled(KEY_F(5), false);
 				});
 			midiConfigMenu.enableMenu();
 			return 1;
 			},
 			KEY_F(3)),
 		KEY_F(3));
+	
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+	// Meter Config Menu
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+
+	Menu meterConfigMenu = Menu(&loop, &mainWindow, &userInput, "Meter Config");
+
+	shortcutF4.setInputListenerIdAndKey(
+		userInput.addListener([&](int c, TIMEPOINT_T time) {
+			userInput.setKeyDisabled(KEY_F(1), true);
+			userInput.setKeyDisabled(KEY_F(2), true);
+			userInput.setKeyDisabled(KEY_F(3), true);
+			userInput.setKeyDisabled(KEY_F(4), true);
+			userInput.setKeyDisabled(KEY_F(5), true);
+			userInput.setKeyDisabled(KEY_F(11), true);
+			userInput.setKeyDisabled(KEY_F(12), true);
+			meterConfigMenu.setEscKey([&]() {
+				meterConfigMenu.disableMenu();
+				mainWindow.clearScreen();
+				userInput.removeListenerByKey(KEY_UP);
+				userInput.removeListenerByKey(KEY_DOWN);
+				userInput.setKeyDisabled(KEY_F(1), false);
+				userInput.setKeyDisabled(KEY_F(2), false);
+				userInput.setKeyDisabled(KEY_F(3), false);
+				userInput.setKeyDisabled(KEY_F(4), false);
+				userInput.setKeyDisabled(KEY_F(5), false);
+				userInput.setKeyDisabled(KEY_F(11), false);
+				userInput.setKeyDisabled(KEY_F(12), false);
+				});
+			meterConfigMenu.enableMenu();
+			return 1;
+			},
+			KEY_F(4)),
+		KEY_F(4));
+
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -864,6 +931,8 @@ int main() {
 	Menu tAreaSubMenu_templates(&loop, &mainWindow, &userInput, "Templates");
 	Menu tAreaSubMenu_mode_changeMode(&loop, &mainWindow, &userInput, "Select Mode");
 	Menu tAreaSubMenu_mode_changeMode_selectSource(&loop, &mainWindow, &userInput, "Select Source");
+	Menu tAreaSubMenu_splitVert(&loop, &mainWindow, &userInput, "Verticle Split");
+	Menu tAreaSubMenu_splitHoriz(&loop, &mainWindow, &userInput, "Horizontal Split");
 
 	tAreaSubMenu_mode_changeMode.addMenuItem("Serial Monitor", [&]() {
 		if (windowManager.getSelectedWindowIndex() != -1) {
@@ -982,6 +1051,22 @@ int main() {
 			tAreaSubMenu_mode_changeMode.menuItems.at(0).tField.setText("Error. No window selected.");
 		}
 		}, & mainWindow);
+
+	for (int i = 2; i < 8; i++) {
+		tAreaSubMenu_splitVert.addMenuItem(std::to_string(i), [&,i]() {
+			windowManager.splitWindowVert(i);
+			tAreaSubMenu_splitVert.disableMenu();
+			tAreaSubMenu_Split.enableMenu();
+			}, &mainWindow);
+	}
+	for (int i = 2; i < 11; i++) {
+		tAreaSubMenu_splitHoriz.addMenuItem(std::to_string(i), [&,i]() {
+			windowManager.splitWindowHoriz(i);
+			tAreaSubMenu_splitHoriz.disableMenu();
+			tAreaSubMenu_Split.enableMenu();
+			}, &mainWindow);
+	}
+
 	tAreaMenu.addMenuItem("Area Title", [&]() {
 		if (windowManager.getSelectedWindowIndex() != -1) {
 			std::string t = windowManager.windows.at(windowManager.getSelectedWindowIndex()).titleEnabled ? "Disable" : "Enable";
@@ -1004,6 +1089,7 @@ int main() {
 		else {
 			tAreaSubMenu_enDisTitle.addMenuItem("No window selected.", [&]() {}, &mainWindow);
 		}
+		tAreaMenu.disableMenu();
 		tAreaSubMenu_enDisTitle.enableMenu();
 		tAreaSubMenu_enDisTitle.setEscKey([&]() {
 			tAreaSubMenu_enDisTitle.disableMenu();
@@ -1064,6 +1150,7 @@ int main() {
 		else {
 			tAreaSubMenu_mode.addMenuItem("No window selected.", []() {}, & mainWindow);
 		}
+		tAreaMenu.disableMenu();
 		tAreaSubMenu_mode.enableMenu();
 		tAreaSubMenu_mode.setEscKey([&]() {
 			tAreaSubMenu_mode.disableMenu();
@@ -1072,13 +1159,42 @@ int main() {
 			});
 		}, & mainWindow);
 	tAreaMenu.addMenuItem("Split", [&]() {
+		tAreaSubMenu_Split.addMenuItem("Verticle", [&]() {
+			if (windowManager.getSelectedWindowIndex() != -1) {
+				tAreaSubMenu_Split.disableMenu();
+				tAreaSubMenu_splitVert.enableMenu();
+				tAreaSubMenu_splitVert.setEscKey([&]() {
+					tAreaSubMenu_splitVert.disableMenu();
+					tAreaSubMenu_Split.enableMenu();
+					});
+			}
+			else {
+				tAreaSubMenu_Split.menuItems.at(0).tField.setText("No window selected.");
+			}
+			}, & mainWindow);
+		tAreaSubMenu_Split.addMenuItem("Horizontal", [&]() {
+			if (windowManager.getSelectedWindowIndex() != -1) {
+				tAreaSubMenu_Split.disableMenu();
+				tAreaSubMenu_splitHoriz.enableMenu();
+				tAreaSubMenu_splitHoriz.setEscKey([&]() {
+					tAreaSubMenu_splitHoriz.disableMenu();
+					tAreaSubMenu_Split.enableMenu();
+					});
+			}
+			else {
+				tAreaSubMenu_Split.menuItems.at(1).tField.setText("No window selected.");
+			}
+			}, & mainWindow);
+		tAreaMenu.disableMenu();
 		tAreaSubMenu_Split.enableMenu();
 		tAreaSubMenu_Split.setEscKey([&]() {
 			tAreaSubMenu_Split.disableMenu();
+			tAreaSubMenu_Split.resetMenuItemList();
 			tAreaMenu.enableMenu();
 			});
 		}, & mainWindow);
 	tAreaMenu.addMenuItem("Move", [&]() {
+		tAreaMenu.disableMenu();
 		tAreaSubMenu_Move.enableMenu();
 		tAreaSubMenu_Move.setEscKey([&]() {
 			tAreaSubMenu_Move.disableMenu();
@@ -1086,6 +1202,7 @@ int main() {
 			});
 		}, & mainWindow);
 	tAreaMenu.addMenuItem("Z Adjustment", [&]() {
+		tAreaMenu.disableMenu();
 		tAreaSubMenu_zAdjust.enableMenu();
 		tAreaSubMenu_zAdjust.setEscKey([&]() {
 			tAreaSubMenu_zAdjust.disableMenu();
@@ -1093,6 +1210,7 @@ int main() {
 			});
 		}, & mainWindow);
 	tAreaMenu.addMenuItem("Templates", [&]() {
+		tAreaMenu.disableMenu();
 		tAreaSubMenu_templates.enableMenu();
 		tAreaSubMenu_templates.setEscKey([&]() {
 			tAreaSubMenu_templates.disableMenu();
@@ -1100,12 +1218,13 @@ int main() {
 			});
 		}, & mainWindow);
 	
-	shortcutF4.setInputListenerIdAndKey(
+	shortcutF5.setInputListenerIdAndKey(
 		userInput.addListener([&](int c, TIMEPOINT_T time) {
 			userInput.setKeyDisabled(KEY_F(1), true);
 			userInput.setKeyDisabled(KEY_F(2), true);
 			userInput.setKeyDisabled(KEY_F(3), true);
 			userInput.setKeyDisabled(KEY_F(4), true);
+			userInput.setKeyDisabled(KEY_F(5), true);
 			userInput.setKeyDisabled(KEY_F(11), true);
 			userInput.setKeyDisabled(KEY_F(12), true);
 			tAreaMenu.setEscKey([&]() {
@@ -1117,15 +1236,17 @@ int main() {
 				userInput.setKeyDisabled(KEY_F(2), false);
 				userInput.setKeyDisabled(KEY_F(3), false);
 				userInput.setKeyDisabled(KEY_F(4), false);
+				userInput.setKeyDisabled(KEY_F(5), false);
 				userInput.setKeyDisabled(KEY_F(11), false);
 				userInput.setKeyDisabled(KEY_F(12), false);
 				});
 			tAreaMenu.enableMenu();
 			return 1;
 			},
-			KEY_F(4)),
-		KEY_F(4));
+			KEY_F(5)),
+		KEY_F(5));
 
+	
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	// End Menu Building Section
 	///////////////////////////////////////////////////////////////////////////////////////////////////

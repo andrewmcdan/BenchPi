@@ -10,7 +10,7 @@
 
 #define BORDER_ENABLED 1
 #define BORDER_DISABLED 0
-#define MAX_TEXTFIELD_STRING_LENGTH 8192
+#define MAX_TEXTFIELD_STRING_LENGTH 32768
 class consoleHandler
 {
 public:
@@ -104,7 +104,7 @@ private:
 	loopUpdateHandler* loopHandler;
 	inputHandler* userInput;
 	std::vector<std::vector<unsigned long>>fieldArray;
-	long long selectedWindowID = -1;
+	long selectedWindowID = -1;
 
 public:
 	WindowManager(consoleHandler* con, loopUpdateHandler* loop, inputHandler* input_h);
@@ -115,8 +115,8 @@ public:
 	void enableWindowTitle(std::string title, unsigned long id);
 	void disableWindowTitle(unsigned long id);
 	void setWindowTitle(std::string title, unsigned long id);
-	void splitWindowVert(unsigned long id);
-	void splitWindowHoriz(unsigned long id);
+	void splitWindowVert(unsigned int numDivs);
+	void splitWindowHoriz(unsigned int numDivs);
 	void setWindowType(unsigned long id);
 	void update();
 	void increaseWinodwPriority(unsigned long id);
