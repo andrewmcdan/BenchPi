@@ -117,6 +117,7 @@ public:
 	void setWindowTitle(std::string title, unsigned long id);
 	void splitWindowVert(unsigned int numDivs);
 	void splitWindowHoriz(unsigned int numDivs);
+	void mergeWindows(unsigned int id_windowToKeep, unsigned int id_windowToMerge);
 	void setWindowType(unsigned long id);
 	void update();
 	void increaseWinodwPriority(unsigned long id);

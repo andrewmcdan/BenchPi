@@ -41,22 +41,9 @@
   \file RtMidi.h
  */
 
-#ifndef RTMIDI_H
 #define RTMIDI_H
 
-#if defined _WIN32 || defined __CYGWIN__
-#if defined(RTMIDI_EXPORT)
-#define RTMIDI_DLL_PUBLIC __declspec(dllexport)
-#else
-#define RTMIDI_DLL_PUBLIC
-#endif
-#else
-#if __GNUC__ >= 4
 #define RTMIDI_DLL_PUBLIC __attribute__( (visibility( "default" )) )
-#else
-#define RTMIDI_DLL_PUBLIC
-#endif
-#endif
 
 #define RTMIDI_VERSION "5.0.0"
 
@@ -654,5 +641,3 @@ inline std::string RtMidiOut::getPortName(unsigned int portNumber) { return rtap
 inline void RtMidiOut::sendMessage(const std::vector<unsigned char>* message) { static_cast<MidiOutApi*>(rtapi_)->sendMessage(&message->at(0), message->size()); }
 inline void RtMidiOut::sendMessage(const unsigned char* message, size_t size) { static_cast<MidiOutApi*>(rtapi_)->sendMessage(message, size); }
 inline void RtMidiOut::setErrorCallback(RtMidiErrorCallback errorCallback, void* userData) { rtapi_->setErrorCallback(errorCallback, userData); }
-
-#endif

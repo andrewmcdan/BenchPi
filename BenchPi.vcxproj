@@ -66,6 +66,7 @@
     <RemoteCCompileToolExe>g++</RemoteCCompileToolExe>
     <RemoteCppCompileToolExe>g++</RemoteCppCompileToolExe>
     <MultiProcNumber>1</MultiProcNumber>
+    <TargetExt />
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>

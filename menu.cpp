@@ -5,7 +5,7 @@ Menu::Menu(loopUpdateHandler* l, consoleHandler* con, inputHandler* inputHandler
 	this->menuText = text;
 	this->visible = false;
 	this->loop = l;
-	tField = textField(con->width / 4, 0, con->width / 2, con->height - 4, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, con, textField::center);
+	tField = textField(con->width / 4, 0, con->width / 2 + 2, con->height - 2, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, con, textField::center);
 	tField.setEnabled(false);
 	tField.setText(this->menuText);
 	this->selectionPosition = 0;
@@ -140,14 +140,14 @@ void Menu::setEscKey(std::function<void()>f) {
 
 
 MenuItem::MenuItem(std::string text, std::function<void()> act, consoleHandler* con) {
-	tField = textField((con->width / 4) + 1, 4, (con->width / 2) - 1, 1, COLOR_WHITE, COLOR_BLACK, BORDER_DISABLED, con, textField::center);
+	tField = textField((con->width / 4) + 1, 4, (con->width / 2) , 1, COLOR_WHITE, COLOR_BLACK, BORDER_DISABLED, con, textField::center);
 	tField.setText(text);
 	tField.setEnabled(false);
 	action = act;
 }
 
 shortcutItem::shortcutItem(int pos, std::function<int()> f,consoleHandler* con, std::string text, textField::textAlignment align) {
-	this->tField = textField((con->width / 6) * pos - (con->width / 6) + 1, con->height - 2, con->width / 6 - 4, 1, 7, 0, 1, con, align);
+	this->tField = textField((con->width / 6) * pos - (con->width / 6), con->height - 2, con->width / 6, 3, 7, 0, 1, con, align);
 	char* c = new char[text.length()];
 	strcpy(c, text.c_str());
 	this->tField.setText(c,text.length());

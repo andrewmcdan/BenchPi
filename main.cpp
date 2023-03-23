@@ -115,7 +115,7 @@ int main() {
 
 	// Build the quit confirm screen.
 	// Init a textfield for confirming quit. 
-	textField quitConfirm(0, 0, mainWindow.width - 2, mainWindow.height - 1, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::center);
+	textField quitConfirm(0, 0, mainWindow.width + 1, mainWindow.height + 1, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::center);
 	// Connect the F4 shortcut with its key listener and instantiate all the events to happen when user responds to confirm
 	shortcutF6.setInputListenerIdAndKey(
 		userInput.addListener(
@@ -1099,7 +1099,6 @@ int main() {
 		}, & mainWindow);
 	tAreaMenu.addMenuItem("Mode", [&]() {
 		if (windowManager.getSelectedWindowIndex() != -1) {
-			//@TODO:
 			switch (windowManager.getSelectedWindow()->type) {
 			case WindowManager::windowType::NOT_SET:
 			{
@@ -1251,7 +1250,7 @@ int main() {
 	// End Menu Building Section
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+	// TODO 
 
 
 

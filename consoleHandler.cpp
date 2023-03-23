@@ -44,6 +44,10 @@ textField::textField(){
 		this->theString[i] = '\0';
 	}
 }
+
+/*
+* If border is enabled, be sure to include the 1 char width border with your height and width.
+*/
 textField::textField(int x_coord, int y_coord, int width, int height, short int textColor, short int bgColor, int borderEn, consoleHandler* con, textField::textAlignment align) {
 	this->alignment = align;
 	this->borderColor = COLOR_WHITE;
@@ -135,26 +139,26 @@ int textField::draw() {
 		// print top left corner
 		printw("\u2554");
 		// print top crossbar
-		for (int i = 0; i < this->width; i++) {
+		for (int i = 0; i < this->width - 2; i++) {
 			printw("\u2550");
 		}
 		// print top right corner
 		printw("\u2557");
 		// print left side bar
-		for (int i = 0; i < this->height; i++) {
+		for (int i = 0; i < this->height - 2; i++) {
 			this->mainConsole->setCursorPos(this->x, this->y + i + 1);
 			printw("\u2551");
 		}
 		// print right side bar
-		for (int i = 0; i < this->height; i++) {
-			this->mainConsole->setCursorPos(this->x + this->width + 1, this->y + i + 1);
+		for (int i = 0; i < this->height - 2; i++) {
+			this->mainConsole->setCursorPos(this->x + this->width - 1, this->y + i + 1);
 			printw("\u2551");
 		}
-		this->mainConsole->setCursorPos(this->x, this->y + this->height + 1);
+		this->mainConsole->setCursorPos(this->x, this->y + this->height - 1);
 		// print bottom left corner
 		printw("\u255A");
-		//print top crossbar
-		for (int i = 0; i < this->width; i++) {
+		//print bottom crossbar
+		for (int i = 0; i < this->width - 2; i++) {
 			printw("\u2550");
 		}
 		//print bottom right vorner
@@ -163,10 +167,10 @@ int textField::draw() {
 			// print title crossbar
 			this->mainConsole->setCursorPos(this->x, this->y + 2);
 			printw("\u2560");
-			this->mainConsole->setCursorPos(this->x + this->width + 1, this->y + 2);
+			this->mainConsole->setCursorPos(this->x + this->width - 1, this->y + 2);
 			printw("\u2563");
 			this->mainConsole->setCursorPos(this->x + 1, this->y + 2);
-			for (int i = 0; i < this->width; i++) {
+			for (int i = 0; i < this->width - 2; i++) {
 				printw("\u2550");
 			}
 		}
@@ -178,15 +182,15 @@ int textField::draw() {
 			// the position of the first letter of the titel if found by...
 			// start at the x of the text area, add half the width of the area to get to the middle, then subtract half the length
 			// of the string to back up so that the string is centered.
-			this->mainConsole->setCursorPos(this->x + this->width / 2 - this->title.length() / 2, this->y + 1);
+			this->mainConsole->setCursorPos(this->x + (this->width - 2) / 2 - this->title.length() / 2, this->y + 1);
 			printw(this->title.c_str());
 			titleOffset = 2;
 		}
 
 		// clear the textField so that no remnants of past text show up
-		for (int i = 0; i < this->height - titleOffset; i++) {
+		for (int i = 0; i < (this->height - 2) - titleOffset; i++) {
 			this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i + titleOffset);
-			for (int p = 0; p < this->width; p++) {
+			for (int p = 0; p < (this->width - 2); p++) {
 				printw(" ");
 			}
 		}
@@ -213,7 +217,7 @@ int textField::draw() {
 			// skip into the string as far as needed to ensure that the most
 			// recent lines are shown and older lines are not.
 			int lineNo = 0;
-			for (; lineCount - lineNo > this->height - titleOffset; printPos++) {
+			for (; lineCount - lineNo > (this->height - 2) - titleOffset; printPos++) {
 				if (this->theString[printPos] == '\r') {
 					lineNo++;
 					if (this->theString[printPos + 1] == '\n') printPos += 2;
@@ -224,9 +228,9 @@ int textField::draw() {
 				}
 			}
 			// iterate through all the characters in the string print them.
-			for (int i = 0; i < this->height - titleOffset; i++) {
+			for (int i = 0; i < (this->height - 2) - titleOffset; i++) {
 				this->mainConsole->setCursorPos(this->x + 1, this->y + 1 + i + titleOffset);
-				for (int p = 0; p < this->width; p++) {
+				for (int p = 0; p < (this->width - 2); p++) {
 					//int temp = i * this->width + p;
 					if (theString[printPos] == '\0') break;
 					else if (theString[printPos] == '\r' || theString[printPos] == '\n') {
@@ -241,9 +245,9 @@ int textField::draw() {
 			break;
 		}
 		case center:
-			for (int i = 0; i < this->height; i++) {
-				this->mainConsole->setCursorPos(((this->textLength + 1 - this->width * (i + 1)) > 0) ? (this->x + 1) : (this->x + this->width / 2 + 1 - (this->textLength % this->width) / 2), this->y + 1 + i + titleOffset);
-				for (int p = 0; p < this->width; p++) {
+			for (int i = 0; i < (this->height - 2); i++) {
+				this->mainConsole->setCursorPos(((this->textLength + 1 - (this->width - 2) * (i + 1)) > 0) ? (this->x + 1) : (this->x + (this->width - 2) / 2 + 1 - (this->textLength % (this->width - 2)) / 2), this->y + 1 + i + titleOffset);
+				for (int p = 0; p < (this->width - 2); p++) {
 					//int temp = i * this->width + p;
 					if (theString[printPos] == '\0') break;
 					else if (theString[printPos] == '\r' || theString[printPos] == '\n') {
@@ -432,14 +436,14 @@ WindowManager::WindowManager(consoleHandler* con, loopUpdateHandler* loop, input
 	this->loopHandler = loop;
 	this->userInput = input_h;
 	this->id_ = 1;
-	for (int x = 0; x < con->width - 1; x++) {
+	for (int x = 0; x < con->width; x++) {
 		std::vector<unsigned long> temp;
-		for (int y = 0; y < con->height - 4; y++) {
+		for (int y = 0; y < con->height - 2; y++) {
 			temp.push_back(0);
 		}
 		this->fieldArray.push_back(temp);
 	}
-	this->createWindow(0, 0, con->width - 1, con->height - 4, "", 0);
+	this->createWindow(0, 0, con->width, con->height - 2, "test", 0);
 	this->userInput->addListener([this](int c, TIMEPOINT_T t) {
 		this->selectNextWindow();
 		return 1;
@@ -452,11 +456,24 @@ WindowManager::WindowManager(consoleHandler* con, loopUpdateHandler* loop, input
 }
 
 bool WindowManager::createWindow(int x, int y, int width, int height, std::string title, int priority) {
+	std::string debugString = "echo \"";
 	for (int x_ = x; x_ < x + width; x_++) {
 		for (int y_ = y; y_ < y + height; y_++) {
 			this->fieldArray.at(x_).at(y_) = this->id_;
 		}
 	}
+	
+
+	for (int r = 0; r < this->mainConsole->height - 2; r++) {
+		for (int c = 0; c < this->mainConsole->width ; c++) {
+			debugString += std::to_string(this->fieldArray.at(c).at(r));
+		}
+		debugString += "\r\n";
+	}
+	debugString += " \" > /dev/pts/1";
+	std::system(debugString.c_str());
+
+
 	struct window_s window;
 	window.x = x;
 	window.y = y;
@@ -551,34 +568,38 @@ void WindowManager::splitWindowVert(unsigned int numDivs){
 	int currentH = this->getSelectedWindow()->height;
 	int currentW = this->getSelectedWindow()->width;
 	int newH = currentH;
-	int newW = (currentW / numDivs) - 2;
+	int newW = currentW / numDivs;
 	if (newW < 5) return;
 	this->getSelectedWindow()->tField.changeHW(newW, newH);
 	this->getSelectedWindow()->height = newH;
 	this->getSelectedWindow()->width = newW;
-	int startX = this->getSelectedWindow()->x + newW + 2;
+	int startX = this->getSelectedWindow()->x + newW;
 	int startY = this->getSelectedWindow()->y;
 
-	for (int i = 0; i < (numDivs - 1); i++) {
-		this->createWindow(startX + ((newW + 2)* i), startY, newW, newH, "", this->getSelectedWindow()->priority);
+	int i = 0;
+	for (; i < (numDivs - 2); i++) {
+		this->createWindow(startX + (newW * i), startY, newW, newH, "", this->getSelectedWindow()->priority);
 	}
+	this->createWindow(startX + (newW * i), startY, newW + (currentW % numDivs), newH, "", this->getSelectedWindow()->priority);
 }
 
 void WindowManager::splitWindowHoriz(unsigned int numDivs){
 	int currentH = this->getSelectedWindow()->height;
 	int currentW = this->getSelectedWindow()->width;
-	int newH = (currentH / numDivs) - 2;
+	int newH = currentH / numDivs;
 	int newW = currentW;
 	if (newH < 1)return;
 	this->getSelectedWindow()->tField.changeHW(newW, newH);
 	this->getSelectedWindow()->height = newH;
 	this->getSelectedWindow()->width = newW;
 	int startX = this->getSelectedWindow()->x;
-	int startY = this->getSelectedWindow()->y + newH + 2;
+	int startY = this->getSelectedWindow()->y + newH;
 
-	for (int i = 0; i < (numDivs - 1); i++) {
-		this->createWindow(startX, startY + ((newH + 2) * i), newW, newH, "", this->getSelectedWindow()->priority);
+	int i = 0;
+	for (; i < (numDivs - 2); i++) {
+		this->createWindow(startX, startY + (newH * i), newW, newH, "", this->getSelectedWindow()->priority);
 	}
+	this->createWindow(startX, startY + (newH * i), newW, newH + (currentH % numDivs), "", this->getSelectedWindow()->priority);
 }
 
 void WindowManager::setWindowType(unsigned long id){}
