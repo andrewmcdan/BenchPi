@@ -926,6 +926,8 @@ int main() {
 	Menu tAreaSubMenu_enDisTitle(&loop, &mainWindow, &userInput, "Area Title");
 	Menu tAreaSubMenu_mode(&loop, &mainWindow, &userInput, "Mode");
 	Menu tAreaSubMenu_Split(&loop, &mainWindow, &userInput, "Split");
+	Menu tAreaSubMenu_Merge(&loop, &mainWindow, &userInput, "Merge");
+	Menu tAreaSubMenu_Resize(&loop, &mainWindow, &userInput, "Resize");
 	Menu tAreaSubMenu_Move(&loop, &mainWindow, &userInput, "Move");
 	Menu tAreaSubMenu_zAdjust(&loop, &mainWindow, &userInput, "Z Adjustment");
 	Menu tAreaSubMenu_templates(&loop, &mainWindow, &userInput, "Templates");
@@ -1189,6 +1191,30 @@ int main() {
 		tAreaSubMenu_Split.setEscKey([&]() {
 			tAreaSubMenu_Split.disableMenu();
 			tAreaSubMenu_Split.resetMenuItemList();
+			tAreaMenu.enableMenu();
+			});
+		}, & mainWindow);
+	tAreaMenu.addMenuItem("Merge", [&]() {
+		//@TODO:
+		// if windowManager.firstWindow is true, check to see if there is a selected window.
+		// then inform the user to press enter to go into window2 selection mode. 
+		//
+		// if firstWindow is false, we are have both windows selected. inform user to press enter
+		// to merge. then reset firstWindow to true, reset secondSelectedWindowID to -1, and call mergeWindows.
+		windowManager.mergeWindows(1, 5); // testing
+
+		tAreaMenu.disableMenu();
+		tAreaSubMenu_Merge.enableMenu();
+		tAreaSubMenu_Merge.setEscKey([&]() {
+			tAreaSubMenu_Merge.disableMenu();
+			tAreaMenu.enableMenu();
+			});
+		}, & mainWindow);
+	tAreaMenu.addMenuItem("Resize", [&]() {
+		tAreaMenu.disableMenu();
+		tAreaSubMenu_Resize.enableMenu();
+		tAreaSubMenu_Resize.setEscKey([&]() {
+			tAreaSubMenu_Resize.disableMenu();
 			tAreaMenu.enableMenu();
 			});
 		}, & mainWindow);

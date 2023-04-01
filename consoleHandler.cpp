@@ -438,7 +438,7 @@ WindowManager::WindowManager(consoleHandler* con, loopUpdateHandler* loop, input
 	this->id_ = 1;
 	for (int x = 0; x < con->width; x++) {
 		std::vector<unsigned long> temp;
-		for (int y = 0; y < con->height - 2; y++) {
+		for (int y = 0; y < con->height - 1; y++) {
 			temp.push_back(0);
 		}
 		this->fieldArray.push_back(temp);
@@ -456,7 +456,7 @@ WindowManager::WindowManager(consoleHandler* con, loopUpdateHandler* loop, input
 }
 
 bool WindowManager::createWindow(int x, int y, int width, int height, std::string title, int priority) {
-	std::string debugString = "echo \"";
+	//std::string debugString = "echo \"";
 	for (int x_ = x; x_ < x + width; x_++) {
 		for (int y_ = y; y_ < y + height; y_++) {
 			this->fieldArray.at(x_).at(y_) = this->id_;
@@ -464,14 +464,14 @@ bool WindowManager::createWindow(int x, int y, int width, int height, std::strin
 	}
 	
 
-	for (int r = 0; r < this->mainConsole->height - 2; r++) {
-		for (int c = 0; c < this->mainConsole->width ; c++) {
-			debugString += std::to_string(this->fieldArray.at(c).at(r));
-		}
-		debugString += "\r\n";
-	}
-	debugString += " \" > /dev/pts/1";
-	std::system(debugString.c_str());
+	//for (int r = 0; r < this->mainConsole->height - 2; r++) {
+		//for (int c = 0; c < this->mainConsole->width ; c++) {
+			//debugString += std::to_string(this->fieldArray.at(c).at(r));
+		//}
+		//debugString += "\r\n";
+	//}
+	//debugString += " \" > /dev/pts/1";
+	//std::system(debugString.c_str());
 
 
 	struct window_s window;
@@ -487,6 +487,7 @@ bool WindowManager::createWindow(int x, int y, int width, int height, std::strin
 	window.loopEventId = 0;
 	window.priority = priority;
 	window.titleEnabled = false;
+	window.destroyed = false;
 	this->windows.push_back(window);
 	size_t t = this->windows.size() - 1;
 	this->windows.at(t).loopEventId = this->loopHandler->addEvent([this,t]() {
@@ -502,42 +503,55 @@ bool WindowManager::destroyWindow(unsigned long id) {
 	for (size_t i = 0; i < this->windows.size() && itr != this->windows.end(); i++, itr++) {
 		if (this->windows.at(i).id == id) {
 			this->loopHandler->remove(this->windows.at(i).loopEventId);
-			this->windows.erase(itr);
+			this->windows.at(i).destroyed = true;
 		}
 	}
 	return true; 
 }
 
 void WindowManager::selectNextWindow(){
-	if (this->selectedWindowID == -1) {
-		this->selectedWindowID = this->windows.at(0).id;
+	if (-1 == (this->firstWindow ? this->selectedWindowID : this->secondSelectedWindowID)) {
+		this->firstWindow ? this->selectedWindowID = this->windows.at(0).id : this->secondSelectedWindowID = this->windows.at(0).id;
 	}
 	else {
 		for (std::size_t i = 0; i < this->windows.size(); i++) {
-			if ((this->selectedWindowID == this->windows.at(i).id) && (i < (this->windows.size() - 1))) {
-				this->selectedWindowID = this->windows.at(i + 1).id;
+			if ((this->windows.at(i).id == (this->firstWindow ? this->selectedWindowID : this->secondSelectedWindowID)) && (i < (this->windows.size() - 1))) {
+				this->firstWindow ? this->selectedWindowID = this->windows.at(i + 1).id : this->secondSelectedWindowID = this->windows.at(i + 1).id;
 				break;
 			}
-			else if ((this->selectedWindowID == this->windows.at(i).id) && (i == (this->windows.size() - 1))) {
-				this->selectedWindowID = -1;
+			else if ((this->windows.at(i).id == (this->firstWindow ? this->selectedWindowID : this->secondSelectedWindowID)) && (i == (this->windows.size() - 1))) {
+				this->firstWindow ? this->selectedWindowID = -1 : this->secondSelectedWindowID = -1;
 			}
 		}
 	}
+	if (this->getSelectedWindow() != nullptr) {
+		if (this->getSelectedWindow()->destroyed) this->selectNextWindow();
+	}
+	if (this->getSecondSelectedWindow() != nullptr) {
+		if (this->getSecondSelectedWindow()->destroyed) this->selectNextWindow();
+	}
+	
 }
 
 void WindowManager::selectPrevWindow(){
-	if (this->selectedWindowID == -1) {
-		this->selectedWindowID = this->windows.at(this->windows.size() - 1).id;
+	if (-1 == (this->firstWindow ? this->selectedWindowID : this->secondSelectedWindowID)) {
+		this->firstWindow ? this->selectedWindowID = this->windows.at(this->windows.size() - 1).id : this->secondSelectedWindowID = this->windows.at(this->windows.size() - 1).id;
 	}
 	else {
 		for (size_t i = 0; i < this->windows.size(); i++) {
-			if ((this->selectedWindowID == this->windows.at(i).id) && (i > 0)) {
-				this->selectedWindowID = this->windows.at(i - 1).id;
+			if ((this->windows.at(i).id == (this->firstWindow ? this->selectedWindowID : this->secondSelectedWindowID)) && (i > 0)) {
+				this->firstWindow ? this->selectedWindowID = this->windows.at(i - 1).id : this->secondSelectedWindowID = this->windows.at(i - 1).id;
 			}
-			else if ((this->selectedWindowID == this->windows.at(i).id) && (i == 0)) {
-				this->selectedWindowID = -1;
+			else if ((this->windows.at(i).id == (this->firstWindow ? this->selectedWindowID : this->secondSelectedWindowID)) && (i == 0)) {
+				this->firstWindow ? this->selectedWindowID = -1 : this->secondSelectedWindowID = -1;
 			}
 		}
+	}
+	if (this->getSelectedWindow() != nullptr) {
+		if (this->getSelectedWindow()->destroyed) this->selectPrevWindow();
+	}
+	if (this->getSecondSelectedWindow() != nullptr) {
+		if (this->getSecondSelectedWindow()->destroyed) this->selectPrevWindow();
 	}
 }
 
@@ -608,6 +622,8 @@ void WindowManager::update() {
 	for (unsigned int i = 0; i < this->windows.size(); i++) {
 		if (this->selectedWindowID == this->windows.at(i).id) {
 			this->windows.at(i).tField.setBorderColor(COLOR_CYAN);
+		}else if (this->secondSelectedWindowID == this->windows.at(i).id) {
+			this->windows.at(i).tField.setBorderColor(COLOR_RED);
 		}
 		else {
 			this->windows.at(i).tField.setBorderColor(COLOR_WHITE);
@@ -656,7 +672,75 @@ long WindowManager::getSelectedWindowIndex() {
 	}
 }
 
+long WindowManager::getSecondSelectedWindowIndex() {
+	if (this->secondSelectedWindowID == -1)return -1;
+	for (unsigned int i = 0; i < this->windows.size(); i++) {
+		if (this->windows.at(i).id == this->secondSelectedWindowID) return i;
+	}
+}
+
 WindowManager::window_s* WindowManager::getSelectedWindow() {
 	if (this->getSelectedWindowIndex() == -1)return nullptr;
 	return &this->windows.at(this->getSelectedWindowIndex());
+}
+
+WindowManager::window_s* WindowManager::getSecondSelectedWindow() {
+	if (this->getSecondSelectedWindowIndex() == -1)return nullptr;
+	return &this->windows.at(this->getSecondSelectedWindowIndex());
+}
+
+void WindowManager::mergeWindows(unsigned int id_windowToKeep, unsigned int id_windowToMerge) {
+	// @TODO: This method will need to analyze the fieldArray vector to determine which windows will get destroyed.
+	// Basically, draw a rectangle that starts at the windowToKeep and includes the windowToMerge. Anything within
+	// that rectangle gets destroyed, except the windowToKeep, which gets resized to fill the rectangle.
+	std::vector<unsigned long>idsToDestroy;
+
+	int windowToKeep_index, windowToMerge_index;
+	for (int i = 0; i < this->windows.size(); i++) {
+		if (this->windows.at(i).id == id_windowToKeep) windowToKeep_index = i; 
+		if (this->windows.at(i).id == id_windowToMerge) windowToMerge_index = i;
+	}
+
+	int startX = this->windows.at(windowToKeep_index).x;
+	int endX = this->windows.at(windowToMerge_index).x;
+	if (startX < endX) {
+		endX += this->windows.at(windowToMerge_index).width - 1;
+	}
+	else {
+		startX += this->windows.at(windowToKeep_index).width - 1;
+	}
+	int startY = this->windows.at(windowToKeep_index).y;
+	int endY = this->windows.at(windowToMerge_index).y;
+	if (startY < endY) {
+		endY += this->windows.at(windowToMerge_index).height - 1;
+	}
+	else {
+		startY += this->windows.at(windowToKeep_index).height - 1;
+	}
+	int X_start_end_diff = std::abs(startX - endX);
+	int Y_start_end_diff = std::abs(startY - endY);
+	int XchangePerIt = startX < endX ? 1 : -1;
+	int YchangePerIt = startY < endY ? 1 : -1;
+	for (int x = startX; startX < endX ? x < endX : x > endX; x += XchangePerIt) {
+		for (int y = startY; startY < endY ? y < endY : y > endY; y += YchangePerIt) {
+			unsigned long id_at_this_point = this->fieldArray.at(x).at(y);
+			bool found = false;
+			for (int i = 0; i < idsToDestroy.size(); i++) {
+				if (idsToDestroy.at(i) == id_at_this_point) found = true;
+			}
+			if (!found) idsToDestroy.push_back(id_at_this_point);
+		}
+	}
+
+	for (int x = startX; startX < endX ? x < endX : x > endX; x += XchangePerIt) {
+		for (int y = startY; startY < endY ? y < endY : y > endY; y += YchangePerIt) {
+			this->fieldArray.at(x).at(y) = id_windowToKeep;
+		}
+	}
+
+	for (int i = 0; i < idsToDestroy.size(); i++) {
+		if (idsToDestroy.at(i) != id_windowToKeep) this->destroyWindow(idsToDestroy.at(i));
+	}
+
+	this->windows.at(windowToKeep_index).tField.changeHW(X_start_end_diff + 1, Y_start_end_diff + 1);
 }

@@ -37,7 +37,7 @@ public:
 	unsigned long addEvent(std::function<int()> f, int priority);
 
 	// Remove an event from the loop. "id" comes from the returned value from addEvent()
-	// Returns numbered of registered loop events. 
+	// Returns numbered of registered loop events or -1 if ID was not found.
 	int remove(unsigned long id);
 
 	// Handles all the registered evnets. 
