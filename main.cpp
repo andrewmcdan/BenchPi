@@ -70,7 +70,7 @@ int main() {
 	// this variable is used in the loop below to exit the program
 	bool run = true;
 	
-	// Init all the handler onjects
+	// Init all the handler objects
 	consoleHandler mainWindow = consoleHandler();
 	loopUpdateHandler loop = loopUpdateHandler();
 	inputHandler userInput = inputHandler(&loop);
@@ -1195,18 +1195,35 @@ int main() {
 			});
 		}, & mainWindow);
 	tAreaMenu.addMenuItem("Merge", [&]() {
-		//@TODO:
-		// if windowManager.firstWindow is true, check to see if there is a selected window.
-		// then inform the user to press enter to go into window2 selection mode. 
-		//
-		// if firstWindow is false, we are have both windows selected. inform user to press enter
-		// to merge. then reset firstWindow to true, reset secondSelectedWindowID to -1, and call mergeWindows.
-		windowManager.mergeWindows(1, 5); // testing
-
+		if (windowManager.firstWindow) {
+			if (windowManager.getSelectedWindowIndex() == -1) {
+				tAreaSubMenu_Merge.addMenuItem("No window selected.", []() {}, & mainWindow);
+			}
+			else {
+				tAreaSubMenu_Merge.addMenuItem("Press Enter to enable second window select", [&]() {
+					windowManager.selectSecondWindow();
+					}, & mainWindow);
+				tAreaSubMenu_Merge.addMenuItem("Then go back and select the second window", [&]() {
+					windowManager.selectSecondWindow();
+					}, & mainWindow);
+			}
+		}
+		else {
+			if (windowManager.getSecondSelectedWindowIndex() == -1) {
+				tAreaSubMenu_Merge.addMenuItem("Second window not selected.", []() {}, & mainWindow);
+			}
+			else {
+				tAreaSubMenu_Merge.addMenuItem("Ready to merge, press Enter", [&]() {
+					windowManager.mergeWindows(windowManager.getSelectedWindow()->id, windowManager.getSecondSelectedWindow()->id);
+					windowManager.resetSelectSecondWindow();
+					}, & mainWindow);
+			}
+		}
 		tAreaMenu.disableMenu();
 		tAreaSubMenu_Merge.enableMenu();
 		tAreaSubMenu_Merge.setEscKey([&]() {
 			tAreaSubMenu_Merge.disableMenu();
+			tAreaSubMenu_Merge.resetMenuItemList();
 			tAreaMenu.enableMenu();
 			});
 		}, & mainWindow);

@@ -721,6 +721,8 @@ void WindowManager::mergeWindows(unsigned int id_windowToKeep, unsigned int id_w
 	int Y_start_end_diff = std::abs(startY - endY);
 	int XchangePerIt = startX < endX ? 1 : -1;
 	int YchangePerIt = startY < endY ? 1 : -1;
+	int newX = startX < endX ? startX : startX - X_start_end_diff;
+	int newY = startY < endY ? startY : startY - Y_start_end_diff;
 	for (int x = startX; startX < endX ? x < endX : x > endX; x += XchangePerIt) {
 		for (int y = startY; startY < endY ? y < endY : y > endY; y += YchangePerIt) {
 			unsigned long id_at_this_point = this->fieldArray.at(x).at(y);
@@ -743,4 +745,18 @@ void WindowManager::mergeWindows(unsigned int id_windowToKeep, unsigned int id_w
 	}
 
 	this->windows.at(windowToKeep_index).tField.changeHW(X_start_end_diff + 1, Y_start_end_diff + 1);
+	this->windows.at(windowToKeep_index).tField.move(newX, newY);
+	this->windows.at(windowToKeep_index).height = Y_start_end_diff + 1;
+	this->windows.at(windowToKeep_index).width = X_start_end_diff + 1;
+	this->windows.at(windowToKeep_index).x = newX;
+	this->windows.at(windowToKeep_index).y = newY;
+}
+
+void WindowManager::selectSecondWindow() {
+	this->firstWindow = false;
+	this->selectNextWindow();
+}
+void WindowManager::resetSelectSecondWindow() {
+	this->firstWindow = true;
+	this->secondSelectedWindowID = -1;
 }

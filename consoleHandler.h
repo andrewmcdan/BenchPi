@@ -89,7 +89,7 @@ public:
 	enum windowType : unsigned int;
 	enum dataSource : unsigned int;
 	bool firstWindow = true;
-	long secondSelectedWindowID = -1;
+	
 private:
 	struct window_s {
 		textField tField;
@@ -108,7 +108,7 @@ private:
 	inputHandler* userInput;
 	std::vector<std::vector<unsigned long>>fieldArray;
 	long selectedWindowID = -1;
-	
+	long secondSelectedWindowID = -1;
 
 public:
 	WindowManager(consoleHandler* con, loopUpdateHandler* loop, inputHandler* input_h);
@@ -128,6 +128,8 @@ public:
 	void decreaseWinodwPriority(unsigned long id);
 	long getSelectedWindowIndex();
 	long getSecondSelectedWindowIndex();
+	void selectSecondWindow();
+	void resetSelectSecondWindow();
 	window_s* getSelectedWindow();
 	window_s* getSecondSelectedWindow();
 	std::vector<window_s> windows;
