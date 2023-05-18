@@ -886,6 +886,15 @@ int main() {
 
 	Menu meterConfigMenu = Menu(&loop, &mainWindow, &userInput, "Meter Config");
 
+    Menu meterConfigSubMenu_meterSelect = Menu(&loop, &mainWindow, &userInput, "Meter Select");
+    Menu meterConfigSubMenu_meterType = Menu(&loop, &mainWindow, &userInput, "Meter Type");
+    Menu meterConfigSubMenu_meterRange = Menu(&loop, &mainWindow, &userInput, "Meter Range");
+    Menu meterConfigSubMenu_meterScale = Menu(&loop, &mainWindow, &userInput, "Meter Scale");
+    Menu meterConfigSubMenu_meterOptions = Menu(&loop, &mainWindow, &userInput, "Meter Options");
+    Menu meterConfigSubMenu_meterDisplay = Menu(&loop, &mainWindow, &userInput, "Meter Display");
+    Menu meterConfigSubMenu_meterColor = Menu(&loop, &mainWindow, &userInput, "Meter Color");
+
+
 	shortcutF4.setInputListenerIdAndKey(
 		userInput.addListener([&](int c, TIMEPOINT_T time) {
 			userInput.setKeyDisabled(KEY_F(1), true);
