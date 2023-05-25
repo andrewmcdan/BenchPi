@@ -55,7 +55,7 @@ public:
 	void getPortAlias(int index, std::string& alias);
 	int getPortBaud(int index);
 	bool getPortAvailable(int index);
-	void setPortAvaialble(int i, bool b);
+	void setPortAvailable(int i, bool b);
 	bool writeDataToPort(int index, char* data, int len);
 	bool writeDataToPort(int index, std::string s);
 	bool setAddonControllerForData(std::string portName, AddonController* ctrl);

@@ -209,7 +209,7 @@ int main() {
 		if (temp2.length() > 0) temp4 = temp1 + " : " + temp2 + " - " + temp3;
 		else temp4 = temp1 + " - " + temp3;
 		enDisSerialDevsMenu.addMenuItem(temp4, [&, i]() {
-			serialPortManager.setPortAvaialble(i, !serialPortManager.getPortAvailable(i));
+			serialPortManager.setPortAvailable(i, !serialPortManager.getPortAvailable(i));
 			std::string temp5;
 			serialPortManager.getPortName(i, temp5);
 			std::string temp6;

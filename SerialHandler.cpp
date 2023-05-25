@@ -334,7 +334,7 @@ void SerialHandler::setPortAlias(std::string s, std::string port) {
 	}
 }
 
-void SerialHandler::setPortAvaialble(int i,bool b) {
+void SerialHandler::setPortAvailable(int i,bool b) {
 	if (i < 0 || i > this->ports.size()) return;
 	this->ports.at(i).available = b;
 }
