@@ -108,6 +108,24 @@ public:
 	struct termios2 tty;
 	SerialHandler* serial_;
 
+	enum ampScale : unsigned int {
+		MILLIAMPS, AMPS
+	};
+
+	enum voltScale : unsigned int {
+		MILLIVOLTS, VOLTS
+	};
+
+	enum meterDisplayMode : unsigned int {
+		BAR_GRAPH_HORIZ_1,
+		BAR_GRAPH_HORIZ_2,
+		BAR_GRAPH_VERT_1,
+		BAR_GRAPH_VERT_2,
+		NUMERIC_1,
+		NUMERIC_2,
+		NUMERIC_3
+	};
+
 	struct ammeter {
 		std::string name;
 		textField* tField;
@@ -115,6 +133,8 @@ public:
 		long milliampsMax;
 		long milliampsAvg;
 		long milliampsInst;
+		ampScale scale;
+		meterDisplayMode displayMode;
 	};
 	std::vector<ammeter> ammeters_v;
 
@@ -125,6 +145,8 @@ public:
 		long millivoltsMax;
 		long millivoltsAvg;
 		long millivoltsInst;
+		voltScale scale;
+		meterDisplayMode displayMode;
 	};
 	std::vector<voltmeter> voltmeters_v;
 

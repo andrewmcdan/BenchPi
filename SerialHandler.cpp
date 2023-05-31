@@ -454,12 +454,12 @@ void AddonController::update(char* data, int len) {
 						if (idByte > this->ammeters_v.size()) {
 							debugString += "A: ";
 							debugString += std::to_string(idByte);
-							for (unsigned char t_ = this->ammeters_v.size(); t_ < idByte; t_++) {
+							for (size_t t_ = this->ammeters_v.size(); t_ < idByte; t_++) {
 								this->ammeters_v.push_back({
-									"Ammeter " + t_,
+									"Ammeter " + std::to_string(t_),
 									NULL, // Null becuase the tField needs to be created by the window manager
 									false,
-									0,0,0
+									0,0,0,AddonController::ampScale::MILLIAMPS,AddonController::meterDisplayMode::NUMERIC_1
 									});
 							}
 						}
@@ -476,17 +476,17 @@ void AddonController::update(char* data, int len) {
 						debugString += "\t";
 						break;
 					}
-					case 0xa1:
+					case 0xa1: // voltmeter
 					{
 						debugString += "8 ";
 						// if the id is larger than the sizeof the voltmeter vector, add to the vector
 						if (idByte > this->voltmeters_v.size()) {
-							for (unsigned char t_ = this->voltmeters_v.size(); t_ < idByte; t_++) {
+							for (size_t t_ = this->voltmeters_v.size(); t_ < idByte; t_++) {
 								this->voltmeters_v.push_back({
-									"Voltmeter " + t_,
+									"Voltmeter " + std::to_string(t_),
 									NULL, // Null becuase the tField needs to be created by the window manager
 									false,
-									0,0,0
+									0,0,0,AddonController::voltScale::MILLIVOLTS,AddonController::meterDisplayMode::NUMERIC_1
 									});
 							}
 						}
@@ -500,7 +500,7 @@ void AddonController::update(char* data, int len) {
 						this->voltmeters_v.at(idByte - 1).millivoltsMax = this->unprocessedData.at(14) << (8 * 3) | this->unprocessedData.at(15) << (8 * 2) | this->unprocessedData.at(16) << 8 | this->unprocessedData.at(17);
 						break;
 					}
-					case 0xa2:
+					case 0xa2: // serial port data
 					{
 						debugString += "9 ";
 						// if the id is larger than the sizeof the serialports vector, add to the vector

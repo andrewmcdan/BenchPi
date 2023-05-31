@@ -121,7 +121,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <UndefinePreprocessorDefinitions>%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
-      <AdditionalOptions>-D__LINUX_ALSA__ %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-D__LINUX_ALSA__ -DENABLE_ALL_MENUS %(AdditionalOptions)</AdditionalOptions>
       <CppLanguageStandard>c++17</CppLanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>

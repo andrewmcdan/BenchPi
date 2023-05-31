@@ -101,6 +101,7 @@ private:
 		unsigned long loopEventId;
 		bool titleEnabled;
 		bool destroyed;
+		//unsigned int deviceIndex; // used to index into the appropriate device vector or array
 	};
 	unsigned long id_;
 	consoleHandler* mainConsole;

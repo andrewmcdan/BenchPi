@@ -50,7 +50,7 @@ private:
 
 class shortcutItem {
 public:
-	shortcutItem(int pos, std::function<int()> f, consoleHandler* con, std::string text, textField::textAlignment align);
+	shortcutItem(int pos, consoleHandler* con, std::string text, textField::textAlignment align);
 	void setInputListenerIdAndKey(int id, int key);
 	textField tField;
 	int key;

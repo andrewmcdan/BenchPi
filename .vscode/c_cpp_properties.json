@@ -3,7 +3,9 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:\\Users\\Andrew\\AppData\\Local\\Microsoft\\Linux\\HeaderCache\\1.0\\204907734\\usr\\include\\**",
+                "C:\\Users\\Andrew\\AppData\\Local\\Microsoft\\Linux\\HeaderCache\\1.0\\204907734\\usr\\**"
             ],
             "defines": [
                 "_DEBUG",

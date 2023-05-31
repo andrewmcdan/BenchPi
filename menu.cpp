@@ -146,7 +146,7 @@ MenuItem::MenuItem(std::string text, std::function<void()> act, consoleHandler* 
 	action = act;
 }
 
-shortcutItem::shortcutItem(int pos, std::function<int()> f,consoleHandler* con, std::string text, textField::textAlignment align) {
+shortcutItem::shortcutItem(int pos, consoleHandler* con, std::string text, textField::textAlignment align) {
 	this->tField = textField((con->width / 6) * pos - (con->width / 6), con->height - 2, con->width / 6, 3, 7, 0, 1, con, align);
 	char* c = new char[text.length()];
 	strcpy(c, text.c_str());
