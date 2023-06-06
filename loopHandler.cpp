@@ -27,8 +27,8 @@ int loopUpdateHandler::remove(unsigned long id) {
 }
 
 void loopUpdateHandler::handleAll() {
-	int highestPriority = -100;
-	int lowestPriority = 100;
+	int highestPriority = -500;
+	int lowestPriority = 500;
 	for (size_t i = 0; i < this->events.size(); i++) {
 		if (this->events.at(i).priority > highestPriority) highestPriority = this->events.at(i).priority;
 		if (this->events.at(i).priority < lowestPriority) lowestPriority = this->events.at(i).priority;
@@ -41,9 +41,6 @@ void loopUpdateHandler::handleAll() {
 		}
 	}
 }
-
-
-
 
 
 inputHandler::inputHandler(loopUpdateHandler* loop) {

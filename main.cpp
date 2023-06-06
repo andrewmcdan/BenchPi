@@ -1607,61 +1607,9 @@ int main() {
 	// TODO 
 
 
-
-
-
-
-
-	//textField testTextField(0, 0, mainWindow.width / 2, 5, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
-	//testTextField.setClearOnPrint(false);
-	//for (int i = 0; i < midi.midiInDevices.size(); i++) {
-	//	testTextField.setText(midi.midiInDevices.at(i).name + "\r");
-	//}
-	//testTextField.draw();
-
-	//textField anotherTF(0, 7, mainWindow.width / 3, mainWindow.height - 11, COLOR_WHITE, COLOR_BLACK, BORDER_ENABLED, &mainWindow, textField::textAlignment::left);
-	//tf_global = &anotherTF;
-	////anotherTF.draw();
-	//anotherTF.setClearOnPrint(false);
-	//midi.openInPort(2, false, false, false, &anotherTF);
-	//try {
-	//	if (midi.midiInDevices.size() > 1) midi.midiInDevices.at(2).enabled = true;
-	//}
-	//catch(std::out_of_range& oor){}
-	//loop.addEvent([&midi]() {
-	//	midi.update();
-	//return 1;
-	//	});
-	//anotherTF.setBorderColor(COLOR_CYAN);
-	//anotherTF.setTitle("test text area");
-
-	// testing printing text from keyboard into textField
-	/*testTextField.setClearOnPrint(false);
-	userInput.addListener([&testTextField](int c, TIMEPOINT_T t) {
-		char c1 = c;
-		testTextField.setText(&c1, 1);
-		return 0;
-		}, KEY_ALL_ASCII);
-
-	loop.addEvent([&testTextField]() {
-		return testTextField.draw();
-		});
-	loop.addEvent([&anotherTF]() {
-		return anotherTF.draw();
-		});
-	
-	std::string portName = "/dev/ttyUSB0";
-	serialPortManager.openPort(portName);
-	serialPortManager.setPortConfig(portName, 9600);
-	serialPortManager.setTextFieldForPort("/dev/ttyUSB0", &anotherTF);
-	*/
-
-
 	while (run) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-		loop.handleAll(); // handles all the loop events that hanve been registered
-		// last thing to do in the loop is push the buffer to the dispaly.
-		
+		loop.handleAll(); // handles all the loop events that hanve been registered		
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		if (displayLoopTime) {
 			int64_t loopTime = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
@@ -1695,11 +1643,9 @@ int main() {
 			userInput.emitEvent(KEY_ENTER);
 			emitOnce4 = true;
 		}*/
-		refresh();
-		
-		// sleep for ~1ms so that the CPU isn't being hammered all the time.
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
+		refresh(); // push the buffer to the display.
+		std::this_thread::sleep_for(std::chrono::milliseconds(1)); // sleep for ~1ms so that the CPU isn't being hammered all the time.
 	}
 	mainWindow.clearScreen();
 	serialPortManager.closeAllPorts();
